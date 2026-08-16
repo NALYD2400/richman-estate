@@ -1,27 +1,31 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "rewrites": [
+  "redirects": [
     {
       "source": "/vehicules",
+      "statusCode": 302,
       "has": [{ "type": "query", "key": "select" }],
       "missing": [{ "type": "query", "key": "shared" }],
       "destination": "/api/og-vehicule"
     },
     {
       "source": "/vehicules.html",
+      "statusCode": 302,
       "has": [{ "type": "query", "key": "select" }],
       "missing": [{ "type": "query", "key": "shared" }],
       "destination": "/api/og-vehicule"
     },
     {
       "source": "/suites",
+      "statusCode": 302,
       "has": [{ "type": "query", "key": "select" }],
       "missing": [{ "type": "query", "key": "shared" }],
       "destination": "/api/og-suite"
     },
     {
       "source": "/suites.html",
+      "statusCode": 302,
       "has": [{ "type": "query", "key": "select" }],
       "missing": [{ "type": "query", "key": "shared" }],
       "destination": "/api/og-suite"

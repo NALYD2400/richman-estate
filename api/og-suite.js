@@ -35,7 +35,8 @@ module.exports = async function handler(req, res) {
     const shareUrl = `${siteUrl()}/suites?select=${encodeURIComponent(name.toLowerCase().trim())}`;
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=300");
+    // private (pas de s-maxage) : évite que le CDN serve la réponse OG aux humains
+    res.setHeader("Cache-Control", "private, max-age=300");
     res.status(200).send(renderOgHtml({
       title,
       description: truncate(suite.specs || DEFAULT_DESC),

@@ -41,13 +41,19 @@ module.exports = async function handler(req, res) {
       }
     } catch (e) { /* specs illisibles : valeurs par défaut */ }
 
+    // Miroir du client : les textes "Gamme XXX" ne sont pas de vraies descriptions
+    if (!description || description.toLowerCase().startsWith("gamme")) {
+      description = DEFAULT_DESC;
+    }
+
     const image = firstMediaUrl(media) || `${SCREENSHOT_CDN}/${encodeURIComponent(name.toLowerCase().trim())}.webp`;
     const price = String(vehicle.price || "Sur devis");
     const title = `${name.toUpperCase()} — ${price} / 24h | Richman Estate`;
     const shareUrl = `${siteUrl()}/vehicules?select=${encodeURIComponent(name.toLowerCase().trim())}`;
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=300");
+    // private (pas de s-maxage) : évite que le CDN serve la réponse OG aux humains
+    res.setHeader("Cache-Control", "private, max-age=300");
     res.status(200).send(renderOgHtml({
       title,
       description: truncate(description || DEFAULT_DESC),
