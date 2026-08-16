@@ -29,9 +29,12 @@ module.exports = async function handler(req, res) {
     }
 
     const name = String(suite.name || select);
-    const image = firstMediaUrl(suite.media_urls) || LOGO_FALLBACK;
-    const price = String(suite.price || "Sur devis");
-    const title = `${name} — ${price} / nuit | Richman Estate`;
+    const rawImage = firstMediaUrl(suite.media_urls);
+    // Discord ne rend pas les data: URIs en og:image — fallback logo si non http(s)
+    const image = /^https?:\/\//i.test(rawImage) ? rawImage : LOGO_FALLBACK;
+    const priceRaw = String(suite.price || "Sur devis");
+    const price = /\//.test(priceRaw) ? priceRaw : `${priceRaw} / nuit`;
+    const title = `${name} — ${price} | Richman Estate`;
     const shareUrl = `${siteUrl()}/suites?select=${encodeURIComponent(name.toLowerCase().trim())}`;
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");

@@ -47,8 +47,9 @@ module.exports = async function handler(req, res) {
     }
 
     const image = firstMediaUrl(media) || `${SCREENSHOT_CDN}/${encodeURIComponent(name.toLowerCase().trim())}.webp`;
-    const price = String(vehicle.price || "Sur devis");
-    const title = `${name.toUpperCase()} — ${price} / 24h | Richman Estate`;
+    const priceRaw = String(vehicle.price || "Sur devis");
+    const price = /\//.test(priceRaw) ? priceRaw : `${priceRaw} / 24h`;
+    const title = `${name.toUpperCase()} — ${price} | Richman Estate`;
     const shareUrl = `${siteUrl()}/vehicules?select=${encodeURIComponent(name.toLowerCase().trim())}`;
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
