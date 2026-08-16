@@ -106,6 +106,35 @@ export function closeModal() {
   }
 }
 
+// Aperçu plein écran d'une image (miniatures d'upload cliquables dans l'admin)
+export function openAdminImagePreview(src: string) {
+  if (!src) return;
+  let overlay = document.getElementById("admin-image-preview-overlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "admin-image-preview-overlay";
+    overlay.style.cssText = "position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.92); display: none; align-items: center; justify-content: center; cursor: zoom-out;";
+    const img = document.createElement("img");
+    img.id = "admin-image-preview-img";
+    img.alt = "Aperçu de l'image";
+    img.style.cssText = "max-width: 92vw; max-height: 92vh; object-fit: contain; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.6);";
+    overlay.appendChild(img);
+    overlay.addEventListener("click", () => closeAdminImagePreview());
+    document.body.appendChild(overlay);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeAdminImagePreview();
+    });
+  }
+  const img = document.getElementById("admin-image-preview-img") as HTMLImageElement | null;
+  if (img) img.src = src;
+  overlay.style.display = "flex";
+}
+
+function closeAdminImagePreview() {
+  const overlay = document.getElementById("admin-image-preview-overlay");
+  if (overlay) overlay.style.display = "none";
+}
+
 function renderSuiteUploadPreviews() {
   if (!suiteUploadPreviewContainer || !suiteUploadPreviewGrid) return;
   suiteUploadPreviewGrid.innerHTML = "";
@@ -122,7 +151,9 @@ function renderSuiteUploadPreviews() {
     thumb.style.cssText = "position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: #000;";
     const img = document.createElement("img");
     img.src = src;
-    img.style.cssText = "width: 100%; height: 100%; object-fit: cover; border: 1px solid rgba(255,255,255,0.15);";
+    img.title = "Cliquez pour agrandir";
+    img.style.cssText = "width: 100%; height: 100%; object-fit: cover; border: 1px solid rgba(255,255,255,0.15); cursor: zoom-in;";
+    img.addEventListener("click", () => openAdminImagePreview(src));
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.innerHTML = "&times;";
@@ -208,11 +239,14 @@ function renderUploadPreviews() {
 
     const img = document.createElement("img");
     img.src = base64;
+    img.title = "Cliquez pour agrandir";
     img.style.width = "100%";
     img.style.height = "100%";
     img.style.objectFit = "cover";
     img.style.borderRadius = "8px";
     img.style.border = "1px solid rgba(255,255,255,0.15)";
+    img.style.cursor = "zoom-in";
+    img.addEventListener("click", () => openAdminImagePreview(base64));
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
