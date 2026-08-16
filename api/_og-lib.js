@@ -1,24 +1,25 @@
 /* ==========================================================================
-   Richman Estate — api/_og-lib.ts
+   Richman Estate — api/_og-lib.js
    Helpers partagés des fonctions OG (aperçus Discord / réseaux sociaux).
    Préfixe "_" : Vercel n'expose pas ce fichier comme endpoint.
+   CommonJS : le runtime Node de Vercel charge ces fichiers en CJS.
    ========================================================================== */
 
 const SUPABASE_URL = "https://ghbeopdnfdxuqfjzmmeb.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_U5u4jQKVTgWkhmzM62ficA_wORi3zOq"; // clé publishable, publique par design
 
-const BOT_UA = /(discordbot|discordapp|twitterbot|facebookexternalhit|telegrambot|whatsapp|slackbot|slack-url|googlebot|bingbot|yandexbot|duckduckbot|skypeuripreview|instagrambot|pinterestbot|linkedinbot|embedly|quora link preview|outbrain|vkshare|jawg)/i;
+const BOT_UA = /(discordbot|discordapp|twitterbot|facebookexternalhit|telegrambot|whatsapp|slackbot|slack-url|googlebot|bingbot|yandexbot|duckduckbot|skypeuripreview|instagrambot|pinterestbot|linkedinbot|embedly|quora link preview|outbrain|vkshare)/i;
 
-export function isBotUserAgent(ua: string | undefined): boolean {
+function isBotUserAgent(ua) {
   if (!ua) return false;
   return BOT_UA.test(ua);
 }
 
-export function siteUrl(): string {
+function siteUrl() {
   return `https://${process.env.VERCEL_URL || "richman-estate.vercel.app"}`;
 }
 
-export function escapeAttr(v: string): string {
+function escapeAttr(v) {
   return String(v)
     .replace(/&/g, "&amp;")
     .replace(/"/g, "&quot;")
@@ -27,7 +28,7 @@ export function escapeAttr(v: string): string {
 }
 
 /** Recherche tolérante (nom exact prioritaire, sinon inclusion), miroir du client. */
-export async function fetchItem(table: string, columns: string, selectParam: string): Promise<any | null> {
+async function fetchItem(table, columns, selectParam) {
   const clean = String(selectParam || "").toLowerCase().trim();
   if (!clean) return null;
 
@@ -45,12 +46,12 @@ export async function fetchItem(table: string, columns: string, selectParam: str
   const rows = await res.json();
   if (!Array.isArray(rows) || rows.length === 0) return null;
 
-  const exact = rows.find((r: any) => String(r.name || "").toLowerCase().trim() === clean);
+  const exact = rows.find((r) => String(r.name || "").toLowerCase().trim() === clean);
   return exact || rows[0];
 }
 
 /** meta.media_url peut être une URL seule, une liste séparée par virgules ou un tableau JSON stringifié. */
-export function firstMediaUrl(raw: any): string {
+function firstMediaUrl(raw) {
   if (!raw) return "";
   const s = String(raw).trim();
   if (s.startsWith("[")) {
@@ -64,13 +65,13 @@ export function firstMediaUrl(raw: any): string {
   return s.split(",")[0].trim();
 }
 
-export function truncate(text: string, max = 160): string {
+function truncate(text, max = 160) {
   const s = String(text || "").replace(/\s+/g, " ").trim();
   if (s.length <= max) return s;
   return s.slice(0, max - 1).trimEnd() + "…";
 }
 
-export function renderOgHtml(opts: { title: string; description: string; image: string; url: string }): string {
+function renderOgHtml(opts) {
   return `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -92,3 +93,13 @@ export function renderOgHtml(opts: { title: string; description: string; image: 
 </body>
 </html>`;
 }
+
+module.exports = {
+  isBotUserAgent,
+  siteUrl,
+  escapeAttr,
+  fetchItem,
+  firstMediaUrl,
+  truncate,
+  renderOgHtml
+};

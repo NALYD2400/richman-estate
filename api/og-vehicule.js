@@ -1,15 +1,15 @@
 /* ==========================================================================
-   Richman Estate — api/og-vehicule.ts
+   Richman Estate — api/og-vehicule.js
    Aperçu OpenGraph dynamique par véhicule pour les robots (Discord, etc.).
    Les humains sont redirigés vers la page flotte (la fiche s'ouvre via ?select=).
    ========================================================================== */
 
-import { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl } from "./_og-lib";
+const { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl } = require("./_og-lib");
 
 const SCREENSHOT_CDN = "https://api.staff.gta.ctgaming.fr:2096/uploads/vehicle-screenshots";
 const DEFAULT_DESC = "Véhicule d'exception de la flotte Richman Estate — location RP avec conciergerie privée et livraison sur demande.";
 
-export default async function handler(req: any, res: any) {
+module.exports = async function handler(req, res) {
   const query = (req.query || {});
   const select = String(query.select || query.id || "").trim();
   const fallback = select ? `/vehicules?select=${encodeURIComponent(select)}&shared=1` : "/vehicules";
@@ -58,4 +58,4 @@ export default async function handler(req: any, res: any) {
     res.writeHead(302, { Location: fallback });
     res.end();
   }
-}
+};

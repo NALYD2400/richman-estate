@@ -1,15 +1,15 @@
 /* ==========================================================================
-   Richman Estate — api/og-suite.ts
+   Richman Estate — api/og-suite.js
    Aperçu OpenGraph dynamique par suite/résidence pour les robots (Discord, etc.).
    Les humains sont redirigés vers la page suites (la fiche s'ouvre via ?select=).
    ========================================================================== */
 
-import { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl } from "./_og-lib";
+const { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl } = require("./_og-lib");
 
 const DEFAULT_DESC = "Hébergement de prestige Richman Estate — conciergerie privée 24/7 et service hôtelier VIP.";
 const LOGO_FALLBACK = "https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/logo.webp";
 
-export default async function handler(req: any, res: any) {
+module.exports = async function handler(req, res) {
   const query = (req.query || {});
   const select = String(query.select || query.id || "").trim();
   const fallback = select ? `/suites?select=${encodeURIComponent(select)}&shared=1` : "/suites";
@@ -46,4 +46,4 @@ export default async function handler(req: any, res: any) {
     res.writeHead(302, { Location: fallback });
     res.end();
   }
-}
+};
