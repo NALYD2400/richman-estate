@@ -4,7 +4,7 @@
    Les humains sont redirigés vers la page suites (la fiche s'ouvre via ?select=).
    ========================================================================== */
 
-const { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl } = require("./_og-lib");
+const { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl, proxyImageUrl } = require("./_og-lib");
 
 const DEFAULT_DESC = "Hébergement de prestige Richman Estate — conciergerie privée 24/7 et service hôtelier VIP.";
 const LOGO_FALLBACK = "https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/logo.webp";
@@ -43,7 +43,7 @@ module.exports = async function handler(req, res) {
     res.status(200).send(renderOgHtml({
       title,
       description: truncate(suite.specs || DEFAULT_DESC),
-      image,
+      image: proxyImageUrl(image),
       url: shareUrl
     }));
   } catch (e) {

@@ -4,7 +4,7 @@
    Les humains sont redirigés vers la page flotte (la fiche s'ouvre via ?select=).
    ========================================================================== */
 
-const { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl } = require("./_og-lib");
+const { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl, proxyImageUrl } = require("./_og-lib");
 
 const SCREENSHOT_CDN = "https://api.staff.gta.ctgaming.fr:2096/uploads/vehicle-screenshots";
 const DEFAULT_DESC = "Véhicule d'exception de la flotte Richman Estate — location RP avec conciergerie privée et livraison sur demande.";
@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
     res.status(200).send(renderOgHtml({
       title,
       description: truncate(description || DEFAULT_DESC),
-      image,
+      image: proxyImageUrl(image),
       url: shareUrl
     }));
   } catch (e) {

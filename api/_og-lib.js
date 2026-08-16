@@ -19,6 +19,16 @@ function siteUrl() {
   return `https://${process.env.VERCEL_URL || "richman-estate.vercel.app"}`;
 }
 
+/**
+ * Passe l'image OG par notre proxy /api/og-image : le proxy de Discord ne
+ * rapatrie pas les images servies sur un port non standard (CDN CTG :2096),
+ * donc on les resert depuis notre domaine en 443.
+ */
+function proxyImageUrl(image) {
+  if (!image || !/^https?:\/\//i.test(image)) return image;
+  return `${siteUrl()}/api/og-image?src=${encodeURIComponent(image)}`;
+}
+
 function escapeAttr(v) {
   return String(v)
     .replace(/&/g, "&amp;")
@@ -97,6 +107,7 @@ function renderOgHtml(opts) {
 module.exports = {
   isBotUserAgent,
   siteUrl,
+  proxyImageUrl,
   escapeAttr,
   fetchItem,
   firstMediaUrl,
