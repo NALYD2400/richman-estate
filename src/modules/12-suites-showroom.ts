@@ -56,12 +56,17 @@ export async function loadPublicSuites() {
     );
     if (foundSuite) {
       setTimeout(() => {
-        (window as any).openSuiteReservationModal(foundSuite.id);
+        (window as any).openSuiteDetailModal(foundSuite.id);
         const showroomEl = document.getElementById("showroom-section");
         if (showroomEl) {
           showroomEl.scrollIntoView({ behavior: "smooth" });
         }
       }, 500);
+      // Retire le paramètre de l'URL sans recharger la page : évite que chaque
+      // re-chargement (realtime, filtres) ne rouvre la fiche en boucle.
+      try {
+        window.history.replaceState(null, "", window.location.pathname);
+      } catch (e) { console.warn('[Richman]', e); }
     }
   }
 }
@@ -209,7 +214,7 @@ export function applyPublicSuitesFilters() {
         <div class="public-card-body">
           <div>
             <div class="public-card-title-row">
-              <h3 class="public-card-title">${escapeHTML(item.name)}</h3>
+              <h3 class="public-card-title" title="Voir la fiche détaillée" onclick="window.openSuiteDetailModal('${escapeHTML(item.id)}')">${escapeHTML(item.name)}</h3>
               ${roomBadge}
             </div>
 
@@ -278,6 +283,153 @@ document.addEventListener("DOMContentLoaded", () => {
     const rawName = suite ? suite.name : ((sNameInput as HTMLInputElement)?.value || "");
     (window as any).shareSuiteLink((sIdInput as HTMLInputElement)?.value || rawName, rawName);
   };
+
+  // ==========================================================================
+  // Suite Detail Modal — fiche vitrine (ouverte par les liens partagés ?select=)
+  // ==========================================================================
+  let detailModalCurrentSuite: any = null;
+
+  (window as any).openSuiteDetailModal = function (suiteId: string) {
+    const overlay = document.getElementById("suite-detail-modal-overlay");
+    if (!overlay) return;
+
+    let suite: any = null;
+    if (suiteId) {
+      const cleanId = String(suiteId).toLowerCase().trim();
+      suite = state.publicSuitesList.find(s =>
+        String(s.id).toLowerCase().trim() === cleanId ||
+        s.name.toLowerCase().trim() === cleanId ||
+        (s.room_number && String(s.room_number).toLowerCase().trim() === cleanId)
+      );
+    }
+    if (!suite) return;
+    detailModalCurrentSuite = suite;
+
+    const isAvailable = suite.status === 'confirmed';
+    const photos = extractItemMediaArray(suite, 'suite');
+    const photoSrc = photos[0] || 'https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/logo.webp';
+
+    const catLabels: Record<string, string> = {
+      suite: '🏨 Suite de Luxe',
+      appartement: '🏢 Appartement',
+      chambre: '🛏️ Chambre',
+      penthouse: '🌆 Penthouse',
+      villa: '🏡 Villa Privée',
+      loft: '🛖 Loft Prestige'
+    };
+
+    const imgEl = document.getElementById("suite-detail-img") as HTMLImageElement | null;
+    if (imgEl) {
+      imgEl.src = photoSrc;
+      imgEl.alt = suite.name || 'Hébergement';
+      imgEl.onerror = function (this: HTMLImageElement) {
+        this.onerror = null;
+        this.src = 'assets/logo.webp';
+      };
+    }
+
+    const statusBadge = document.getElementById("suite-detail-status-badge");
+    if (statusBadge) {
+      statusBadge.className = `public-badge-status ${isAvailable ? 'confirmed' : 'rented'}`;
+      statusBadge.innerHTML = `<i class="fa-solid ${isAvailable ? 'fa-circle-check' : 'fa-clock'}"></i> <span>${isAvailable ? 'Disponible' : 'Occupé'}</span>`;
+    }
+
+    const setText = (id: string, text: string) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    setText("suite-detail-category-badge", (suite.category || 'SUITE').toUpperCase());
+    setText("suite-detail-room-badge", suite.room_number || (suite.floor || 'VIP'));
+    setText("suite-detail-title", suite.name || 'Résidence');
+    setText("suite-detail-cat-chip", catLabels[(suite.category || '').toLowerCase()] || catLabels.suite);
+    setText("suite-detail-specs", suite.specs || "Hébergement de prestige tout confort avec service hôtelier VIP.");
+
+    const floorChip = document.getElementById("suite-detail-floor-chip");
+    if (floorChip) {
+      if (suite.floor) {
+        floorChip.style.display = "";
+        setText("suite-detail-floor-val", suite.floor);
+      } else {
+        floorChip.style.display = "none";
+      }
+    }
+
+    const photosChip = document.getElementById("suite-detail-photos-chip");
+    if (photosChip) {
+      if (photos.length > 1) {
+        photosChip.style.display = "";
+        setText("suite-detail-photos-val", `${photos.length} photos`);
+      } else {
+        photosChip.style.display = "none";
+      }
+    }
+
+    const priceEl = document.getElementById("suite-detail-price");
+    if (priceEl) {
+      const priceRaw = suite.price || 'Sur devis';
+      priceEl.innerHTML = /\//.test(priceRaw)
+        ? escapeHTML(priceRaw)
+        : `${escapeHTML(priceRaw)} <span style="font-size: 11px; font-weight: 500; color: #a1a1aa;">/ nuit</span>`;
+    }
+
+    const reserveBtn = document.getElementById("suite-detail-reserve-btn");
+    if (reserveBtn) {
+      reserveBtn.className = `btn-card-reserve ${isAvailable ? '' : 'rented'}`;
+      reserveBtn.innerHTML = `<i class="fa-solid ${isAvailable ? 'fa-key' : 'fa-calendar-days'}"></i> <span>${isAvailable ? 'Réserver la Suite' : 'Demander Disponibilité'}</span>`;
+    }
+
+    overlay.classList.add("active");
+    overlay.removeAttribute("aria-hidden");
+  };
+
+  (window as any).closeSuiteDetailModal = function () {
+    const overlay = document.getElementById("suite-detail-modal-overlay");
+    if (overlay) {
+      if (document.activeElement && overlay.contains(document.activeElement)) {
+        (document.activeElement as HTMLElement).blur();
+      }
+      overlay.classList.remove("active");
+      overlay.setAttribute("aria-hidden", "true");
+    }
+  };
+
+  const btnCloseSuiteDetailModal = document.getElementById("suite-detail-close-btn");
+  const suiteDetailOverlay = document.getElementById("suite-detail-modal-overlay");
+
+  if (btnCloseSuiteDetailModal) btnCloseSuiteDetailModal.addEventListener("click", () => (window as any).closeSuiteDetailModal());
+  if (suiteDetailOverlay) {
+    suiteDetailOverlay.addEventListener("click", (e) => {
+      if (e.target === suiteDetailOverlay) (window as any).closeSuiteDetailModal();
+    });
+  }
+
+  const openSuiteDetailLightbox = () => {
+    if (!detailModalCurrentSuite) return;
+    (window as any).closeSuiteDetailModal();
+    (window as any).openRichmanLightbox(detailModalCurrentSuite.id, 'suite');
+  };
+  const suiteDetailMedia = document.getElementById("suite-detail-media");
+  const suiteDetailExpandBtn = document.getElementById("suite-detail-expand-btn");
+  if (suiteDetailMedia) suiteDetailMedia.addEventListener("click", openSuiteDetailLightbox);
+  if (suiteDetailExpandBtn) suiteDetailExpandBtn.addEventListener("click", (e) => { e.stopPropagation(); openSuiteDetailLightbox(); });
+
+  const suiteDetailShareBtn = document.getElementById("suite-detail-share-btn");
+  if (suiteDetailShareBtn) {
+    suiteDetailShareBtn.addEventListener("click", () => {
+      if (detailModalCurrentSuite) {
+        (window as any).shareSuiteLink(detailModalCurrentSuite.id, detailModalCurrentSuite.name);
+      }
+    });
+  }
+
+  const suiteDetailReserveBtn = document.getElementById("suite-detail-reserve-btn");
+  if (suiteDetailReserveBtn) {
+    suiteDetailReserveBtn.addEventListener("click", () => {
+      if (!detailModalCurrentSuite) return;
+      (window as any).closeSuiteDetailModal();
+      (window as any).openSuiteReservationModal(detailModalCurrentSuite.id);
+    });
+  }
 
   // Filter Listeners for Suites
   const suiteSearch = document.getElementById("public-suites-search");

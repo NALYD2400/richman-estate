@@ -1,6 +1,32 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/vehicules",
+      "has": [{ "type": "query", "key": "select" }],
+      "missing": [{ "type": "query", "key": "shared" }],
+      "destination": "/api/og-vehicule"
+    },
+    {
+      "source": "/vehicules.html",
+      "has": [{ "type": "query", "key": "select" }],
+      "missing": [{ "type": "query", "key": "shared" }],
+      "destination": "/api/og-vehicule"
+    },
+    {
+      "source": "/suites",
+      "has": [{ "type": "query", "key": "select" }],
+      "missing": [{ "type": "query", "key": "shared" }],
+      "destination": "/api/og-suite"
+    },
+    {
+      "source": "/suites.html",
+      "has": [{ "type": "query", "key": "select" }],
+      "missing": [{ "type": "query", "key": "shared" }],
+      "destination": "/api/og-suite"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

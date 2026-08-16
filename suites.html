@@ -293,7 +293,63 @@
       </section>
     </div>
 
-    <!-- 5) Luxury Suite Reservation Modal Overlay -->
+    <!-- 5b) Luxury Suite Detail Modal Overlay (ouvert par les liens partagés ?select=) -->
+    <div class="luxury-reservation-modal-overlay" id="suite-detail-modal-overlay" aria-hidden="true">
+      <div class="luxury-reservation-modal-container detail-modal-container">
+        <button type="button" class="luxury-modal-close-btn" id="suite-detail-close-btn" aria-label="Fermer la fenêtre">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- Grande photo cliquable (ouvre la lightbox galerie) -->
+        <div class="detail-modal-media" id="suite-detail-media" title="Voir la galerie en plein écran">
+          <img id="suite-detail-img" src="assets/logo.webp" alt="Hébergement" />
+          <button type="button" class="btn-card-fullscreen" id="suite-detail-expand-btn" title="Voir en plein écran">
+            <i class="fa-solid fa-expand"></i>
+          </button>
+        </div>
+
+        <!-- Badges : disponibilité, catégorie, chambre -->
+        <div class="luxury-car-badges detail-modal-badges">
+          <span id="suite-detail-status-badge" class="public-badge-status confirmed">
+            <i class="fa-solid fa-circle-check"></i> <span>Disponible</span>
+          </span>
+          <span id="suite-detail-category-badge" class="luxury-cat-badge">SUITE</span>
+          <span id="suite-detail-room-badge" class="luxury-plate-badge">#01</span>
+        </div>
+
+        <!-- Titre + caractéristiques -->
+        <h2 class="luxury-modal-title" id="suite-detail-title">Résidence</h2>
+        <div class="public-card-meta-chips detail-modal-chips">
+          <span class="meta-chip"><i class="fa-solid fa-hotel" style="color: #c5a880;"></i> <span id="suite-detail-cat-chip">Suite de Luxe</span></span>
+          <span class="meta-chip" id="suite-detail-floor-chip" style="display: none;"><i class="fa-solid fa-layer-group" style="color: #c5a880;"></i> <span id="suite-detail-floor-val"></span></span>
+          <span class="meta-chip" id="suite-detail-photos-chip" style="display: none;">
+            <i class="fa-solid fa-camera"></i> <span id="suite-detail-photos-val"></span>
+          </span>
+          <span class="meta-chip"><i class="fa-solid fa-shield-halved"></i> Conciergerie 24/7</span>
+        </div>
+
+        <!-- Description complète -->
+        <p class="detail-modal-specs" id="suite-detail-specs">Hébergement de prestige tout confort avec service hôtelier VIP.</p>
+
+        <!-- Prix + actions -->
+        <div class="detail-modal-footer">
+          <div class="public-card-price-wrap">
+            <span class="public-card-price-label">Tarif Séjour</span>
+            <span class="public-card-price-val" id="suite-detail-price">Sur devis</span>
+          </div>
+          <div class="public-card-actions">
+            <button type="button" class="btn-card-share-action" id="suite-detail-share-btn" title="Partager cette résidence">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
+            <button type="button" class="btn-card-reserve" id="suite-detail-reserve-btn">
+              <i class="fa-solid fa-key"></i> <span>Réserver la Suite</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6) Luxury Suite Reservation Modal Overlay (form) -->
     <div class="luxury-reservation-modal-overlay" id="suite-reservation-modal-overlay" aria-hidden="true">
       <div class="luxury-reservation-modal-container">
         <!-- Close Button -->

@@ -259,12 +259,17 @@ export async function loadPublicVehicles() {
     );
     if (foundCar) {
       setTimeout(() => {
-        (window as any).openVehicleReservationModal(foundCar.id);
+        (window as any).openVehicleDetailModal(foundCar.id);
         const showroomEl = document.getElementById("showroom-section");
         if (showroomEl) {
           showroomEl.scrollIntoView({ behavior: "smooth" });
         }
       }, 500);
+      // Retire le paramètre de l'URL sans recharger la page : évite que chaque
+      // événement realtime Supabase (re-chargement de la flotte) ne rouvre la fiche.
+      try {
+        window.history.replaceState(null, "", window.location.pathname);
+      } catch (e) { console.warn('[Richman]', e); }
     }
   }
 }

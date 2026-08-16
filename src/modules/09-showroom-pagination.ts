@@ -311,7 +311,7 @@ export function applyPublicFleetFilters() {
         <div class="public-card-body">
           <div>
             <div class="public-card-title-row">
-              <h3 class="public-card-title">${escapeHTML(cleanTitle)}</h3>
+              <h3 class="public-card-title" title="Voir la fiche détaillée" onclick="window.openVehicleDetailModal('${escapeHTML(item.id)}')">${escapeHTML(cleanTitle)}</h3>
               <span class="public-card-plate">${escapeHTML(displayPlate)}</span>
             </div>
 

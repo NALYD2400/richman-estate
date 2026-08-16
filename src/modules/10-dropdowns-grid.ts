@@ -9,7 +9,8 @@ import { supabaseClient } from "../core/supabase";
 import { formatLuxuryCarName } from "../core/vehicles";
 import { state } from "../core/state";
 import { showToast } from "./02-admin-crud";
-import { getVehicleRentalSchedule } from "./07-vehicles-showroom";
+import { getVehicleRentalSchedule, getVehicleRatingSummary } from "./07-vehicles-showroom";
+import { extractItemMediaArray } from "./08-media-carousel";
 import { applyPublicFleetFilters } from "./09-showroom-pagination";
 
 export function initRichmanGridSystem() {
@@ -310,6 +311,157 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         (window as any).openVehicleReservationModal();
       }
+    });
+  }
+
+  // ==========================================================================
+  // Vehicle Detail Modal — fiche vitrine (ouverte par les liens partagés ?select=)
+  // ==========================================================================
+  let detailModalCurrentVehicle: any = null;
+
+  (window as any).openVehicleDetailModal = function (vehicleId: string) {
+    const overlay = document.getElementById("vehicle-detail-modal-overlay");
+    if (!overlay) return;
+
+    const vehicle = state.publicVehiclesList.find(v => v.id === vehicleId);
+    if (!vehicle) return;
+    detailModalCurrentVehicle = vehicle;
+
+    const cleanTitle = formatLuxuryCarName(vehicle.name);
+    let displayPlate = "LXS-RICH";
+    let displayClass = "SUPER";
+    let displaySpecs = "";
+
+    try {
+      if (vehicle.specs && vehicle.specs.startsWith("{")) {
+        const meta = JSON.parse(vehicle.specs);
+        displayPlate = meta.plate || "LXS-RICH";
+        displayClass = meta.class || "SUPER";
+        displaySpecs = meta.specs_text || "";
+      } else if (vehicle.specs) {
+        displaySpecs = vehicle.specs;
+      }
+    } catch (e) { console.warn('[Richman]', e); }
+
+    if (!displaySpecs || displaySpecs.toLowerCase().startsWith("gamme")) {
+      displaySpecs = "Motorisation préparée haute performance, finitions carbone et intérieur cuir sur mesure.";
+    }
+
+    const photos = extractItemMediaArray(vehicle, 'vehicule');
+    const photoSrc = photos[0] || `https://api.staff.gta.ctgaming.fr:2096/uploads/vehicle-screenshots/${encodeURIComponent(vehicle.name.toLowerCase().trim())}.webp`;
+
+    const schedule = getVehicleRentalSchedule(vehicle, (window as any).activeFleetBookings);
+    const isAvailable = schedule.isAvailable;
+    const ratingSummary = getVehicleRatingSummary(vehicle.id);
+
+    const imgEl = document.getElementById("vehicle-detail-img") as HTMLImageElement | null;
+    if (imgEl) {
+      imgEl.src = photoSrc;
+      imgEl.alt = cleanTitle;
+      imgEl.onerror = function (this: HTMLImageElement) {
+        this.onerror = null;
+        this.src = 'assets/logo.webp';
+      };
+    }
+
+    const statusBadge = document.getElementById("vehicle-detail-status-badge");
+    if (statusBadge) {
+      statusBadge.className = `public-badge-status ${isAvailable ? 'confirmed' : 'rented'}`;
+      statusBadge.innerHTML = `<i class="fa-solid ${isAvailable ? 'fa-circle-check' : 'fa-clock'}"></i> <span>${isAvailable ? 'Disponible' : escapeHTML(schedule.statusBadgeText)}</span>`;
+    }
+
+    const setText = (id: string, text: string) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    setText("vehicle-detail-class-badge", displayClass);
+    setText("vehicle-detail-plate-badge", displayPlate);
+    setText("vehicle-detail-title", cleanTitle);
+    setText("vehicle-detail-rating-val", ratingSummary.avg.toFixed(1));
+    setText("vehicle-detail-rating-count", `(${ratingSummary.count})`);
+    setText("vehicle-detail-specs", displaySpecs);
+
+    const photosChip = document.getElementById("vehicle-detail-photos-chip");
+    if (photosChip) {
+      if (photos.length > 1) {
+        photosChip.style.display = "";
+        setText("vehicle-detail-photos-val", `${photos.length} photos`);
+      } else {
+        photosChip.style.display = "none";
+      }
+    }
+
+    const priceEl = document.getElementById("vehicle-detail-price");
+    if (priceEl) {
+      const priceRaw = vehicle.price || 'Sur devis';
+      priceEl.innerHTML = /\//.test(priceRaw)
+        ? escapeHTML(priceRaw)
+        : `${escapeHTML(priceRaw)} <span style="font-size: 11px; font-weight: 500; color: #a1a1aa;">/ 24h</span>`;
+    }
+
+    const reserveBtn = document.getElementById("vehicle-detail-reserve-btn");
+    if (reserveBtn) {
+      reserveBtn.className = `btn-card-reserve ${isAvailable ? '' : 'rented'}`;
+      reserveBtn.innerHTML = `<i class="fa-solid ${isAvailable ? 'fa-key' : 'fa-calendar-days'}"></i> <span>${isAvailable ? 'Réserver' : escapeHTML(schedule.reserveBtnText)}</span>`;
+    }
+
+    overlay.classList.add("active");
+    overlay.removeAttribute("aria-hidden");
+  };
+
+  (window as any).closeVehicleDetailModal = function () {
+    const overlay = document.getElementById("vehicle-detail-modal-overlay");
+    if (overlay) {
+      if (document.activeElement && overlay.contains(document.activeElement)) {
+        (document.activeElement as HTMLElement).blur();
+      }
+      overlay.classList.remove("active");
+      overlay.setAttribute("aria-hidden", "true");
+    }
+  };
+
+  const btnCloseDetailModal = document.getElementById("vehicle-detail-close-btn");
+  const detailModalOverlay = document.getElementById("vehicle-detail-modal-overlay");
+
+  if (btnCloseDetailModal) btnCloseDetailModal.addEventListener("click", () => (window as any).closeVehicleDetailModal());
+  if (detailModalOverlay) {
+    detailModalOverlay.addEventListener("click", (e) => {
+      if (e.target === detailModalOverlay) (window as any).closeVehicleDetailModal();
+    });
+  }
+
+  const openDetailLightbox = () => {
+    if (!detailModalCurrentVehicle) return;
+    (window as any).closeVehicleDetailModal();
+    (window as any).openRichmanLightbox(detailModalCurrentVehicle.id, 'vehicule');
+  };
+  const detailMedia = document.getElementById("vehicle-detail-media");
+  const detailExpandBtn = document.getElementById("vehicle-detail-expand-btn");
+  if (detailMedia) detailMedia.addEventListener("click", openDetailLightbox);
+  if (detailExpandBtn) detailExpandBtn.addEventListener("click", (e) => { e.stopPropagation(); openDetailLightbox(); });
+
+  const detailRatingChip = document.getElementById("vehicle-detail-rating-chip");
+  if (detailRatingChip) {
+    detailRatingChip.addEventListener("click", () => {
+      if (detailModalCurrentVehicle) (window as any).openVehicleReviewsModal(detailModalCurrentVehicle.id);
+    });
+  }
+
+  const detailShareBtn = document.getElementById("vehicle-detail-share-btn");
+  if (detailShareBtn) {
+    detailShareBtn.addEventListener("click", () => {
+      if (detailModalCurrentVehicle) {
+        (window as any).shareVehicleLink(detailModalCurrentVehicle.name, formatLuxuryCarName(detailModalCurrentVehicle.name));
+      }
+    });
+  }
+
+  const detailReserveBtn = document.getElementById("vehicle-detail-reserve-btn");
+  if (detailReserveBtn) {
+    detailReserveBtn.addEventListener("click", () => {
+      if (!detailModalCurrentVehicle) return;
+      (window as any).closeVehicleDetailModal();
+      (window as any).openVehicleReservationModal(detailModalCurrentVehicle.id);
     });
   }
 

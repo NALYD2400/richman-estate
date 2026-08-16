@@ -610,4 +610,68 @@ input:checked + .toggle-switch-slider:before {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Detail Modal — fiche vitrine véhicules & suites (liens partagés ?select=)
+   ========================================================================== */
+.detail-modal-container {
+  max-width: 640px;
+}
+
+.detail-modal-media {
+  position: relative;
+  margin-top: 4px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(197, 168, 128, 0.22);
+  background: radial-gradient(ellipse at 30% 50%, rgba(197, 168, 128, 0.12) 0%, rgba(255, 255, 255, 0.03) 60%, rgba(15, 15, 20, 0.6) 100%);
+  cursor: zoom-in;
+}
+
+.detail-modal-media img {
+  display: block;
+  width: 100%;
+  max-height: 340px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.detail-modal-media .btn-card-fullscreen {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.detail-modal-badges {
+  margin-top: 16px;
+}
+
+.detail-modal-chips {
+  margin: 6px 0 10px 0;
+}
+
+.detail-modal-specs {
+  font-size: 13px;
+  color: #d4d4d8;
+  line-height: 1.6;
+  margin: 0 0 18px 0;
+}
+
+.detail-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.public-card-title {
+  cursor: pointer;
+}
+
+.public-card-title:hover {
+  color: #c5a880;
+}
 

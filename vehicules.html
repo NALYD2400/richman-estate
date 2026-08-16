@@ -493,6 +493,65 @@
       </div>
     </div>
 
+    <!-- 5b) Luxury Vehicle Detail Modal Overlay (ouvert par les liens partagés ?select=) -->
+    <div class="luxury-reservation-modal-overlay" id="vehicle-detail-modal-overlay" aria-hidden="true">
+      <div class="luxury-reservation-modal-container detail-modal-container">
+        <button type="button" class="luxury-modal-close-btn" id="vehicle-detail-close-btn" aria-label="Fermer la fenêtre">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- Grande photo cliquable (ouvre la lightbox galerie) -->
+        <div class="detail-modal-media" id="vehicle-detail-media" title="Voir la galerie en plein écran">
+          <img id="vehicle-detail-img" src="assets/logo.webp" alt="Véhicule" />
+          <button type="button" class="btn-card-fullscreen" id="vehicle-detail-expand-btn" title="Voir en plein écran">
+            <i class="fa-solid fa-expand"></i>
+          </button>
+        </div>
+
+        <!-- Badges : disponibilité, classe, plaque -->
+        <div class="luxury-car-badges detail-modal-badges">
+          <span id="vehicle-detail-status-badge" class="public-badge-status confirmed">
+            <i class="fa-solid fa-circle-check"></i> <span>Disponible</span>
+          </span>
+          <span id="vehicle-detail-class-badge" class="luxury-cat-badge">SUPER</span>
+          <span id="vehicle-detail-plate-badge" class="luxury-plate-badge">LXS-RICH</span>
+        </div>
+
+        <!-- Titre + note/avis -->
+        <h2 class="luxury-modal-title" id="vehicle-detail-title">Véhicule</h2>
+        <div class="public-card-meta-chips detail-modal-chips">
+          <span class="meta-chip meta-chip-rating" id="vehicle-detail-rating-chip" title="Consulter et donner un avis">
+            <i class="fa-solid fa-star" style="color: #fbbf24;"></i>
+            <span id="vehicle-detail-rating-val">0.0</span>
+            <span style="opacity: 0.75; font-size: 10.5px;" id="vehicle-detail-rating-count">(0)</span>
+          </span>
+          <span class="meta-chip" id="vehicle-detail-photos-chip" style="display: none;">
+            <i class="fa-solid fa-camera"></i> <span id="vehicle-detail-photos-val"></span>
+          </span>
+          <span class="meta-chip"><i class="fa-solid fa-shield-halved"></i> Flotte Assurée VIP</span>
+        </div>
+
+        <!-- Description complète -->
+        <p class="detail-modal-specs" id="vehicle-detail-specs">Découvrez ce véhicule d'exception.</p>
+
+        <!-- Prix + actions -->
+        <div class="detail-modal-footer">
+          <div class="public-card-price-wrap">
+            <span class="public-card-price-label">Tarif Location</span>
+            <span class="public-card-price-val" id="vehicle-detail-price">Sur devis</span>
+          </div>
+          <div class="public-card-actions">
+            <button type="button" class="btn-card-share-action" id="vehicle-detail-share-btn" title="Partager ce véhicule">
+              <i class="fa-solid fa-share-nodes"></i>
+            </button>
+            <button type="button" class="btn-card-reserve" id="vehicle-detail-reserve-btn">
+              <i class="fa-solid fa-key"></i> <span>Réserver</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 6) Luxury Vehicle Reviews Modal Overlay -->
     <div class="luxury-reservation-modal-overlay" id="vehicle-reviews-modal-overlay" aria-hidden="true">
       <div class="luxury-reservation-modal-container" style="max-width: 560px;">
