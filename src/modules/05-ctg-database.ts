@@ -208,11 +208,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function closeCTGModal() {
     if (ctgModalOverlay) {
       if (document.activeElement && ctgModalOverlay.contains(document.activeElement)) {
-        document.activeElement.blur();
+        (document.activeElement as HTMLElement).blur();
       }
       ctgModalOverlay.classList.remove('active');
       ctgModalOverlay.setAttribute('aria-hidden', 'true');
-      if (ctgModalForm) ctgModalForm.reset();
+      if (ctgModalForm) (ctgModalForm as HTMLFormElement).reset();
     }
   }
 
@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const speedInput = document.getElementById('ctg-item-speed') as HTMLInputElement | null;
     if (speedInput) {
       const speed = item.MaxSpeed ? Math.round(parseFloat(item.MaxSpeed) * 3.6) : 0;
-      speedInput.value = speed;
+      speedInput.value = String(speed);
     }
 
     const imageInput = document.getElementById('ctg-item-image') as HTMLInputElement | null;

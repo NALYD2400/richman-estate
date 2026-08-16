@@ -50,21 +50,21 @@ function fallbackSanitize(html: unknown): string {
     .replace(/src\s*=\s*(['"])\s*javascript:[^'"]*\1/gi, 'src=""');
 }
 
-const PURIFY_OPTIONS = {
+const PURIFY_OPTIONS: any = {
   ADD_ATTR: ["target", "playsinline", "rel"],
   FORBID_TAGS: ["script", "iframe", "object", "embed"],
   FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "onfocus", "onblur", "onchange", "onsubmit"],
   USE_PROFILES: { html: true, svg: true }
-} as const;
+};
 
 /** Sanitization HTML robuste via DOMPurify (npm, version épinglée). */
 export function sanitizeHTML(dirty: unknown): string {
   if (!dirty) return "";
-  return DOMPurify.sanitize(String(dirty), PURIFY_OPTIONS);
+  return DOMPurify.sanitize(String(dirty), PURIFY_OPTIONS) as unknown as string;
 }
 
 /** innerHTML assaini. */
 export function setSafeInnerHTML(element: HTMLElement | null, htmlContent: string): void {
   if (!element) return;
-  element.innerHTML = sanitizeHTML(htmlContent) || fallbackSanitize(htmlContent);
+  element.innerHTML = (sanitizeHTML(htmlContent) || fallbackSanitize(htmlContent)) as unknown as string;
 }

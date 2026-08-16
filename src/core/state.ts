@@ -12,7 +12,7 @@ export const state = {
   // Pagination
   currentFleetPage: 1,
   currentSuitesPage: 1,
-  suitesPerPage: 6,
+  suitesPerPage: 24 as number | 'all',
 
   // Catalogues admin
   allVehicles: [] as any[],
