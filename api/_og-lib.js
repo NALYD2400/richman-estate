@@ -15,8 +15,11 @@ function isBotUserAgent(ua) {
   return BOT_UA.test(ua);
 }
 
+// Alias de production stable — VERCEL_URL est specifique au deploiement et
+// protege par SSO (inaccessible pour les robots). PUBLIC_URL permet de
+// surcharger si un domaine personnalise est ajoute un jour.
 function siteUrl() {
-  return `https://${process.env.VERCEL_URL || "richman-estate.vercel.app"}`;
+  return `https://${process.env.PUBLIC_URL || "richman-estate.vercel.app"}`;
 }
 
 /**
