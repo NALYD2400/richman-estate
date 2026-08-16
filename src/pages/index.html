@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Richman Estate — Luxe, Flotte Prestige &amp; Résidences</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- OnlineWebFonts: BubbledotICG-FinePos -->
+    <link
+      href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome 6.5.2 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="assets/logo.webp" />
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="src/styles/styles.css" />
+  </head>
+  <body>
+    <!-- Background Video -->
+    <div class="bg">
+      <video class="bg-video" autoplay muted loop playsinline>
+        <source
+          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4"
+          type="video/mp4"
+        />
+      </video>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" aria-hidden="true"></div>
+
+    <!-- Mobile Menu Sheet -->
+    <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+      <nav class="mobile-nav">
+        <a href="/" class="mobile-nav-link active">Accueil</a>
+        <a href="vehicules.html" class="mobile-nav-link">Véhicules</a>
+        <a href="suites.html" class="mobile-nav-link">Hôtel &amp; Suites</a>
+        <a href="client.html" class="mobile-nav-link">Mon Espace</a>
+        <a href="contact.html" class="mobile-nav-link">Contact</a>
+        <a href="login.html" class="mobile-signin">Connexion</a>
+      </nav>
+    </div>
+
+    <!-- Main Page Layout -->
+    <div class="page">
+      <!-- 1) Header -->
+      <header class="header">
+        <div class="header-container">
+          <button class="logo-btn" onclick="window.location.href='index.html'" aria-label="Accueil">
+            <img
+              src="assets/logo.webp"
+              alt="Richman Estate"
+              width="52"
+              height="52"
+              class="logo-img"
+            />
+          </button>
+
+          <nav class="nav-pill" aria-label="Main Navigation">
+            <a href="/" class="nav-link active">Accueil</a>
+            <a href="vehicules.html" class="nav-link">Véhicules</a>
+            <a href="suites.html" class="nav-link">Hôtel &amp; Suites</a>
+            <a href="client.html" class="nav-link">Mon Espace</a>
+            <a href="contact.html" class="nav-link">Contact</a>
+          </nav>
+
+          <a href="login.html" class="signin-btn">Connexion</a>
+
+          <button
+            class="burger-btn"
+            id="burger-btn"
+            aria-expanded="false"
+            aria-label="Toggle navigation menu"
+          >
+            <span class="burger-bar"></span>
+            <span class="burger-bar"></span>
+            <span class="burger-bar"></span>
+          </button>
+        </div>
+      </header>
+      <script>
+        (function(){
+          try {
+            function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+            var u = JSON.parse(localStorage.getItem("richman_user") || "null");
+            if (u && u.name) {
+              var isOwner = localStorage.getItem("richman_is_owner") === "true";
+              var isStaff = isOwner || u.is_admin || u.role === "admin" || u.role === "gerant_hotel" || u.role === "gerant_vehicules" || u.role === "owner";
+              var targetHref = isStaff ? "admin.html" : "client.html";
+              var avatar = esc(u.avatar || "assets/logo.webp");
+              var btn = document.querySelector(".signin-btn");
+              if (btn && btn.parentElement) {
+                var wrap = document.createElement("div");
+                wrap.className = "nav-user-pill-wrap";
+                wrap.innerHTML = '<a href="' + targetHref + '" style="display: flex; align-items: center; gap: 7px; text-decoration: none; background: transparent !important; box-shadow: none !important; border: none !important; padding: 0; margin: 0; height: auto;">' +
+                  '<img src="' + avatar + '" alt="" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid rgba(0, 0, 0, 0.12); flex-shrink: 0;" />' +
+                  '<span class="nav-user-pill-name" style="color: #18181b; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; display: inline-block;">' + esc(u.name) + '</span>' +
+                  '</a><span class="nav-sep" style="color: rgba(0, 0, 0, 0.18); font-size: 13px; margin: 0 4px;">|</span>' +
+                  '<button class="btn-logout" title="Se Déconnecter" onclick="if(window.handleUserLogout){window.handleUserLogout();}else{localStorage.removeItem(\'richman_user\');localStorage.removeItem(\'richman_role\');localStorage.removeItem(\'richman_is_owner\');window.location.reload();}" style="background: none; border: none; color: #dc2626; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 2px;"><i class="fa-solid fa-right-from-bracket" style="font-size: 13px;"></i></button>';
+                btn.parentElement.replaceChild(wrap, btn);
+              }
+            }
+          } catch(e){}
+        })();
+      </script>
+
+      <!-- 2) Hero Section -->
+      <main class="hero">
+        <div class="trust-row anim" style="--d: 0.05s">
+          <div class="avatar-ring avatar-1">
+            <div class="avatar-inner">
+              <i class="fa-solid fa-shield"></i>
+            </div>
+          </div>
+          <div class="avatar-ring avatar-2">
+            <div class="avatar-inner">
+              <i class="fa-solid fa-gem"></i>
+            </div>
+          </div>
+          <div class="avatar-ring avatar-3">
+            <div class="avatar-inner">
+              <i class="fa-solid fa-crown"></i>
+            </div>
+          </div>
+          <div class="trust-pill">
+            <span>Richman Estate &bull; Hébergements &amp; Véhicules RP</span>
+          </div>
+        </div>
+
+        <h1 class="headline">
+          <span class="headline-line headline-line-1">Richman</span>
+          <span class="headline-line headline-line-2">Estate</span>
+        </h1>
+
+        <p class="subhead anim" style="--d: 0.28s">
+          Explorez notre catalogue : réservations de suites haut de gamme, véhicules exclusifs et service client dédié.
+        </p>
+
+        <div class="cta-wrapper anim-cta" style="--d: 0.4s">
+          <a href="suites.html" class="cta-btn">Explorer le Domaine</a>
+        </div>
+      </main>
+
+      <!-- 3) Stats Footer -->
+      <footer class="stats-footer">
+        <div class="stats-grid">
+          <div class="stat-item anim" style="--d: 0.5s">
+            <span class="stat-icon"><i class="fa-solid fa-hotel" style="color: #c5a880; font-size: 18px;"></i></span>
+            <div class="stat-value-wrap">
+              <span class="stat-value" id="stat-home-suites" data-target="2" data-suffix="" data-decimals="0">0</span>
+            </div>
+            <span class="stat-label">Suites Disponibles</span>
+          </div>
+
+          <div class="stat-item anim" style="--d: 0.58s">
+            <span class="stat-icon"><i class="fa-solid fa-car" style="color: #c5a880; font-size: 18px;"></i></span>
+            <div class="stat-value-wrap">
+              <span class="stat-value" id="stat-home-vehicles" data-target="24" data-suffix="" data-decimals="0">0</span>
+            </div>
+            <span class="stat-label">Véhicules Disponibles</span>
+          </div>
+
+          <div class="stat-item anim" style="--d: 0.66s">
+            <span class="stat-icon"><i class="fa-solid fa-clock" style="color: #c5a880; font-size: 18px;"></i></span>
+            <div class="stat-value-wrap">
+              <span class="stat-value" data-target="24" data-suffix="/7" data-decimals="0">0</span><span class="stat-suffix">/7</span>
+            </div>
+            <span class="stat-label">Support 24/7</span>
+          </div>
+
+          <div class="stat-item anim" style="--d: 0.74s">
+            <span class="stat-icon"><i class="fa-solid fa-star" style="color: #fbbf24; font-size: 18px;"></i></span>
+            <div class="stat-value-wrap">
+              <span class="stat-value" data-target="5.0" data-suffix="★" data-decimals="1">0.0</span><span class="stat-suffix">★</span>
+            </div>
+            <span class="stat-label">Excellence Client</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Supabase JS SDK -->
+    <!-- DOMPurify (XSS Protection) -->
+    <!-- Vanilla JS -->
+      <script type="module" src="/src/main/index.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+/* ==========================================================================
+   Design Tokens, Color Palette & Typography Definitions
+   ========================================================================== */
+:root {
+  --bg: #000000;
+  --text: #ffffff;
+  --muted: #8e8e8e;
+  --nav-text: #2e2e2e;
+  --pill-dark: #28282a;
+  --sign-in-text: #c8c8c8;
+  --nav-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  --trust-bg: #28282a;
+  --trust-border: rgba(255, 255, 255, 0.4);
+  --trust-text: #c4c2c3;
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "BubbledotICG-FinePos", "Geist Pixel Circle", monospace;
+  --trust-size: clamp(36px, 4.5vw, 42px);
+  --gold-primary: #c5a880;
+  --gold-hover: #d4ba94;
+  --gold-glow: rgba(197, 168, 128, 0.25);
+  --bg-card: rgba(20, 20, 26, 0.85);
+  --border-card: rgba(255, 255, 255, 0.08);
+}
+
+@font-face {
+  font-family: "Geist Pixel Circle";
+  src: url("/fonts/GeistPixel-Circle.woff2") format("woff2"),
+       url("../../fonts/GeistPixel-Circle.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

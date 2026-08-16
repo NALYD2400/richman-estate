@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon Espace &amp; Conciergerie — Richman Estate</title>
+    <meta
+      name="description"
+      content="Mon Espace Richman Estate : gestion de vos réservations de supercars et suites de prestige, et conciergerie privée 24/7 synchronisée sur Discord."
+    />
+    <meta property="og:title" content="Mon Espace — Richman Estate" />
+    <meta
+      property="og:description"
+      content="Gérez vos locations et échangez en direct avec vos majordomes privés 24/7."
+    />
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- OnlineWebFonts: BubbledotICG-FinePos -->
+    <link
+      href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome 6.5.2 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="assets/logo.webp" />
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="src/styles/styles.css" />
+  </head>
+  <body class="scrollable-body client-portal-body">
+    <!-- Background Matrix Layer -->
+    <div class="bg">
+      <div class="bg-ambient-layer"></div>
+      <canvas class="bg-matrix-canvas" id="bg-matrix-canvas"></canvas>
+      <div class="bg-vignette"></div>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" aria-hidden="true"></div>
+
+    <!-- Mobile Menu Sheet -->
+    <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+      <nav class="mobile-nav">
+        <a href="/" class="mobile-nav-link">Accueil</a>
+        <a href="vehicules.html" class="mobile-nav-link">Véhicules</a>
+        <a href="suites.html" class="mobile-nav-link">Hôtel &amp; Suites</a>
+        <a href="client.html" class="mobile-nav-link active">Mon Espace</a>
+        <a href="contact.html" class="mobile-nav-link">Contact</a>
+        <a href="login.html" class="mobile-signin">Connexion</a>
+      </nav>
+    </div>
+
+    <!-- Main Page Layout -->
+    <div class="page scrollable-page client-page-layout">
+      <div class="hero-screen">
+        <!-- 1) Header -->
+        <header class="header">
+          <div class="header-container">
+            <button class="logo-btn" onclick="window.location.href='index.html'" aria-label="Accueil">
+              <img
+                src="assets/logo.webp"
+                alt="Richman Estate"
+                width="52"
+                height="52"
+                class="logo-img"
+              />
+            </button>
+
+            <nav class="nav-pill" aria-label="Navigation Principale">
+              <a href="/" class="nav-link">Accueil</a>
+              <a href="vehicules.html" class="nav-link">Véhicules</a>
+              <a href="suites.html" class="nav-link">Hôtel &amp; Suites</a>
+              <a href="client.html" class="nav-link active">Mon Espace</a>
+              <a href="contact.html" class="nav-link">Contact</a>
+            </nav>
+
+            <a href="login.html" class="signin-btn">Connexion</a>
+
+            <button
+              class="burger-btn"
+              id="burger-btn"
+              aria-expanded="false"
+              aria-label="Menu"
+            >
+              <span class="burger-bar"></span>
+              <span class="burger-bar"></span>
+              <span class="burger-bar"></span>
+            </button>
+          </div>
+          <script>
+          (function(){
+            try {
+              function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+              var u = JSON.parse(localStorage.getItem("richman_user") || "null");
+              if (u && u.name) {
+                var isOwner = localStorage.getItem("richman_is_owner") === "true";
+                var isStaff = isOwner || u.is_admin || u.role === "admin" || u.role === "gerant_hotel" || u.role === "gerant_vehicules" || u.role === "owner";
+                var targetHref = isStaff ? "admin.html" : "client.html";
+                var avatar = esc(u.avatar || "assets/logo.webp");
+                var btn = document.querySelector(".signin-btn");
+                if (btn && btn.parentElement) {
+                  var wrap = document.createElement("div");
+                  wrap.className = "nav-user-pill-wrap";
+                  wrap.innerHTML = '<a href="' + targetHref + '" style="display: flex; align-items: center; gap: 7px; text-decoration: none; background: transparent !important; box-shadow: none !important; border: none !important; padding: 0; margin: 0; height: auto;">' +
+                    '<img src="' + avatar + '" alt="" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid rgba(0, 0, 0, 0.12); flex-shrink: 0;" />' +
+                    '<span class="nav-user-pill-name" style="color: #18181b; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; display: inline-block;">' + esc(u.name) + '</span>' +
+                    '</a><span class="nav-sep" style="color: rgba(0, 0, 0, 0.18); font-size: 13px; margin: 0 4px;">|</span>' +
+                    '<button class="btn-logout" title="Se Déconnecter" onclick="if(window.handleUserLogout){window.handleUserLogout();}else{localStorage.removeItem(\'richman_user\');localStorage.removeItem(\'richman_role\');localStorage.removeItem(\'richman_is_owner\');window.location.reload();}" style="background: none; border: none; color: #dc2626; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 2px;"><i class="fa-solid fa-right-from-bracket" style="font-size: 13px;"></i></button>';
+                  btn.parentElement.replaceChild(wrap, btn);
+                }
+              }
+            } catch(e){}
+          })();
+        </script>
+        </header>
+
+        <!-- Auth Gate for unauthenticated visitors -->
+        <main class="hero client-auth-gate" id="client-auth-gate" style="display: none;">
+          <div class="trust-row anim" style="--d: 0.05s">
+            <div class="avatar-ring avatar-1">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-shield-halved"></i>
+              </div>
+            </div>
+            <div class="avatar-ring avatar-2">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-gem"></i>
+              </div>
+            </div>
+            <div class="avatar-ring avatar-3">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-crown"></i>
+              </div>
+            </div>
+            <div class="trust-pill">
+              <span>Richman Client Portal &bull; Authentification Requise</span>
+            </div>
+          </div>
+
+          <h1 class="headline">
+            <span class="headline-line headline-line-1">Espace</span>
+            <span class="headline-line headline-line-2">Client</span>
+          </h1>
+
+          <p class="subhead anim" style="--d: 0.28s">
+            Connectez-vous avec votre compte Discord validé sur le serveur Richman Estate pour suivre vos réservations de suites, vos locations de véhicules et échanger en direct avec notre conciergerie VIP.
+          </p>
+
+          <div class="cta-wrapper anim-cta" style="--d: 0.4s; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+            <a href="login.html" class="cta-btn">
+              <i class="fa-brands fa-discord" style="margin-right: 8px;"></i> Se Connecter avec Discord
+            </a>
+            <a href="index.html" class="cta-btn cta-btn-secondary">
+              <i class="fa-solid fa-arrow-left" style="margin-right: 8px; color: #c5a880;"></i> Retour à l'accueil
+            </a>
+          </div>
+        </main>
+
+        <!-- Client Dashboard Hero (visible only when logged in) -->
+        <main class="hero client-dashboard-hero" id="client-dashboard-hero" style="display: none;">
+          <div class="trust-row anim" style="--d: 0.05s">
+            <div class="avatar-ring avatar-1">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-crown"></i>
+              </div>
+            </div>
+            <div class="avatar-ring avatar-2">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-gem"></i>
+              </div>
+            </div>
+            <div class="avatar-ring avatar-3">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-shield-halved"></i>
+              </div>
+            </div>
+            <div class="trust-pill" id="client-role-badge">
+              <span><i class="fa-solid fa-gem" style="color: #ffffff; margin-right: 6px;"></i> Membre Privilège Richman</span>
+            </div>
+          </div>
+
+          <h1 class="headline">
+            <span class="headline-line headline-line-1">Espace</span>
+            <span class="headline-line headline-line-2" id="client-user-name">Personnel</span>
+          </h1>
+
+          <p class="subhead anim" style="--d: 0.28s">
+            Suivez l'état d'avancement de vos demandes de réservation, échangez en temps réel avec notre personnel et retrouvez l'ensemble de vos historiques de séjours et locations.
+          </p>
+
+          <div class="cta-wrapper anim-cta" style="--d: 0.4s; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+            <button class="cta-btn" onclick="scrollToBookings()">
+              <i class="fa-solid fa-folder-open" style="margin-right: 8px;"></i> Mes Réservations
+            </button>
+            <a href="contact.html" class="cta-btn cta-btn-secondary">
+              <i class="fa-solid fa-headset" style="margin-right: 8px; color: #c5a880;"></i> Contacter la Conciergerie
+            </a>
+          </div>
+        </main>
+        <script>
+          (function(){
+            try {
+              var raw = localStorage.getItem("richman_user");
+              var u = raw ? JSON.parse(raw) : null;
+              if (u && u.name) {
+                var gate = document.getElementById("client-auth-gate");
+                var hero = document.getElementById("client-dashboard-hero");
+                var wrap = document.getElementById("client-dashboard-wrap");
+                if (gate) gate.style.display = "none";
+                if (hero) hero.style.display = "flex";
+                if (wrap) wrap.style.display = "block";
+                
+                var nameEl = document.getElementById("client-user-name");
+                if (nameEl) nameEl.textContent = u.name;
+                
+                var badgeEl = document.getElementById("client-role-badge");
+                if (badgeEl) {
+                  var r = (u.role || '').toLowerCase();
+                  var isOwner = localStorage.getItem("richman_is_owner") === "true" || r === "owner";
+                  if (isOwner) {
+                    badgeEl.innerHTML = '<span><i class="fa-solid fa-crown" style="color: #ffffff; margin-right: 6px;"></i> Propriétaire Fondateur</span>';
+                  } else if (r === 'admin' || u.is_admin) {
+                    badgeEl.innerHTML = '<span><i class="fa-solid fa-shield-halved" style="color: #ffffff; margin-right: 6px;"></i> Direction &amp; Administration</span>';
+                  } else if (r === 'gerant_hotel' || r.includes('gerant_hotel') || r.includes('hotel')) {
+                    badgeEl.innerHTML = '<span><i class="fa-solid fa-hotel" style="color: #ffffff; margin-right: 6px;"></i> Gérant de l\'Hôtel</span>';
+                  } else if (r === 'gerant_vehicules' || r.includes('vehicule')) {
+                    badgeEl.innerHTML = '<span><i class="fa-solid fa-car" style="color: #ffffff; margin-right: 6px;"></i> Gérant Véhicules</span>';
+                  } else if (r === 'vip' || r.includes('vip')) {
+                    badgeEl.innerHTML = '<span><i class="fa-solid fa-star" style="color: #ffffff; margin-right: 6px;"></i> Membre VIP</span>';
+                  } else {
+                    badgeEl.innerHTML = '<span><i class="fa-solid fa-tree" style="color: #ffffff; margin-right: 6px;"></i> Citoyen Enregistré</span>';
+                  }
+                }
+              } else {
+                var gate = document.getElementById("client-auth-gate");
+                if (gate) gate.style.display = "flex";
+              }
+            } catch(e){}
+          })();
+        </script>
+
+        <!-- Stats Bar -->
+        <footer class="stats-footer">
+          <div class="stats-grid">
+            <div class="stat-item anim" style="--d: 0.5s">
+              <span class="stat-icon"><i class="fa-solid fa-folder-open" style="color: #c5a880; font-size: 18px;"></i></span>
+              <div class="stat-value-wrap">
+                <span class="stat-value" id="kpi-hero-total" data-target="0" data-suffix="" data-decimals="0">0</span>
+              </div>
+              <span class="stat-label">Réservations Totales</span>
+            </div>
+            <div class="stat-item anim" style="--d: 0.58s">
+              <span class="stat-icon"><i class="fa-solid fa-shield-halved" style="color: #c5a880; font-size: 18px;"></i></span>
+              <div class="stat-value-wrap">
+                <span class="stat-value" data-target="100" data-suffix="%" data-decimals="0">100</span><span class="stat-suffix">%</span>
+              </div>
+              <span class="stat-label">Statut Membre</span>
+            </div>
+            <div class="stat-item anim" style="--d: 0.66s">
+              <span class="stat-icon"><i class="fa-solid fa-clock" style="color: #c5a880; font-size: 18px;"></i></span>
+              <div class="stat-value-wrap">
+                <span class="stat-value" data-target="24" data-suffix="/7" data-decimals="0">24</span><span class="stat-suffix">/7</span>
+              </div>
+              <span class="stat-label">Support 24/7</span>
+            </div>
+            <div class="stat-item anim" style="--d: 0.74s">
+              <span class="stat-icon"><i class="fa-solid fa-star" style="color: #fbbf24; font-size: 18px;"></i></span>
+              <div class="stat-value-wrap">
+                <span class="stat-value" data-target="5.0" data-suffix="★" data-decimals="1">5.0</span><span class="stat-suffix">★</span>
+              </div>
+              <span class="stat-label">Note Satisfaction</span>
+            </div>
+          </div>
+        </footer>
+      </div>
+
+      <!-- 2) Client Portal Content Section -->
+      <main class="client-portal-main" id="client-portal-main">
+        <!-- Authenticated Client VIP Page -->
+        <div class="client-dashboard-wrap" id="client-dashboard-wrap" style="display: none; width: 100%;">
+
+          <!-- VUE 1 : Liste des Réservations & Dossiers -->
+          <div id="client-list-view" style="width: 100%;">
+            <!-- 2) Mes Réservations Section -->
+            <section class="client-section" id="reservations-section">
+              <div class="section-top-bar">
+                <div class="section-title-wrap">
+                  <span class="section-eyebrow"><i class="fa-solid fa-key"></i> Clés &amp; Mises à Disposition</span>
+                  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <h2 class="section-title">Mes Réservations &amp; Tickets</h2>
+                    <span class="client-bookings-badge" id="client-bookings-badge">0 dossier</span>
+                  </div>
+                </div>
+
+                <!-- Action button for new special request -->
+                <div class="section-actions-right">
+                  <button type="button" class="btn-new-ticket-action" onclick="window.openConciergeCustomRequestModal()">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nouvelle Demande</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Toolbar: Filters + Search + Sort -->
+              <div class="client-toolbar-row">
+                <div class="vip-filters-row">
+                  <button type="button" class="vip-filter-tab active" data-filter="all" onclick="window.filterClientBookings('all', this)">
+                    Tous <span class="filter-count-pill" id="filter-count-all">0</span>
+                  </button>
+                  <button type="button" class="vip-filter-tab" data-filter="vehicule" onclick="window.filterClientBookings('vehicule', this)">
+                    <i class="fa-solid fa-car"></i> Véhicules <span class="filter-count-pill" id="filter-count-vehicule">0</span>
+                  </button>
+                  <button type="button" class="vip-filter-tab" data-filter="suite" onclick="window.filterClientBookings('suite', this)">
+                    <i class="fa-solid fa-hotel"></i> Suites <span class="filter-count-pill" id="filter-count-suite">0</span>
+                  </button>
+                  <button type="button" class="vip-filter-tab" data-filter="pending" onclick="window.filterClientBookings('pending', this)">
+                    <i class="fa-solid fa-hourglass-half"></i> En Attente <span class="filter-count-pill warning" id="filter-count-pending">0</span>
+                  </button>
+                  <button type="button" class="vip-filter-tab" data-filter="confirmed" onclick="window.filterClientBookings('confirmed', this)">
+                    <i class="fa-solid fa-circle-check"></i> Validées <span class="filter-count-pill success" id="filter-count-confirmed">0</span>
+                  </button>
+                  <button type="button" class="vip-filter-tab" data-filter="cancelled" onclick="window.filterClientBookings('cancelled', this)">
+                    Refusées / Fermées <span class="filter-count-pill" id="filter-count-cancelled">0</span>
+                  </button>
+                </div>
+
+                <div class="client-search-sort-group">
+                  <div class="client-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input
+                      type="text"
+                      id="client-bookings-search"
+                      placeholder="Rechercher par nom ou réf..."
+                      oninput="window.handleClientSearch(this.value)"
+                    />
+                    <button type="button" id="client-search-clear" class="btn-clear-search" onclick="window.clearClientSearch()" style="display: none;" aria-label="Effacer">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                  <div class="client-sort-box">
+                    <select id="client-bookings-sort" onchange="window.handleClientSort(this.value)">
+                      <option value="recent">Plus récentes</option>
+                      <option value="oldest">Plus anciennes</option>
+                      <option value="status">Par Statut</option>
+                      <option value="name">Par Nom (A-Z)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Grid of Bookings or Empty State -->
+              <div class="client-bookings-grid" id="client-bookings-list">
+                <div class="loading-spinner-wrap">
+                  <i class="fa-solid fa-circle-notch fa-spin"></i>
+                  <span>Chargement de vos dossiers et réservations...</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- 3) Privileges du Domaine Strip -->
+            <section class="vip-privileges-strip" style="margin-bottom: 60px;">
+              <div class="privilege-card">
+                <div class="privilege-icon"><i class="fa-solid fa-helicopter"></i></div>
+                <div class="privilege-content">
+                  <h4>Transferts VIP &amp; Héliport</h4>
+                  <p>Mise à disposition d'un chauffeur privé ou d'une navette aérienne sur simple demande dans votre salon de messagerie.</p>
+                </div>
+              </div>
+              <div class="privilege-card">
+                <div class="privilege-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="privilege-content">
+                  <h4>Assurance Tous Risques &bull; 0 Franchise</h4>
+                  <p>Flotte et suites entièrement garanties et sécurisées 24h/24 par l'équipe de sécurité du Domaine.</p>
+                </div>
+              </div>
+              <div class="privilege-card">
+                <div class="privilege-icon"><i class="fa-solid fa-martini-glass-citrus"></i></div>
+                <div class="privilege-content">
+                  <h4>Accès Lounge &amp; Cave Privée</h4>
+                  <p>Bar à cigares, dégustations exclusives et service en chambre 5 étoiles synchronisé avec vos réservations.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+    <!-- 4) Fenêtre de Dialogue VIP (Modale Flottante Haute Couture Centrée - Niveau Racine) -->
+    <div class="vip-dialog-overlay" id="vip-dialog-overlay" onclick="window.closeBookingDialog()" style="display: none;">
+      <div class="vip-dialog-modal" id="vip-dialog-modal" onclick="event.stopPropagation()">
+        <!-- En-tête de la Fenêtre de Dialogue -->
+        <div class="dialog-header">
+          <div class="dialog-header-meta">
+            <div class="dialog-avatar-wrap">
+              <img src="assets/logo.webp" id="dialog-item-thumb" alt="" class="dialog-thumb-img" onerror="this.onerror=null; this.src='assets/logo.webp';" />
+              <span class="dialog-live-dot" title="Staff en ligne"></span>
+            </div>
+            <div class="dialog-title-col">
+              <div class="dialog-title-row">
+                <h3 id="dialog-item-title">Salon Conciergerie</h3>
+                <button type="button" class="dialog-ref-pill" id="dialog-ref-pill" onclick="window.copyCurrentChatRef(event)" title="Copier la référence">
+                  <i class="fa-regular fa-copy"></i> <span id="dialog-ref-text">#BKG-XXXX</span>
+                </button>
+              </div>
+              <div class="dialog-sub-meta">
+                <span class="dialog-status-chip pending" id="dialog-status-chip">En Attente</span>
+                <span class="dialog-price-tag" id="dialog-price-tag">Sur devis</span>
+                <span class="dialog-dates-tag" id="dialog-dates-tag"></span>
+              </div>
+            </div>
+          </div>
+          <div class="dialog-header-actions">
+            <button type="button" class="dialog-action-btn" title="Rafraîchir les messages" onclick="window.refreshActiveChatMessages()">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <button type="button" class="dialog-close-btn" onclick="window.closeBookingDialog()" aria-label="Fermer">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Barre de sélection rapide entre plusieurs dossiers -->
+        <div class="dialog-dossiers-bar" id="dialog-dossiers-bar" style="display: none;"></div>
+
+        <!-- Zone de Messages -->
+        <div class="dialog-messages-container" id="dialog-messages-container"></div>
+
+        <!-- Barre de saisie -->
+        <form class="dialog-input-bar" id="dialog-chat-form" onsubmit="window.handleClientSendMessage(event)">
+          <input
+            type="text"
+            id="chat-message-input"
+            placeholder="Écrivez à votre majordome..."
+            autocomplete="off"
+          />
+          <button type="submit" id="chat-send-btn" class="chat-send-btn" aria-label="Envoyer">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </form>
+        <div class="dialog-sub-hint">
+          <i class="fa-solid fa-shield-halved"></i> Salon Privé 24/7 &bull; Réponse instantanée du staff sur Discord &amp; Web
+        </div>
+      </div>
+    </div>
+
+    <!-- 5) Modale Nouvelle Demande Conciergerie Sur-Mesure (Niveau Racine) -->
+    <div class="admin-modal-overlay" id="concierge-custom-modal-overlay" style="display: none;" aria-hidden="true">
+      <div class="admin-modal" style="max-width: 520px; background: #111216; border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 28px; box-shadow: 0 30px 80px rgba(0,0,0,0.85);">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.3); display: flex; align-items: center; justify-content: center; color: #c5a880; font-size: 18px;">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 17px; color: #ffffff; font-weight: 700;">Demande Spéciale Conciergerie</h3>
+              <p style="margin: 3px 0 0 0; font-size: 12px; color: #a1a1aa;">Transmise directement au majordome en service</p>
+            </div>
+          </div>
+          <button type="button" class="drawer-close-btn" onclick="window.closeConciergeCustomRequestModal()" aria-label="Fermer">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form id="concierge-custom-request-form" onsubmit="window.handleConciergeCustomRequestSubmit(event)">
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a1a1aa; margin-bottom: 6px; letter-spacing: 0.04em;">Type de Demande</label>
+            <select id="custom-req-type" style="width: 100%; height: 42px; background: #1a1b22; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; padding: 0 12px; font-size: 13px; outline: none;">
+              <option value="vehicule_custom">🚗 Demande Véhicule Spécifique</option>
+              <option value="suite_custom">🏨 Séjour Spécial / Événement Privé</option>
+              <option value="chauffeur">👔 Chauffeur Privé &amp; Transfert</option>
+              <option value="concierge_general" selected>✨ Conciergerie Générale &amp; VIP</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a1a1aa; margin-bottom: 6px; letter-spacing: 0.04em;">Objet de votre demande *</label>
+            <input type="text" id="custom-req-title" required placeholder="Ex: Réservation d'une table VIP ou supercar pour ce soir" style="width: 100%; height: 42px; background: #1a1b22; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; padding: 0 12px; font-size: 13px; outline: none;" />
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div class="form-group">
+              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a1a1aa; margin-bottom: 6px; letter-spacing: 0.04em;">Date / Période</label>
+              <input type="date" id="custom-req-date" style="width: 100%; height: 42px; background: #1a1b22; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; padding: 0 12px; font-size: 13px; outline: none;" />
+            </div>
+            <div class="form-group">
+              <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a1a1aa; margin-bottom: 6px; letter-spacing: 0.04em;">Téléphone / Contact RP</label>
+              <input type="text" id="custom-req-phone" placeholder="555-XXXX" style="width: 100%; height: 42px; background: #1a1b22; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; padding: 0 12px; font-size: 13px; outline: none;" />
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #a1a1aa; margin-bottom: 6px; letter-spacing: 0.04em;">Détails &amp; Exigences particulières</label>
+            <textarea id="custom-req-notes" rows="3" placeholder="Précisez votre demande, nombre de personnes, horaires souhaités..." style="width: 100%; background: #1a1b22; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; padding: 10px 12px; font-size: 13px; outline: none; resize: vertical;"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 12px;">
+            <button type="button" onclick="window.closeConciergeCustomRequestModal()" style="flex: 1; height: 44px; border-radius: 12px; background: #1a1b22; border: 1px solid rgba(255,255,255,0.1); color: #d4d4d8; font-weight: 600; font-size: 13px; cursor: pointer;">Annuler</button>
+            <button type="submit" id="custom-req-submit-btn" style="flex: 1.4; height: 44px; border-radius: 12px; background: var(--accent-gold, #c5a880); border: none; color: #111; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(197, 168, 128, 0.35);">
+              <i class="fa-solid fa-paper-plane"></i> Transmettre la demande
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Supabase JS SDK -->
+    <!-- DOMPurify (XSS Protection) -->
+    <!-- Vanilla JS Application Logic -->
+      <script type="module" src="/src/main/client.ts"></script>
+  </body>
+</html>

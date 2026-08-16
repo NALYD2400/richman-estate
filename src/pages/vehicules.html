@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flotte Prestige — Richman Estate</title>
+
+    <!-- Open Graph & Discord Rich Embed Metadata -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Richman Estate — Conciergerie de Luxe" />
+    <meta property="og:title" content="Flotte Prestige — Richman Estate" />
+    <meta property="og:description" content="Découvrez notre collection de supercars, sportives et véhicules d'exception disponibles à la location avec conciergerie VIP 24/7." />
+    <meta property="og:image" content="https://staff.gta.ctgaming.fr/uploads/vehicle-screenshots/1016urus.webp" />
+    <meta name="theme-color" content="#c5a880" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Flotte Prestige — Richman Estate" />
+    <meta name="twitter:description" content="Location de supercars et conciergerie de luxe." />
+    <meta name="twitter:image" content="https://staff.gta.ctgaming.fr/uploads/vehicle-screenshots/1016urus.webp" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- OnlineWebFonts: BubbledotICG-FinePos -->
+    <link
+      href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome 6.5.2 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="assets/logo.webp" />
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="src/styles/styles.css" />
+  </head>
+  <body class="scrollable-body">
+    <!-- Background Video Layer -->
+    <div class="bg">
+      <div class="bg-ambient-layer"></div>
+      <video class="bg-video" autoplay muted loop playsinline>
+        <source
+          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4"
+          type="video/mp4"
+        />
+      </video>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" aria-hidden="true"></div>
+
+    <!-- Mobile Menu Sheet -->
+    <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+      <nav class="mobile-nav">
+        <a href="/" class="mobile-nav-link">Accueil</a>
+        <a href="vehicules.html" class="mobile-nav-link active">Véhicules</a>
+        <a href="suites.html" class="mobile-nav-link">Hôtel &amp; Suites</a>
+        <a href="client.html" class="mobile-nav-link">Mon Espace</a>
+        <a href="contact.html" class="mobile-nav-link">Contact</a>
+        <a href="login.html" class="mobile-signin">Connexion</a>
+      </nav>
+    </div>
+
+    <!-- Main Page Layout (Smooth Scroll) -->
+    <div class="page scrollable-page">
+      <div class="hero-screen">
+        <!-- 1) Header -->
+        <header class="header">
+          <div class="header-container">
+            <button class="logo-btn" onclick="window.location.href='index.html'" aria-label="Accueil">
+              <img
+                src="assets/logo.webp"
+                alt="Richman Estate"
+                width="52"
+                height="52"
+                class="logo-img"
+              />
+            </button>
+
+            <nav class="nav-pill" aria-label="Main Navigation">
+              <a href="/" class="nav-link">Accueil</a>
+              <a href="vehicules.html" class="nav-link active">Véhicules</a>
+              <a href="suites.html" class="nav-link">Hôtel &amp; Suites</a>
+              <a href="client.html" class="nav-link">Mon Espace</a>
+              <a href="contact.html" class="nav-link">Contact</a>
+            </nav>
+
+            <a href="login.html" class="signin-btn">Connexion</a>
+
+            <button
+              class="burger-btn"
+              id="burger-btn"
+              aria-expanded="false"
+              aria-label="Toggle navigation menu"
+            >
+              <span class="burger-bar"></span>
+              <span class="burger-bar"></span>
+              <span class="burger-bar"></span>
+            </button>
+          </div>
+        </header>
+        <script>
+          (function(){
+            try {
+              function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+              var u = JSON.parse(localStorage.getItem("richman_user") || "null");
+              if (u && u.name) {
+                var isOwner = localStorage.getItem("richman_is_owner") === "true";
+                var isStaff = isOwner || u.is_admin || u.role === "admin" || u.role === "gerant_hotel" || u.role === "gerant_vehicules" || u.role === "owner";
+                var targetHref = isStaff ? "admin.html" : "client.html";
+                var avatar = esc(u.avatar || "assets/logo.webp");
+                var btn = document.querySelector(".signin-btn");
+                if (btn && btn.parentElement) {
+                  var wrap = document.createElement("div");
+                  wrap.className = "nav-user-pill-wrap";
+                  wrap.innerHTML = '<a href="' + targetHref + '" style="display: flex; align-items: center; gap: 7px; text-decoration: none; background: transparent !important; box-shadow: none !important; border: none !important; padding: 0; margin: 0; height: auto;">' +
+                    '<img src="' + avatar + '" alt="" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid rgba(0, 0, 0, 0.12); flex-shrink: 0;" />' +
+                    '<span class="nav-user-pill-name" style="color: #18181b; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; display: inline-block;">' + esc(u.name) + '</span>' +
+                    '</a><span class="nav-sep" style="color: rgba(0, 0, 0, 0.18); font-size: 13px; margin: 0 4px;">|</span>' +
+                    '<button class="btn-logout" title="Se Déconnecter" onclick="if(window.handleUserLogout){window.handleUserLogout();}else{localStorage.removeItem(\'richman_user\');localStorage.removeItem(\'richman_role\');localStorage.removeItem(\'richman_is_owner\');window.location.reload();}" style="background: none; border: none; color: #dc2626; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 2px;"><i class="fa-solid fa-right-from-bracket" style="font-size: 13px;"></i></button>';
+                  btn.parentElement.replaceChild(wrap, btn);
+                }
+              }
+            } catch(e){}
+          })();
+        </script>
+
+        <!-- 2) Hero Section -->
+        <main class="hero">
+          <div class="trust-row anim" style="--d: 0.05s">
+            <div class="avatar-ring avatar-1">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-car"></i>
+              </div>
+            </div>
+            <div class="avatar-ring avatar-2">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-gauge-high"></i>
+              </div>
+            </div>
+            <div class="avatar-ring avatar-3">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-user-shield"></i>
+              </div>
+            </div>
+            <div class="trust-pill">
+              <span>Parc Automobile &bull; Véhicules de Luxe</span>
+            </div>
+          </div>
+
+          <h1 class="headline">
+            <span class="headline-line headline-line-1">Location</span>
+            <span class="headline-line headline-line-2">Véhicules</span>
+          </h1>
+
+          <p class="subhead anim" style="--d: 0.28s">
+            Louez des véhicules d'exception pour vos déplacements, événements et trajets avec remise des clés en direct.
+          </p>
+
+          <div class="cta-wrapper anim-cta" style="--d: 0.4s; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+            <a href="#showroom-section" class="cta-btn" id="btn-explore-fleet">
+              <i class="fa-solid fa-arrow-down" style="margin-right: 8px;"></i> Découvrir le Showroom
+            </a>
+            <button type="button" class="cta-btn cta-btn-secondary" id="btn-quick-reserve">
+              <i class="fa-solid fa-calendar-check" style="margin-right: 8px; color: #c5a880;"></i> Demande de Réservation
+            </button>
+          </div>
+        </main>
+
+        <!-- 3) Stats Bar -->
+        <footer class="stats-footer">
+          <div class="stats-grid">
+            <div class="stat-item anim" style="--d: 0.5s">
+              <span class="stat-icon"><i class="fa-solid fa-car" style="color: #c5a880; font-size: 18px;"></i></span>
+              <div class="stat-value-wrap">
+                <span class="stat-value" id="stat-fleet-count" data-target="24" data-suffix="" data-decimals="0">0</span>
+              </div>
+              <span class="stat-label">Véhicules Disponibles</span>
+            </div>
+
+            <div class="stat-item anim" style="--d: 0.58s">
+              <span class="stat-icon"><i class="fa-solid fa-shield-halved" style="color: #c5a880; font-size: 18px;"></i></span>
+              <div class="stat-value-wrap">
+                <span class="stat-value" data-target="100" data-suffix="%" data-decimals="0">0</span><span class="stat-suffix">%</span>
+              </div>
+              <span class="stat-label">Véhicules Assurés</span>
+            </div>
+
+            <div class="stat-item anim" style="--d: 0.66s">
+              <span class="stat-icon"><i class="fa-solid fa-clock" style="color: #c5a880; font-size: 18px;"></i></span>
+              <div class="stat-value-wrap">
+                <span class="stat-value" data-target="24" data-suffix="/7" data-decimals="0">0</span><span class="stat-suffix">/7</span>
+              </div>
+              <span class="stat-label">Support 24/7</span>
+            </div>
+
+            <div class="stat-item anim" style="--d: 0.74s">
+              <span class="stat-icon"><i class="fa-solid fa-star" style="color: #fbbf24; font-size: 18px;"></i></span>
+              <div class="stat-value-wrap">
+                <span class="stat-value" id="stat-fleet-rating" data-target="5.0" data-suffix="★" data-decimals="1">0.0</span><span class="stat-suffix">★</span>
+              </div>
+              <span class="stat-label">Note Satisfaction</span>
+            </div>
+          </div>
+        </footer>
+      </div>
+
+      <!-- 4) Showroom Section (Smooth scroll target) -->
+      <section class="showroom-section" id="showroom-section">
+        <!-- Filter & Search Toolbar -->
+        <div class="showroom-toolbar">
+          <div class="showroom-toolbar-top">
+            <!-- Search -->
+            <div class="showroom-search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="public-fleet-search" placeholder="Rechercher par modèle, motorisation, catégorie..." />
+            </div>
+
+            <!-- Favorites Toggle Button -->
+            <button type="button" class="showroom-fav-btn" id="btn-filter-favorites" onclick="window.toggleFavoritesFilter(event)" title="Afficher uniquement mes véhicules favoris">
+              <i class="fa-solid fa-heart"></i>
+              <span>Mes Favoris</span>
+              <span class="fav-count-badge" id="fav-count-badge">0</span>
+            </button>
+
+            <!-- Filters & Sort -->
+            <div class="showroom-filters-right">
+              <!-- Type Filter -->
+              <div class="showroom-select-wrap">
+                <i class="fa-solid fa-car" style="color: #c5a880;"></i>
+                <select id="public-fleet-filter-type">
+                  <option value="all">Tous les types</option>
+                  <option value="voiture">Voiture</option>
+                  <option value="moto">Moto</option>
+                  <option value="bateau">Bateau</option>
+                  <option value="helico">Hélicoptère</option>
+                  <option value="avion">Avion</option>
+                </select>
+              </div>
+
+              <!-- Class Filter -->
+              <div class="showroom-select-wrap">
+                <i class="fa-solid fa-tag" style="color: #c5a880;"></i>
+                <select id="public-fleet-filter-class">
+                  <option value="all">Toutes les classes</option>
+                  <option value="SUPER">Supercars</option>
+                  <option value="SPORT">Sportives</option>
+                  <option value="SPORT_CLASSIC">Sport Classiques</option>
+                  <option value="SUV">SUV</option>
+                  <option value="COUPE">Coupés</option>
+                  <option value="MUSCLE">Muscle Cars</option>
+                  <option value="SEDAN">Berlines</option>
+                  <option value="COMPACT">Compactes</option>
+                  <option value="MOTO">Motos</option>
+                  <option value="OFFROAD">Tout-terrain</option>
+                  <option value="UTILITY">Utilitaires</option>
+                  <option value="VAN">Fourgons</option>
+                  <option value="CYCLE">Vélos</option>
+                  <option value="BOAT">Bateaux</option>
+                  <option value="HELI">Hélicoptères</option>
+                  <option value="PLANE">Avions</option>
+                  <option value="SERVICE">Service</option>
+                  <option value="EMERGENCY">Secours / Urgence</option>
+                  <option value="MILITARY">Militaires</option>
+                </select>
+              </div>
+
+              <!-- Status Filter -->
+              <div class="showroom-select-wrap">
+                <i class="fa-solid fa-filter" style="color: #c5a880;"></i>
+                <select id="public-fleet-filter-status">
+                  <option value="all">Tous les statuts</option>
+                  <option value="confirmed">🟢 Disponibles uniquement</option>
+                  <option value="rented">🔴 En location</option>
+                </select>
+              </div>
+
+              <!-- Sort -->
+              <div class="showroom-select-wrap">
+                <i class="fa-solid fa-arrow-down-wide-short" style="color: #c5a880;"></i>
+                <select id="public-fleet-sort">
+                  <option value="recent">Nouveautés d'abord</option>
+                  <option value="price-asc">Tarif : Croissant</option>
+                  <option value="price-desc">Tarif : Décroissant</option>
+                  <option value="name-asc">Nom (A → Z)</option>
+                </select>
+              </div>
+
+              <!-- Grid Layout Switcher -->
+              <div class="showroom-grid-control" id="showroom-grid-control">
+                <span class="grid-control-label" title="Affichage par ligne"><i class="fa-solid fa-table-cells"></i></span>
+                <div class="grid-switcher-btns" role="group" aria-label="Disposition de la grille">
+                  <button type="button" class="grid-switcher-btn" data-cols="2" onclick="window.setRichmanGridCols(2)" title="2 par ligne (Grand format)">
+                    <i class="fa-solid fa-table-columns"></i>
+                    <span>2</span>
+                  </button>
+                  <button type="button" class="grid-switcher-btn active" data-cols="3" onclick="window.setRichmanGridCols(3)" title="3 par ligne (Standard)">
+                    <i class="fa-solid fa-table-cells-large"></i>
+                    <span>3</span>
+                  </button>
+                  <button type="button" class="grid-switcher-btn" data-cols="4" onclick="window.setRichmanGridCols(4)" title="4 par ligne (Compact)">
+                    <i class="fa-solid fa-table-cells"></i>
+                    <span>4</span>
+                  </button>
+                  <button type="button" class="grid-switcher-btn" data-cols="5" onclick="window.setRichmanGridCols(5)" title="5 par ligne (Panoramique)">
+                    <i class="fa-solid fa-grip"></i>
+                    <span>5</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Grid of Vehicles -->
+        <div class="public-fleet-grid" id="public-fleet-grid">
+          <div style="grid-column: 1/-1; text-align: center; color: #8e8e8e; padding: 60px 0;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 28px; color: #c5a880; margin-bottom: 12px;"></i>
+            <p style="font-size: 14px;">Chargement de la flotte prestige...</p>
+          </div>
+        </div>
+
+        <!-- Luxury Pagination Bar -->
+        <div class="showroom-pagination-wrap" id="fleet-pagination-wrap" style="display: none;">
+          <div class="pagination-info" id="fleet-pagination-info">
+            Affichage de <span id="fleet-page-range">1-24</span> sur <span id="fleet-total-count">24</span> véhicules
+          </div>
+          
+          <div class="pagination-controls">
+            <button type="button" class="pagination-btn" id="fleet-prev-page" onclick="window.changeFleetPage(-1)" title="Page précédente">
+              <i class="fa-solid fa-chevron-left"></i>
+              <span>Précédent</span>
+            </button>
+
+            <div class="pagination-pages" id="fleet-pagination-pages">
+              <!-- Page numbers injected dynamically -->
+            </div>
+
+            <button type="button" class="pagination-btn" id="fleet-next-page" onclick="window.changeFleetPage(1)" title="Page suivante">
+              <span>Suivant</span>
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <div class="pagination-per-page">
+            <span class="per-page-label">Par page :</span>
+            <div class="per-page-pills">
+              <button type="button" class="per-page-pill" data-per="12" onclick="window.setFleetPerPage(12)">12</button>
+              <button type="button" class="per-page-pill active" data-per="24" onclick="window.setFleetPerPage(24)">24</button>
+              <button type="button" class="per-page-pill" data-per="48" onclick="window.setFleetPerPage(48)">48</button>
+              <button type="button" class="per-page-pill" data-per="all" onclick="window.setFleetPerPage('all')">Tous</button>
+            </div>
+      </section>
+    </div>
+
+    <!-- 5) Luxury Vehicle Reservation Modal Overlay -->
+    <div class="luxury-reservation-modal-overlay" id="vehicle-reservation-modal-overlay" aria-hidden="true">
+      <div class="luxury-reservation-modal-container">
+        <!-- Close Button -->
+        <button type="button" class="luxury-modal-close-btn" id="vehicle-reservation-close-btn" aria-label="Fermer la fenêtre">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <!-- Header -->
+        <div class="luxury-modal-header">
+          <div class="luxury-modal-badge">
+            <i class="fa-solid fa-sparkles"></i> Conciergerie Privée &amp; Location VIP
+          </div>
+          <h2 class="luxury-modal-title">Demande de Réservation</h2>
+          <p class="luxury-modal-subtitle">Transmettez votre demande en direct à notre équipe de majordomes et concierges de prestige.</p>
+        </div>
+
+        <!-- Auth / Role Verification Gate Banner -->
+        <div id="res-auth-gate" style="display: none; margin-top: 14px; border-radius: 14px; font-size: 13px; line-height: 1.5;"></div>
+
+        <!-- Reservation Form -->
+        <form id="vehicle-reservation-form" style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+          <!-- Hidden inputs for vehicle binding -->
+          <input type="hidden" id="res-vehicle-id" />
+          <input type="hidden" id="res-vehicle-name" />
+          <input type="hidden" id="res-vehicle-price" />
+
+          <!-- Selected Vehicle Showcase Card -->
+          <div class="luxury-car-showcase" id="res-car-preview-box">
+            <div class="luxury-car-thumb">
+              <img id="res-car-img" src="assets/logo.webp" alt="Véhicule" />
+            </div>
+            <div class="luxury-car-details">
+              <div class="luxury-car-badges">
+                <span id="res-car-category-badge" class="luxury-cat-badge">SUPERCARS</span>
+                <span id="res-car-plate-badge" class="luxury-plate-badge">LXS-RICH</span>
+                <button type="button" class="luxury-modal-share-badge-btn" id="btn-modal-share-car" onclick="window.shareCurrentModalVehicle()" title="Partager ce véhicule">
+                  <i class="fa-solid fa-share-nodes"></i> <span>Partager</span>
+                </button>
+              </div>
+              <h4 id="res-car-title" class="luxury-car-name">Sélectionnez un véhicule</h4>
+              <div class="luxury-car-price">
+                <span class="price-label">Tarif journalier : </span>
+                <strong id="res-car-price-display" class="price-val">Sur devis</strong> <span class="price-unit">/ 24h</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Client RP Identity & Phone -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Nom &amp; Prénom RP</label>
+              <div class="luxury-input-wrap">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="res-client-name" required placeholder="ex: George Pinty" />
+              </div>
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Numéro de Téléphone RP</label>
+              <div class="luxury-input-wrap">
+                <i class="fa-solid fa-phone"></i>
+                <input type="text" id="res-client-phone" required placeholder="ex: 555-0192" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Rental Duration & Dates -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Date de Début</label>
+              <div class="luxury-input-wrap">
+                <i class="fa-solid fa-calendar-day"></i>
+                <input type="date" id="res-start-date" required />
+              </div>
+            </div>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Durée de la Location</label>
+              <div class="luxury-input-wrap">
+                <i class="fa-solid fa-clock"></i>
+                <select id="res-duration-select">
+                  <option value="1">1 Jour (24 Heures)</option>
+                  <option value="2">2 Jours (48 Heures)</option>
+                  <option value="3">3 Jours (Week-end VIP)</option>
+                  <option value="7">1 Semaine (7 Jours)</option>
+                  <option value="14">2 Semaines (14 Jours)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cost Breakdown Calculation -->
+          <div class="res-cost-breakdown">
+            <div>
+              <span style="font-size: 11px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; display: block;">Total Estimé</span>
+              <span style="font-size: 12.5px; color: #d4d4d8; margin-top: 2px; display: block;" id="res-cost-formula">1 jour × Tarif de base</span>
+            </div>
+            <div style="font-size: 22px; font-weight: 800; color: #c5a880; font-family: var(--font-sans); letter-spacing: -0.02em;" id="res-cost-total">
+              0 €
+            </div>
+          </div>
+
+          <!-- Special Requests / Notes -->
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Demandes Particulières &amp; Lieu de Livraison</label>
+            <div class="luxury-input-wrap" style="align-items: flex-start; padding: 12px 16px;">
+              <i class="fa-solid fa-comment-dots" style="margin-top: 4px;"></i>
+              <textarea id="res-notes" rows="2" placeholder="ex: Livraison devant le Casino Diamond, champagne à bord..." style="width: 100%; background: transparent; border: none; color: #fff; font-size: 13px; outline: none; font-family: var(--font-sans); resize: none;"></textarea>
+            </div>
+          </div>
+
+          <!-- Discord Ticket Notice -->
+          <div style="background: rgba(88, 101, 242, 0.08); border: 1px solid rgba(88, 101, 242, 0.25); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+            <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(88, 101, 242, 0.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #818cf8; font-size: 16px;">
+              <i class="fa-brands fa-discord"></i>
+            </div>
+            <div>
+              <span style="color: #fff; font-weight: 600; display: block; margin-bottom: 2px;">Création automatique d'un salon Ticket Discord</span>
+              <span style="color: #94a3b8; font-size: 11.5px;">Un salon dédié sera ouvert sur le serveur et le bot vous enverra un MP avec le lien direct d'accès.</span>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="btn-submit-reservation" class="luxury-submit-btn" style="margin-top: 4px;">
+            <i class="fa-solid fa-sparkles"></i>
+            <span>Confirmer la Demande de Location</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 6) Luxury Vehicle Reviews Modal Overlay -->
+    <div class="luxury-reservation-modal-overlay" id="vehicle-reviews-modal-overlay" aria-hidden="true">
+      <div class="luxury-reservation-modal-container" style="max-width: 560px;">
+        <button type="button" class="luxury-modal-close-btn" id="vehicle-reviews-close-btn" aria-label="Fermer la fenêtre">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="luxury-modal-header">
+          <div class="luxury-modal-badge">
+            <i class="fa-solid fa-star" style="color: #fbbf24;"></i> Avis Clients &amp; Expérience RP
+          </div>
+          <h2 class="luxury-modal-title" id="reviews-modal-vehicle-title">Avis Véhicule</h2>
+          <p class="luxury-modal-subtitle">Consultez les retours d'expérience et notez ce véhicule de prestige.</p>
+        </div>
+
+        <!-- Overall Score Card -->
+        <div class="reviews-overview-card">
+          <div>
+            <div class="reviews-score-big">
+              <span id="reviews-avg-rating">4.9</span> <span>/ 5</span>
+            </div>
+            <div class="star-rating-stars" id="reviews-stars-display">
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <strong id="reviews-total-count" style="font-size: 18px; color: #fff;">0</strong>
+            <span style="font-size: 12px; color: #a1a1aa; display: block;">avis enregistrés</span>
+          </div>
+        </div>
+
+        <!-- Past Reviews List -->
+        <div style="margin-bottom: 18px;">
+          <h4 style="font-size: 13px; font-weight: 700; color: #d4d4d8; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0;">Derniers Avis Citoyens</h4>
+          <div class="reviews-list-container" id="reviews-list-box">
+            <div style="text-align: center; padding: 20px; color: #71717a; font-size: 13px;">
+              Chargement des avis...
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Review Form -->
+        <form id="vehicle-review-form" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <input type="hidden" id="review-vehicle-id" />
+          <input type="hidden" id="review-vehicle-name" />
+          <input type="hidden" id="review-rating-val" value="5" />
+
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Votre Note :</label>
+            <div class="star-picker" id="star-picker-widget">
+              <i class="fa-solid fa-star active" data-val="1"></i>
+              <i class="fa-solid fa-star active" data-val="2"></i>
+              <i class="fa-solid fa-star active" data-val="3"></i>
+              <i class="fa-solid fa-star active" data-val="4"></i>
+              <i class="fa-solid fa-star active" data-val="5"></i>
+            </div>
+          </div>
+
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Votre Nom RP</label>
+            <div class="luxury-input-wrap">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" id="review-client-name" required placeholder="ex: George Pinty" />
+            </div>
+          </div>
+
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Votre Commentaire</label>
+            <div class="luxury-input-wrap luxury-textarea-wrap">
+              <i class="fa-solid fa-comment-dots"></i>
+              <textarea id="review-comment" rows="2" required placeholder="Sensations de conduite, tenue de route, son moteur, confort..."></textarea>
+            </div>
+          </div>
+
+          <button type="submit" id="btn-submit-review" class="luxury-submit-btn" style="margin-top: 4px;">
+            <i class="fa-solid fa-paper-plane"></i> Publier mon Avis
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Supabase JS SDK -->
+    <!-- DOMPurify (XSS Protection) -->
+    <!-- Vanilla JS -->
+      <script type="module" src="/src/main/vehicules.ts"></script>
+  </body>
+</html>
+

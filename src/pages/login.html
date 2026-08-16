@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Espace Membre VIP • Richman Estate</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- OnlineWebFonts: BubbledotICG-FinePos -->
+    <link
+      href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome 6.5.2 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="assets/logo.webp" />
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="src/styles/styles.css" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-wrapper">
+      <!-- Left Panel: Matrix Background + Brand Showcase -->
+      <div class="auth-left">
+        <!-- Background Matrix Layer matching other pages -->
+        <div class="bg">
+          <div class="bg-ambient-layer"></div>
+          <canvas class="bg-matrix-canvas" id="bg-matrix-canvas"></canvas>
+          <div class="bg-vignette"></div>
+        </div>
+
+        <!-- Back Button -->
+        <a href="index.html" class="auth-back-btn" aria-label="Back to home">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+
+        <!-- Content Box matching Home (Image 2) -->
+        <div class="auth-left-content">
+          <div class="trust-row" style="margin-bottom: 20px;">
+            <div class="avatar-ring avatar-1">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-hotel"></i>
+              </div>
+            </div>
+            <div class="avatar-ring avatar-2">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-car"></i>
+              </div>
+            </div>
+            <div class="avatar-ring avatar-3">
+              <div class="avatar-inner">
+                <i class="fa-solid fa-crown"></i>
+              </div>
+            </div>
+            <div class="trust-pill">
+              <span>Richman Estate &bull; Luxe &amp; Résidences RP</span>
+            </div>
+          </div>
+
+          <h1 class="headline" style="font-size: clamp(24px, 2.6vw, 36px); margin-bottom: 16px;">
+            <span class="headline-line headline-line-1">Richman</span>
+            <span class="headline-line headline-line-2">Estate</span>
+          </h1>
+
+          <p class="subhead" style="font-size: 13.5px; max-width: 380px; margin: 0 auto;">
+            Explorez notre catalogue : réservations de suites haut de gamme, véhicules exclusifs et service client dédié.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Panel: Form -->
+      <div class="auth-right">
+        <div class="auth-form-container" style="max-width: 420px; padding: 20px 10px;">
+          <!-- Luxury Crest Logo -->
+          <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: #ffffff; border: 1px solid rgba(255, 255, 255, 0.4); display: grid; place-items: center; box-shadow: 0 0 25px rgba(255, 255, 255, 0.35);">
+              <img src="assets/logo.webp" alt="Richman Estate" style="width: 38px; height: 38px; object-fit: contain;">
+            </div>
+          </div>
+
+          <h1 class="auth-form-title" id="form-title" style="text-align: center; font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 6px; letter-spacing: -0.01em;">Espace Membre</h1>
+          <p class="auth-form-subtitle" id="form-subtitle" style="text-align: center; font-size: 13.5px; color: #a1a1aa; line-height: 1.5; margin-bottom: 18px;">
+            Accédez à vos réservations ou créez votre profil citoyen Richman Estate.
+          </p>
+
+          <!-- Luxury Segmented Tabs (Connexion / Inscription RP) -->
+          <div class="auth-tabs" id="auth-tabs-container">
+            <button type="button" class="auth-tab-btn active" id="tab-btn-login" onclick="switchAuthTab('login')">
+              <i class="fa-solid fa-right-to-bracket"></i>
+              <span>Connexion</span>
+            </button>
+            <button type="button" class="auth-tab-btn" id="tab-btn-register" onclick="switchAuthTab('register')">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Inscription RP</span>
+            </button>
+          </div>
+
+          <!-- TAB 1: Connexion Rapide (Comptes existants) -->
+          <div class="auth-tab-pane active" id="pane-login">
+            <div class="social-grid single-social" style="margin-top: 6px;">
+              <button type="button" class="social-btn discord-btn" id="btn-discord-login" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%); color: #ffffff; padding: 14px 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.18); font-size: 14.5px; font-weight: 600; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 4px 20px rgba(88, 101, 242, 0.35);">
+                <i class="fa-brands fa-discord" style="font-size: 20px;"></i>
+                <span>Connexion avec Discord</span>
+              </button>
+            </div>
+            <p style="font-size: 12px; color: #71717a; margin-top: 14px; text-align: center;">
+              Nouveau sur le domaine ? Cliquez sur <a href="javascript:void(0)" onclick="switchAuthTab('register')" style="color: #c5a880; font-weight: 600; text-decoration: underline;">Inscription RP</a>.
+            </p>
+          </div>
+
+          <!-- TAB 2: Inscription & Enregistrement RP -->
+          <div class="auth-tab-pane" id="pane-register">
+            <form id="form-rp-registration" style="display: flex; flex-direction: column; width: 100%;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="auth-input-group">
+                  <label for="reg-firstname">Prénom RP</label>
+                  <input type="text" id="reg-firstname" placeholder="ex: Marc" required maxlength="15" autocomplete="given-name" />
+                </div>
+                <div class="auth-input-group">
+                  <label for="reg-lastname">Nom RP</label>
+                  <input type="text" id="reg-lastname" placeholder="ex: Louis" required maxlength="15" autocomplete="family-name" />
+                </div>
+              </div>
+
+              <div class="auth-input-group">
+                <label for="reg-rpid">Numéro / ID Citoyen</label>
+                <input type="text" id="reg-rpid" placeholder="ex: 62336" required maxlength="10" inputmode="numeric" />
+              </div>
+
+              <!-- Luxury Consent Card (Replaces bulky accordion & plain checkbox) -->
+              <label class="luxury-consent-card" for="reg-accept-rules">
+                <div class="custom-checkbox-wrap">
+                  <input type="checkbox" id="reg-accept-rules" required />
+                  <span class="custom-checkbox-box">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                </div>
+                <div class="luxury-consent-content">
+                  <span class="luxury-consent-title">Accepter le Règlement &amp; Activer les Rôles</span>
+                  <span class="luxury-consent-sub">Fair-Play &bull; No HRP &bull; Synchronisation automatique Discord</span>
+                </div>
+              </label>
+
+              <!-- Submit Action Button -->
+              <button type="submit" class="btn-register-submit" id="btn-submit-register">
+                <i class="fa-brands fa-discord" style="font-size: 17px;"></i>
+                <span>Créer mon profil RP &amp; Lier Discord</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Dynamic Post-Discord Onboarding Panel (if user logged in Discord but not registered) -->
+          <div id="auth-onboarding-panel" style="display: none; width: 100%; animation: fadeInPane 0.3s ease;">
+            <div style="background: rgba(197, 168, 128, 0.08); border: 1px solid rgba(197, 168, 128, 0.25); border-radius: 14px; padding: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+              <img id="onboard-user-avatar" src="assets/logo.webp" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(197, 168, 128, 0.4); object-fit: cover;" />
+              <div style="text-align: left;">
+                <span style="font-size: 11px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.05em; display: block;">Compte Discord connecté</span>
+                <strong id="onboard-user-name" style="font-size: 13.5px; color: #ffffff;">Citoyen</strong>
+              </div>
+            </div>
+
+            <p style="font-size: 12.5px; color: #d4d4d8; line-height: 1.5; margin-bottom: 14px; text-align: left;">
+              ✨ Finalisez votre enregistrement citoyen pour débloquer immédiatement votre accès au site et vos rôles Discord :
+            </p>
+
+            <form id="form-onboarding-finish" style="display: flex; flex-direction: column; width: 100%;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="auth-input-group">
+                  <label for="onboard-firstname">Prénom RP</label>
+                  <input type="text" id="onboard-firstname" placeholder="ex: Marc" required maxlength="15" />
+                </div>
+                <div class="auth-input-group">
+                  <label for="onboard-lastname">Nom RP</label>
+                  <input type="text" id="onboard-lastname" placeholder="ex: Louis" required maxlength="15" />
+                </div>
+              </div>
+
+              <div class="auth-input-group">
+                <label for="onboard-rpid">Numéro / ID Citoyen</label>
+                <input type="text" id="onboard-rpid" placeholder="ex: 62336" required maxlength="10" inputmode="numeric" />
+              </div>
+
+              <label class="luxury-consent-card" for="onboard-accept-rules">
+                <div class="custom-checkbox-wrap">
+                  <input type="checkbox" id="onboard-accept-rules" required checked />
+                  <span class="custom-checkbox-box">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                </div>
+                <div class="luxury-consent-content">
+                  <span class="luxury-consent-title">Accepter le Règlement Officiel</span>
+                  <span class="luxury-consent-sub">Activation immédiate du profil RP</span>
+                </div>
+              </label>
+
+              <button type="submit" class="btn-register-submit" id="btn-submit-onboard">
+                <i class="fa-solid fa-check"></i>
+                <span>Valider mon Enregistrement RP</span>
+              </button>
+            </form>
+          </div>
+          
+          <div id="auth-error-banner" style="display: none; margin-top: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); padding: 14px; border-radius: 12px; color: #fca5a5; font-size: 13px; line-height: 1.5; text-align: center;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Supabase JS SDK -->
+    <!-- DOMPurify (XSS Protection) -->
+    <!-- Vanilla JS -->
+    <script>
+      // Tab switch helper
+      window.switchAuthTab = function(tab) {
+        var tabLogin = document.getElementById("tab-btn-login");
+        var tabRegister = document.getElementById("tab-btn-register");
+        var paneLogin = document.getElementById("pane-login");
+        var paneRegister = document.getElementById("pane-register");
+        var onboardPanel = document.getElementById("auth-onboarding-panel");
+        var errBanner = document.getElementById("auth-error-banner");
+        if (errBanner) errBanner.style.display = "none";
+        if (onboardPanel) onboardPanel.style.display = "none";
+
+        if (tab === 'register') {
+          if (tabLogin) tabLogin.classList.remove("active");
+          if (tabRegister) tabRegister.classList.add("active");
+          if (paneLogin) paneLogin.classList.remove("active");
+          if (paneRegister) paneRegister.classList.add("active");
+        } else {
+          if (tabRegister) tabRegister.classList.remove("active");
+          if (tabLogin) tabLogin.classList.add("active");
+          if (paneRegister) paneRegister.classList.remove("active");
+          if (paneLogin) paneLogin.classList.add("active");
+        }
+      };
+
+      window.toggleAuthRules = function() {
+        var content = document.getElementById("rules-content");
+        var chevron = document.getElementById("rules-chevron");
+        if (!content) return;
+        var isHidden = content.style.display === "none" || !content.style.display;
+        content.style.display = isHidden ? "block" : "none";
+        if (chevron) {
+          chevron.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        }
+      };
+
+      document.addEventListener("DOMContentLoaded", function() {
+        var btnLogin = document.getElementById("tab-btn-login");
+        var btnReg = document.getElementById("tab-btn-register");
+        var btnRules = document.getElementById("btn-toggle-rules");
+        if (btnLogin) btnLogin.addEventListener("click", function() { window.switchAuthTab('login'); });
+        if (btnReg) btnReg.addEventListener("click", function() { window.switchAuthTab('register'); });
+        if (btnRules) btnRules.addEventListener("click", function() { window.toggleAuthRules(); });
+      });
+    </script>
+      <script type="module" src="/src/main/login.ts"></script>
+  </body>
+</html>

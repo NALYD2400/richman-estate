@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Console — Richman Estate</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- OnlineWebFonts: BubbledotICG-FinePos -->
+    <link
+      href="https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome 6.5.2 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="assets/logo.webp" />
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="src/styles/styles.css" />
+  </head>
+  <body class="admin-body">
+    <div class="admin-layout">
+      <!-- Sidebar Navigation -->
+      <aside class="admin-sidebar">
+        <div class="admin-brand">
+          <button class="logo-btn" onclick="window.location.href='index.html'" aria-label="Home">
+            <img src="assets/logo.webp" alt="" width="52" height="52" class="logo-img" />
+          </button>
+          <div class="admin-brand-info">
+            <span class="admin-brand-title">Richman Estate</span>
+            <span class="admin-badge">Console Admin</span>
+          </div>
+        </div>
+
+        <nav class="admin-nav">
+          <div class="admin-nav-section-title">Général</div>
+          <button class="admin-nav-item active" data-tab="overview">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Vue d'ensemble</span>
+          </button>
+          <button class="admin-nav-item" data-tab="users">
+            <i class="fa-solid fa-users"></i>
+            <span>Utilisateurs &amp; Citoyens</span>
+          </button>
+          <button class="admin-nav-item" data-tab="logs">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Logs & Sécurité</span>
+          </button>
+
+          <div class="admin-nav-section-title">Voitures</div>
+          <button class="admin-nav-item" data-tab="fleet">
+            <i class="fa-solid fa-car"></i>
+            <span>Véhicules</span>
+          </button>
+          <button class="admin-nav-item" data-tab="bookings-cars">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Réservations Voitures</span>
+          </button>
+          <button class="admin-nav-item" data-tab="tickets-cars">
+            <i class="fa-solid fa-comments"></i>
+            <span>Tickets Voitures</span>
+            <span id="admin-tickets-cars-badge" class="admin-nav-badge" style="display: none; background: #c5a880; color: #0c0d12; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 12px; margin-left: auto;">0</span>
+          </button>
+          <button class="admin-nav-item" data-tab="ctg-database">
+            <i class="fa-solid fa-database"></i>
+            <span>Base de Données CTG</span>
+          </button>
+
+          <div class="admin-nav-section-title">Hébergements</div>
+          <button class="admin-nav-item" data-tab="suites">
+            <i class="fa-solid fa-hotel"></i>
+            <span>Hôtel &amp; Suites</span>
+          </button>
+          <button class="admin-nav-item" data-tab="bookings-suites">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Réservations Suites</span>
+          </button>
+          <button class="admin-nav-item" data-tab="tickets-suites">
+            <i class="fa-solid fa-comments"></i>
+            <span>Tickets Hébergements</span>
+            <span id="admin-tickets-suites-badge" class="admin-nav-badge" style="display: none; background: #c5a880; color: #0c0d12; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 12px; margin-left: auto;">0</span>
+          </button>
+
+          <div class="admin-nav-section-title">Support &amp; Contact</div>
+          <button class="admin-nav-item" data-tab="concierge">
+            <i class="fa-solid fa-headset"></i>
+            <span>Formulaires Contact</span>
+          </button>
+        </nav>
+
+        <div class="admin-sidebar-footer">
+          <a href="index.html" class="admin-back-site">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Retour au Site</span>
+          </a>
+          <div class="admin-user-card" style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <img id="admin-user-avatar" src="assets/logo.webp" alt="" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: none;" />
+              <div id="admin-user-initial" class="admin-avatar">N</div>
+              <div class="admin-user-info">
+                <span id="admin-user-name" class="admin-username">NALYD</span>
+                <span id="admin-user-role" class="admin-role">Super Admin</span>
+              </div>
+            </div>
+            <button onclick="window.handleUserLogout();" title="Se déconnecter" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="admin-main">
+        <!-- Tab 1: Overview -->
+        <section class="admin-tab-content active" id="tab-overview">
+          <div class="admin-page-header">
+            <h1>Tableau de Bord</h1>
+            <p>Vue analytique globale de l'activité Richman Estate.</p>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+              <div class="kpi-details">
+                <span class="kpi-label">Revenu du Mois</span>
+                <span class="kpi-value" id="kpi-revenue">0 €</span>
+                <span class="kpi-trend positive">Revenu cumulé</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fa-solid fa-car-side"></i></div>
+              <div class="kpi-details">
+                <span class="kpi-label">Locations Actives</span>
+                <span class="kpi-value" id="kpi-active-rentals">0 / 0</span>
+                <span class="kpi-trend">Flotte en service</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fa-solid fa-bed"></i></div>
+              <div class="kpi-details">
+                <span class="kpi-label">Suites Réservées</span>
+                <span class="kpi-value" id="kpi-booked-suites">0 / 0</span>
+                <span class="kpi-trend positive" id="kpi-suites-trend">Taux d'occupation</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fa-solid fa-bell"></i></div>
+              <div class="kpi-details">
+                <span class="kpi-label">Messages de Contact</span>
+                <span class="kpi-value" id="kpi-pending-concierge">0 En attente</span>
+                <span class="kpi-trend warning">Traitement urgent</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Activity Grid -->
+          <div class="dashboard-grid">
+            <div class="dash-card">
+              <div class="dash-card-header">
+                <h3>Dernières Réservations</h3>
+                <button class="dash-link-btn" onclick="switchAdminTab('bookings-cars')">Voir tout</button>
+              </div>
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Client</th>
+                    <th>Type</th>
+                    <th>Élément</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody id="overview-bookings-tbody">
+                  <!-- Dynamic bookings will load here -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="dash-card">
+              <div class="dash-card-header">
+                <h3>État des Véhicules</h3>
+                <button class="dash-link-btn" onclick="switchAdminTab('fleet')">Gérer</button>
+              </div>
+              <div class="fleet-status-list" id="overview-fleet-status-list">
+                <!-- Dynamic fleet status will load here -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab: Users & Citizens Management -->
+        <section class="admin-tab-content" id="tab-users">
+          <div class="admin-page-header">
+            <h1>Utilisateurs & Citoyens Enregistrés</h1>
+            <p>Gérez l'ensemble des comptes créés via Discord, leurs rôles RP, identifiants et accès au serveur.</p>
+          </div>
+
+          <!-- Users Toolbar -->
+          <div class="admin-toolbar">
+            <div class="toolbar-left">
+              <span class="toolbar-badge" id="users-count-badge">0 citoyens</span>
+              <div class="toolbar-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="users-search-input" placeholder="Rechercher (pseudo, blaze, ID Discord, ID RP...)" />
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <div class="filter-select-wrap">
+                <i class="fa-solid fa-user-shield"></i>
+                <select id="users-filter-role" class="toolbar-select">
+                  <option value="">Tous les rôles</option>
+                  <option value="owner">Fondateur</option>
+                  <option value="admin">Administrateur</option>
+                  <option value="gerant_hotel">Gérant Hôtel</option>
+                  <option value="gerant_vehicules">Gérant Véhicules</option>
+                  <option value="vip">Membre VIP</option>
+                  <option value="client">Citoyen</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Citoyen / Profil</th>
+                  <th>ID Discord</th>
+                  <th>Matricule RP</th>
+                  <th>Rôle</th>
+                  <th>Inscription</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <!-- Dynamic users load here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tab 2: Fleet Management -->
+        <section class="admin-tab-content" id="tab-fleet">
+          <div class="admin-page-header" style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+            <div>
+              <h1>Gestion des Véhicules</h1>
+              <p>Ajoutez, modifiez et contrôlez le statut des véhicules.</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button class="admin-btn-secondary" id="btn-sync-discord-fleet" style="height: 42px; padding: 0 16px; border-radius: 12px; font-weight: 600; font-size: 13px; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fa-brands fa-discord" style="color: #5865F2; font-size: 15px;"></i>
+                <span>Sync Discord (#flotte)</span>
+              </button>
+              <button class="admin-btn-primary" id="btn-add-vehicle-tab" style="height: 42px; padding: 0 20px; border-radius: 12px; font-weight: 600; font-size: 13.5px; white-space: nowrap;">
+                <i class="fa-solid fa-plus"></i>
+                <span>Nouveau Véhicule</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter & Controls Toolbar -->
+          <div class="admin-toolbar">
+            <div class="toolbar-left">
+              <span class="toolbar-badge" id="fleet-count-badge">0 voitures</span>
+              <div class="toolbar-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="fleet-search-input" placeholder="Rechercher (nom, specs...)" />
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <div class="filter-select-wrap">
+                <i class="fa-solid fa-filter"></i>
+                <select id="fleet-filter-status" class="toolbar-select">
+                  <option value="all">Tous les véhicules</option>
+                  <option value="confirmed">Disponibles</option>
+                  <option value="rented">En location (Occupés)</option>
+                  <option value="pending">En attente</option>
+                </select>
+              </div>
+
+              <div class="filter-select-wrap">
+                <i class="fa-solid fa-arrow-down-wide-short"></i>
+                <select id="fleet-sort-by" class="toolbar-select">
+                  <option value="recent">Plus récents</option>
+                  <option value="oldest">Plus anciens</option>
+                  <option value="price-asc">Prix : croissant</option>
+                  <option value="price-desc">Prix : décroissant</option>
+                </select>
+              </div>
+
+              <button class="toolbar-btn" id="btn-refresh-fleet" title="Actualiser la flotte">
+                <i class="fa-solid fa-rotate"></i>
+                <span>Actualiser</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="fleet-grid-admin" id="fleet-admin-list">
+            <!-- Dynamic fleet will load here -->
+          </div>
+        </section>
+
+        <!-- Tab 3: Suites Management -->
+        <section class="admin-tab-content" id="tab-suites">
+          <div class="admin-page-header" style="display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+            <div>
+              <h1>Gestion de l'Hôtel &amp; Suites</h1>
+              <p>Contrôlez les tarifs, disponibilités et réservations d'hébergements.</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button class="admin-btn-secondary" id="btn-sync-discord-suites" style="height: 42px; padding: 0 16px; border-radius: 12px; font-weight: 600; font-size: 13px; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fa-brands fa-discord" style="color: #5865F2; font-size: 15px;"></i>
+                <span>Sync Discord (#hotel)</span>
+              </button>
+              <button class="admin-btn-primary" id="btn-add-suite-tab" style="height: 42px; padding: 0 20px; border-radius: 12px; font-weight: 600; font-size: 13.5px; white-space: nowrap;">
+                <i class="fa-solid fa-plus"></i>
+                <span>Nouvelle Suite</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="fleet-grid-admin" id="suites-admin-list">
+            <!-- Dynamic suites will load here -->
+          </div>
+        </section>
+
+        <!-- Tab 4a: Bookings Cars -->
+        <section class="admin-tab-content" id="tab-bookings-cars">
+          <div class="admin-page-header">
+            <h1>Réservations de Véhicules</h1>
+            <p>Validez et suivez l'historique complet des locations de véhicules.</p>
+          </div>
+
+          <div class="dash-card">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Client</th>
+                  <th>Véhicule</th>
+                  <th>Montant</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bookings-cars-table-body">
+                <!-- Dynamic bookings will load here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tab 7: CTG Server Vehicles Database -->
+        <section class="admin-tab-content" id="tab-ctg-database">
+          <div class="admin-page-header">
+            <h1>Base de Données Véhicules CTG</h1>
+            <p>Consultez la base de données globale de tous les véhicules enregistrés sur le serveur.</p>
+          </div>
+
+          <!-- CTG Database Toolbar -->
+          <div class="admin-toolbar">
+            <div class="toolbar-left">
+              <span class="toolbar-badge" id="ctg-count-badge">0 véhicules</span>
+              <div class="toolbar-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="ctg-search-input" placeholder="Rechercher par modèle..." />
+              </div>
+            </div>
+            <div class="toolbar-right">
+              <div class="filter-select-wrap">
+                <i class="fa-solid fa-car"></i>
+                <select id="ctg-filter-type" class="toolbar-select">
+                  <option value="">Tous les types</option>
+                  <option value="CAR">Voiture</option>
+                  <option value="BIKE">Moto</option>
+                  <option value="BOAT">Bateau</option>
+                  <option value="HELI">Hélicoptère</option>
+                  <option value="PLANE">Avion</option>
+                </select>
+              </div>
+
+              <div class="filter-select-wrap">
+                <i class="fa-solid fa-tags"></i>
+                <select id="ctg-filter-class" class="toolbar-select">
+                  <option value="">Toutes les classes</option>
+                  <option value="SUPER">Supercars</option>
+                  <option value="SPORT">Sportives</option>
+                  <option value="SPORT_CLASSIC">Sport Classiques</option>
+                  <option value="SUV">SUV</option>
+                  <option value="COUPE">Coupés</option>
+                  <option value="MUSCLE">Muscle Cars</option>
+                  <option value="SEDAN">Berlines</option>
+                  <option value="COMPACT">Compactes</option>
+                  <option value="MOTORCYCLE">Motos</option>
+                  <option value="OFF_ROAD">Tout-terrain</option>
+                  <option value="UTILITY">Utilitaires</option>
+                  <option value="VAN">Fourgons</option>
+                  <option value="CYCLE">Vélos</option>
+                  <option value="BOAT">Bateaux</option>
+                  <option value="HELICOPTER">Hélicoptères</option>
+                  <option value="PLANE">Avions</option>
+                  <option value="SERVICE">Service</option>
+                  <option value="EMERGENCY">Secours / Urgence</option>
+                  <option value="MILITARY">Militaires</option>
+                  <option value="COMMERCIAL">Commerciaux</option>
+                  <option value="INDUSTRIAL">Industriels</option>
+                  <option value="OPEN_WHEEL">Open Wheel / F1</option>
+                </select>
+              </div>
+
+              <div class="filter-select-wrap">
+                <i class="fa-solid fa-shop"></i>
+                <select id="ctg-filter-concession" class="toolbar-select">
+                  <option value="all">Toutes dispo</option>
+                  <option value="concession">En concession</option>
+                  <option value="hors-concession">Hors concession</option>
+                  <option value="cox">Chez Cox</option>
+                  <option value="onsale">En vente joueur</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="fleet-grid-admin" id="ctg-database-grid">
+            <!-- Dynamic server vehicles load here -->
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="admin-pagination" style="display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 32px; padding: 12px; background: #141418; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;">
+            <button class="toolbar-btn" id="ctg-prev-page" disabled><i class="fa-solid fa-arrow-left"></i> Précédent</button>
+            <span id="ctg-page-info" style="color: #ffffff; font-size: 13px; font-weight: 500;">Page 1 sur 1</span>
+            <button class="toolbar-btn" id="ctg-next-page" disabled>Suivant <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </section>
+
+        <!-- Tab 4b: Bookings Suites -->
+        <section class="admin-tab-content" id="tab-bookings-suites">
+          <div class="admin-page-header">
+            <h1>Réservations de Suites</h1>
+            <p>Validez et suivez l'historique complet des réservations de suites.</p>
+          </div>
+
+          <div class="dash-card">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Client</th>
+                  <th>Suite</th>
+                  <th>Montant</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bookings-suites-table-body">
+                <!-- Dynamic bookings will load here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tab 4c-Cars: Dedicated VIP Cars Tickets & Live Chat Hub -->
+        <section class="admin-tab-content" id="tab-tickets-cars">
+          <div class="admin-page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px; margin-bottom: 24px;">
+            <div>
+              <h1 style="font-family: 'Cinzel', serif; color: #c5a880; font-size: 26px; margin: 0 0 6px 0;">Centre de Gestion des Tickets • Locations Voitures</h1>
+              <p style="color: #a1a1aa; font-size: 13.5px; margin: 0;">Gérez les échanges et locations de véhicules en direct avec les clients, synchronisés 4-voies (Web Client, Admin, Ticket Discord et MP Privé).</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" class="toolbar-btn" onclick="window.loadAdminTickets('vehicule');" style="background: rgba(197, 168, 128, 0.12); border: 1px solid rgba(197, 168, 128, 0.3); color: #c5a880; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+                <i class="fa-solid fa-rotate"></i> Actualiser
+              </button>
+            </div>
+          </div>
+
+          <!-- Dual-Pane Hub Layout -->
+          <div class="admin-tickets-layout">
+            <!-- Left Pane: Tickets List -->
+            <div class="admin-tickets-sidebar">
+              <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                <div style="position: relative; flex: 1;">
+                  <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #71717a; font-size: 12px;"></i>
+                  <input type="text" id="admin-tickets-cars-search" placeholder="Rechercher client, véhicule, dossier..." class="admin-input" style="padding-left: 32px; font-size: 12.5px; height: 38px;" oninput="window.filterAdminTicketsList('vehicule');" />
+                </div>
+                <select id="admin-tickets-cars-status-filter" class="admin-input" style="width: auto; padding: 0 10px; font-size: 12px; height: 38px; cursor: pointer;" onchange="window.filterAdminTicketsList('vehicule');">
+                  <option value="all" selected>Tous</option>
+                  <option value="pending">En Attente</option>
+                  <option value="confirmed">Validés</option>
+                  <option value="cancelled">Refusés</option>
+                </select>
+              </div>
+
+              <div id="admin-tickets-cars-list-container" class="admin-tickets-list">
+                <!-- Dynamic car ticket cards -->
+              </div>
+            </div>
+
+            <!-- Right Pane: Active Ticket View & Chat Stream -->
+            <div class="admin-ticket-chat-pane" id="admin-ticket-cars-chat-pane">
+              <div id="admin-ticket-cars-empty-state" class="admin-ticket-empty">
+                <i class="fa-solid fa-car-side"></i>
+                <h3>Sélectionnez un Dossier de Location</h3>
+                <p>Cliquez sur un ticket dans la liste de gauche pour afficher l'historique de la conversation, échanger en direct avec le client et valider la location.</p>
+              </div>
+
+              <div id="admin-ticket-cars-active-view" class="admin-ticket-active-view" style="display: none;">
+                <!-- Header with Booking Info & Actions -->
+                <div class="admin-ticket-active-header">
+                  <div style="display: flex; align-items: center; gap: 14px;">
+                    <div class="ticket-header-avatar" id="admin-active-ticket-cars-avatar">GP</div>
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <h2 id="admin-active-ticket-cars-title" style="margin: 0; font-size: 17px; color: #fff; font-weight: 700;">Överflöd Entity MT</h2>
+                        <span id="admin-active-ticket-cars-badge" class="status-pill pending">En attente</span>
+                      </div>
+                      <div id="admin-active-ticket-cars-meta" style="font-size: 12px; color: #a1a1aa; margin-top: 2px;">
+                        Client : <strong id="admin-active-ticket-cars-client">George Pinty</strong> &bull; Dossier <span id="admin-active-ticket-cars-id">#3C2813</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Quick Actions -->
+                  <div class="admin-ticket-actions-group" id="admin-active-ticket-cars-actions">
+                    <button type="button" class="admin-ticket-btn-accept" id="btn-admin-accept-ticket-cars" onclick="window.handleAdminTicketAction('confirmed', 'vehicule');">
+                      <i class="fa-solid fa-check"></i> Accepter
+                    </button>
+                    <button type="button" class="admin-ticket-btn-refuse" id="btn-admin-refuse-ticket-cars" onclick="window.handleAdminTicketAction('cancelled', 'vehicule');">
+                      <i class="fa-solid fa-xmark"></i> Refuser
+                    </button>
+                    <button type="button" class="admin-ticket-btn-close" id="btn-admin-close-ticket-cars" onclick="window.handleAdminCloseTicket('vehicule');">
+                      <i class="fa-solid fa-trash-can"></i> Fermer le Ticket
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Messages Stream -->
+                <div class="admin-ticket-messages-stream" id="admin-ticket-cars-messages-stream">
+                  <!-- Messages loaded dynamically -->
+                </div>
+
+                <!-- Reply Bar -->
+                <form class="admin-ticket-reply-bar" onsubmit="window.handleAdminTicketReply(event, 'vehicule');">
+                  <input type="text" id="admin-ticket-cars-reply-input" placeholder="Écrire une réponse directe au client (synchronisée Web, Discord et MP)..." autocomplete="off" />
+                  <button type="submit" class="admin-ticket-send-btn" id="admin-ticket-cars-send-btn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 4c-Suites: Dedicated VIP Suites Tickets & Live Chat Hub -->
+        <section class="admin-tab-content" id="tab-tickets-suites">
+          <div class="admin-page-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px; margin-bottom: 24px;">
+            <div>
+              <h1 style="font-family: 'Cinzel', serif; color: #c5a880; font-size: 26px; margin: 0 0 6px 0;">Centre de Gestion des Tickets • Hôtel &amp; Suites</h1>
+              <p style="color: #a1a1aa; font-size: 13.5px; margin: 0;">Gérez les échanges et réservations d'hébergements (penthouses, suites, villas) en direct avec les clients, synchronisés 4-voies.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" class="toolbar-btn" onclick="window.loadAdminTickets('suite');" style="background: rgba(197, 168, 128, 0.12); border: 1px solid rgba(197, 168, 128, 0.3); color: #c5a880; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+                <i class="fa-solid fa-rotate"></i> Actualiser
+              </button>
+            </div>
+          </div>
+
+          <!-- Dual-Pane Hub Layout -->
+          <div class="admin-tickets-layout">
+            <!-- Left Pane: Tickets List -->
+            <div class="admin-tickets-sidebar">
+              <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                <div style="position: relative; flex: 1;">
+                  <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #71717a; font-size: 12px;"></i>
+                  <input type="text" id="admin-tickets-suites-search" placeholder="Rechercher client, suite, dossier..." class="admin-input" style="padding-left: 32px; font-size: 12.5px; height: 38px;" oninput="window.filterAdminTicketsList('suite');" />
+                </div>
+                <select id="admin-tickets-suites-status-filter" class="admin-input" style="width: auto; padding: 0 10px; font-size: 12px; height: 38px; cursor: pointer;" onchange="window.filterAdminTicketsList('suite');">
+                  <option value="all" selected>Tous</option>
+                  <option value="pending">En Attente</option>
+                  <option value="confirmed">Validés</option>
+                  <option value="cancelled">Refusés</option>
+                </select>
+              </div>
+
+              <div id="admin-tickets-suites-list-container" class="admin-tickets-list">
+                <!-- Dynamic suite ticket cards -->
+              </div>
+            </div>
+
+            <!-- Right Pane: Active Ticket View & Chat Stream -->
+            <div class="admin-ticket-chat-pane" id="admin-ticket-suites-chat-pane">
+              <div id="admin-ticket-suites-empty-state" class="admin-ticket-empty">
+                <i class="fa-solid fa-hotel"></i>
+                <h3>Sélectionnez un Dossier d'Hébergement</h3>
+                <p>Cliquez sur un ticket dans la liste de gauche pour afficher l'historique de la conversation, échanger en direct avec le client et valider la réservation.</p>
+              </div>
+
+              <div id="admin-ticket-suites-active-view" class="admin-ticket-active-view" style="display: none;">
+                <!-- Header with Booking Info & Actions -->
+                <div class="admin-ticket-active-header">
+                  <div style="display: flex; align-items: center; gap: 14px;">
+                    <div class="ticket-header-avatar" id="admin-active-ticket-suites-avatar">DZ</div>
+                    <div>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <h2 id="admin-active-ticket-suites-title" style="margin: 0; font-size: 17px; color: #fff; font-weight: 700;">Penthouse Royale #01</h2>
+                        <span id="admin-active-ticket-suites-badge" class="status-pill pending">En attente</span>
+                      </div>
+                      <div id="admin-active-ticket-suites-meta" style="font-size: 12px; color: #a1a1aa; margin-top: 2px;">
+                        Client : <strong id="admin-active-ticket-suites-client">dez dze</strong> &bull; Dossier <span id="admin-active-ticket-suites-id">#2B86B9</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Quick Actions -->
+                  <div class="admin-ticket-actions-group" id="admin-active-ticket-suites-actions">
+                    <button type="button" class="admin-ticket-btn-accept" id="btn-admin-accept-ticket-suites" onclick="window.handleAdminTicketAction('confirmed', 'suite');">
+                      <i class="fa-solid fa-check"></i> Accepter
+                    </button>
+                    <button type="button" class="admin-ticket-btn-refuse" id="btn-admin-refuse-ticket-suites" onclick="window.handleAdminTicketAction('cancelled', 'suite');">
+                      <i class="fa-solid fa-xmark"></i> Refuser
+                    </button>
+                    <button type="button" class="admin-ticket-btn-close" id="btn-admin-close-ticket-suites" onclick="window.handleAdminCloseTicket('suite');">
+                      <i class="fa-solid fa-trash-can"></i> Fermer le Ticket
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Messages Stream -->
+                <div class="admin-ticket-messages-stream" id="admin-ticket-suites-messages-stream">
+                  <!-- Messages loaded dynamically -->
+                </div>
+
+                <!-- Reply Bar -->
+                <form class="admin-ticket-reply-bar" onsubmit="window.handleAdminTicketReply(event, 'suite');">
+                  <input type="text" id="admin-ticket-suites-reply-input" placeholder="Écrire une réponse directe au client (synchronisée Web, Discord et MP)..." autocomplete="off" />
+                  <button type="submit" class="admin-ticket-send-btn" id="admin-ticket-suites-send-btn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 5: Contact Messages -->
+        <section class="admin-tab-content" id="tab-concierge">
+          <div class="admin-page-header">
+            <h1>Messages &amp; Formulaires de Contact</h1>
+            <p>Messages et demandes d'assistance directe transmises depuis le site.</p>
+          </div>
+
+          <div class="concierge-inbox" id="concierge-messages-list">
+            <!-- Dynamic bookings / messages will load here -->
+          </div>
+        </section>
+
+        <!-- Tab 6: Audit Logs -->
+        <section class="admin-tab-content" id="tab-logs">
+          <div class="admin-page-header">
+            <h1>Logs de Sécurité & Système</h1>
+            <p>Historique d'accès d'administration et événements critiques.</p>
+          </div>
+
+          <div class="dash-card">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Horodatage</th>
+                  <th>Utilisateur</th>
+                  <th>Événement</th>
+                  <th>IP / Origine</th>
+                  <th>Niveau</th>
+                </tr>
+              </thead>
+              <tbody id="logs-table-body">
+                <!-- Dynamic logs will load here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Add/Edit Modal Overlay -->
+    <div class="admin-modal-overlay" id="admin-modal-overlay" aria-hidden="true">
+      <div class="admin-modal">
+        <div class="admin-modal-header">
+          <h3 id="modal-title"><i class="fa-solid fa-car-side" style="color: #c5a880; margin-right: 8px;"></i> Nouveau Véhicule</h3>
+          <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+        </div>
+        <form class="admin-modal-form" id="admin-modal-form">
+          <!-- Row 1: Nom & Classe -->
+          <div class="form-row-2">
+            <div class="form-group" style="flex: 2;">
+              <label for="item-name">Nom du Véhicule</label>
+              <input type="text" id="item-name" class="admin-input" placeholder="ex: McLaren 720S Spider" required />
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="item-class">Classe</label>
+              <select id="item-class" class="admin-input">
+                <option value="SUPER">Supercars</option>
+                <option value="SPORT">Sportives</option>
+                <option value="SPORT_CLASSIC">Sport Classiques</option>
+                <option value="SUV">SUV</option>
+                <option value="COUPE">Coupés</option>
+                <option value="MUSCLE">Muscle Cars</option>
+                <option value="SEDAN">Berlines</option>
+                <option value="COMPACT">Compactes</option>
+                <option value="MOTORCYCLE">Motos</option>
+                <option value="OFF_ROAD">Tout-terrain</option>
+                <option value="UTILITY">Utilitaires</option>
+                <option value="VAN">Fourgons</option>
+                <option value="CYCLE">Vélos</option>
+                <option value="BOAT">Bateaux</option>
+                <option value="HELICOPTER">Hélicoptères</option>
+                <option value="PLANE">Avions</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 2: Plaque & Statut -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="item-plate">Plaque (1-6 car.)</label>
+              <input type="text" id="item-plate" class="admin-input" placeholder="ex: RICH01" pattern="^[A-Z0-9]{1,6}$" title="1 à 6 chiffres ou lettres majuscules, sans espace" style="text-transform: uppercase;" />
+            </div>
+            <div class="form-group">
+              <label for="item-status">Statut de Disponibilité</label>
+              <select id="item-status" class="admin-input">
+                <option value="confirmed">Disponible</option>
+                <option value="pending">En attente</option>
+                <option value="rented">Occupé / En location</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 3: Segmented Price Switch -->
+          <div class="form-group">
+            <label>Calcul du Tarif de Location</label>
+            <div class="segmented-control">
+              <input type="radio" id="price-mode-custom" name="price-mode" value="custom" checked style="display: none;" />
+              <label for="price-mode-custom" class="segmented-label">Prix personnalisé</label>
+
+              <input type="radio" id="price-mode-auto" name="price-mode" value="auto" style="display: none;" />
+              <label for="price-mode-auto" class="segmented-label">% Prix Concession</label>
+            </div>
+          </div>
+
+          <!-- Row 4: Prix concession & pourcentage -->
+          <div id="price-auto-fields" style="display: none; gap: 12px; margin-top: 14px; margin-bottom: 6px;">
+            <div class="form-group" style="flex: 1; margin: 0;">
+              <label for="item-dealer-price">Prix Concession (€)</label>
+              <input type="number" id="item-dealer-price" class="admin-input" placeholder="ex: 150000" />
+            </div>
+            <div class="form-group" style="width: 100px; margin: 0;">
+              <label for="item-rental-percent">% / Jour</label>
+              <input type="number" id="item-rental-percent" class="admin-input" value="0.5" step="0.1" />
+            </div>
+          </div>
+
+          <!-- Row 5: Tarif & Spécifications -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="item-price">Tarif final (€ / jour)</label>
+              <input type="text" id="item-price" class="admin-input" placeholder="ex: 3,500 € / j" required />
+            </div>
+            <div class="form-group">
+              <label for="item-specs">Spécifications / Détails</label>
+              <input type="text" id="item-specs" class="admin-input" placeholder="ex: V8 Twin-Turbo • 720 CH" required />
+            </div>
+          </div>
+
+          <!-- Row 6: Image / Média -->
+          <div class="form-group" style="gap: 12px;">
+            <label>Média (Image(s) ou Vidéo)</label>
+            
+            <div>
+              <input type="file" id="item-image-file" accept="image/*" multiple style="display: none;" />
+              <button type="button" id="upload-trigger-btn" class="admin-btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; height: 42px; min-height: 42px; flex: none;"><i class="fa-solid fa-cloud-arrow-up"></i> Choisir un ou plusieurs fichiers images</button>
+              
+              <div id="upload-preview-container" style="display: none; flex-direction: column; gap: 8px; margin-top: 10px; border: 1px dashed rgba(255,255,255,0.15); padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.25);">
+                <div id="upload-preview-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <!-- Thumbnails render here -->
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #8e8e8e; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 4px;">
+                  <span id="upload-file-count">0 image(s)</span>
+                  <button type="button" id="upload-clear-btn" style="background: none; border: none; color: #f87171; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;"><i class="fa-solid fa-trash-can"></i> Tout effacer</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align: center; color: #71717a; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.8; margin: 4px 0;">— ou coller un ou plusieurs liens (séparés par une virgule) —</div>
+            <input type="url" id="item-media-url" class="admin-input" placeholder="ex: Lien youtube, image, .mp4" />
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-actions" style="margin-top: 10px; display: flex; gap: 12px;">
+            <button type="button" class="admin-btn-secondary" id="modal-cancel-btn" style="flex: 1; height: 44px; min-height: 44px; border-radius: 12px; font-weight: 600;">Annuler</button>
+            <button type="submit" class="admin-btn-primary" style="flex: 1; height: 44px; min-height: 44px; border-radius: 12px; justify-content: center; font-weight: 600;">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Dedicated Accommodation Modal Overlay (Suites, Appartements, Chambres, Penthouse, Villas...) -->
+    <div class="admin-modal-overlay" id="suite-modal-overlay" aria-hidden="true">
+      <div class="admin-modal" style="max-width: 580px;">
+        <div class="admin-modal-header">
+          <h3 id="suite-modal-title"><i class="fa-solid fa-hotel" style="color: #c5a880; margin-right: 8px;"></i> Nouvel Hébergement / Résidence</h3>
+          <button class="modal-close-btn" id="suite-modal-close-btn">&times;</button>
+        </div>
+        <form class="admin-modal-form" id="suite-modal-form">
+          <!-- Row 1: Catégorie & Nom -->
+          <div class="form-row-2">
+            <div class="form-group" style="flex: 1;">
+              <label for="suite-category">Type d'Hébergement</label>
+              <select id="suite-category" class="admin-input" required>
+                <option value="suite">🏨 Suite de Luxe</option>
+                <option value="appartement">🏢 Appartement VIP</option>
+                <option value="chambre">🛏️ Chambre Deluxe</option>
+                <option value="penthouse">🌆 Penthouse Panoramique</option>
+                <option value="villa">🏡 Villa Privée avec Piscine</option>
+                <option value="loft">🛖 Loft / Chalet</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1.5;">
+              <label for="suite-name">Nom / Titre</label>
+              <input type="text" id="suite-name" class="admin-input" placeholder="ex: Suite Impériale Présidentielle" required />
+            </div>
+          </div>
+
+          <!-- Row 2: Numéro de porte & Digicode / Code d'accès -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="suite-room-number"><i class="fa-solid fa-door-closed" style="color: #c5a880; margin-right: 4px;"></i> Numéro (Porte / Lot)</label>
+              <input type="text" id="suite-room-number" class="admin-input" placeholder="ex: #102, #14B, Villa 04" />
+            </div>
+            <div class="form-group">
+              <label for="suite-access-code"><i class="fa-solid fa-key" style="color: #38bdf8; margin-right: 4px;"></i> Code d'Accès / Digicode</label>
+              <input type="text" id="suite-access-code" class="admin-input" placeholder="ex: 4829#, VIP-7788" />
+            </div>
+          </div>
+
+          <!-- Row 3: Étage & Statut -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="suite-floor">Étage / Emplacement</label>
+              <input type="text" id="suite-floor" class="admin-input" placeholder="ex: Étage 14, Aile Ouest, Vue Océan" />
+            </div>
+            <div class="form-group">
+              <label for="suite-status">Statut de Disponibilité</label>
+              <select id="suite-status" class="admin-input">
+                <option value="confirmed">Disponible</option>
+                <option value="rented">Occupé / En location</option>
+                <option value="pending">En maintenance / Nettoyage</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 4: Tarif / nuit & Spécifications (Pièces/Jacuzzi...) -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="suite-price">Tarif par nuit (€)</label>
+              <input type="text" id="suite-price" class="admin-input" placeholder="ex: 4,500 € / nuit" required />
+            </div>
+            <div class="form-group">
+              <label for="suite-specs">Capacité &amp; Équipements</label>
+              <input type="text" id="suite-specs" class="admin-input" placeholder="ex: 2 Chambres • Jacuzzi • 140 m²" required />
+            </div>
+          </div>
+
+          <!-- Row 5: Média (Upload ou URLs) -->
+          <div class="form-group" style="gap: 12px;">
+            <label>Photos / Médias de l'Hébergement</label>
+            <div>
+              <input type="file" id="suite-image-file" accept="image/*" multiple style="display: none;" />
+              <button type="button" id="suite-upload-trigger-btn" class="admin-btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; height: 42px; min-height: 42px; flex: none;"><i class="fa-solid fa-cloud-arrow-up"></i> Choisir une ou plusieurs photos</button>
+              
+              <div id="suite-upload-preview-container" style="display: none; flex-direction: column; gap: 8px; margin-top: 10px; border: 1px dashed rgba(255,255,255,0.15); padding: 10px; border-radius: 12px; background: rgba(0,0,0,0.25);">
+                <div id="suite-upload-preview-grid" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #8e8e8e; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 4px;">
+                  <span id="suite-upload-file-count">0 image(s)</span>
+                  <button type="button" id="suite-upload-clear-btn" style="background: none; border: none; color: #f87171; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;"><i class="fa-solid fa-trash-can"></i> Tout effacer</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align: center; color: #71717a; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.8; margin: 4px 0;">— ou coller un ou plusieurs liens (séparés par une virgule) —</div>
+            <input type="text" id="suite-media-url" class="admin-input" placeholder="ex: https://lien-photo1.jpg, https://lien-photo2.jpg" />
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-actions" style="margin-top: 10px; display: flex; gap: 12px;">
+            <button type="button" class="admin-btn-secondary" id="suite-modal-cancel-btn" style="flex: 1; height: 44px; min-height: 44px; border-radius: 12px; font-weight: 600;">Annuler</button>
+            <button type="submit" class="admin-btn-primary" style="flex: 1; height: 44px; min-height: 44px; border-radius: 12px; justify-content: center; font-weight: 600;"><i class="fa-solid fa-check"></i> Enregistrer l'Hébergement</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit CTG Database Vehicle Modal Overlay -->
+    <div class="admin-modal-overlay" id="ctg-modal-overlay" aria-hidden="true">
+      <div class="admin-modal">
+        <div class="admin-modal-header">
+          <h3 id="ctg-modal-title"><i class="fa-solid fa-database" style="color: #22d3ee; margin-right: 8px;"></i> Modifier Véhicule (Base de Données CTG)</h3>
+          <button class="modal-close-btn" id="ctg-modal-close-btn">&times;</button>
+        </div>
+        <form class="admin-modal-form" id="ctg-modal-form">
+          <input type="hidden" id="ctg-item-original-name" />
+          
+          <!-- Row 1: Nom de Spawn & Fabricant -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="ctg-item-name">Nom de Spawn / Modèle</label>
+              <input type="text" id="ctg-item-name" class="admin-input" required readonly style="background: rgba(255,255,255,0.03); color: #a1a1aa;" />
+            </div>
+            <div class="form-group">
+              <label for="ctg-item-manufacturer">Fabricant / Marque</label>
+              <input type="text" id="ctg-item-manufacturer" class="admin-input" placeholder="ex: LAMPADATI, PEGASSI..." style="text-transform: uppercase;" />
+            </div>
+          </div>
+
+          <!-- Row 2: Classe & Disponibilité -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="ctg-item-class">Classe</label>
+              <select id="ctg-item-class" class="admin-input">
+                <option value="SUPER">Supercars</option>
+                <option value="SPORT">Sportives</option>
+                <option value="SPORT_CLASSIC">Sport Classiques</option>
+                <option value="SUV">SUV</option>
+                <option value="COUPE">Coupés</option>
+                <option value="MUSCLE">Muscle Cars</option>
+                <option value="SEDAN">Berlines</option>
+                <option value="COMPACT">Compactes</option>
+                <option value="MOTORCYCLE">Motos</option>
+                <option value="OFF_ROAD">Tout-terrain</option>
+                <option value="UTILITY">Utilitaires</option>
+                <option value="VAN">Fourgons</option>
+                <option value="CYCLE">Vélos</option>
+                <option value="BOAT">Bateaux</option>
+                <option value="HELICOPTER">Hélicoptères</option>
+                <option value="PLANE">Avions</option>
+                <option value="EMERGENCY">Urgence</option>
+                <option value="COMMERCIAL">Commercial</option>
+                <option value="INDUSTRIAL">Industriel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ctg-item-concession">Disponibilité Concession</label>
+              <select id="ctg-item-concession" class="admin-input">
+                <option value="1">En concession</option>
+                <option value="0">Hors concession</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Row 3: Prix Concession & Vitesse Max -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="ctg-item-price">Prix Concession (€)</label>
+              <input type="number" id="ctg-item-price" class="admin-input" placeholder="ex: 35000" min="0" required />
+            </div>
+            <div class="form-group">
+              <label for="ctg-item-speed">Vitesse Max (km/h)</label>
+              <input type="number" id="ctg-item-speed" class="admin-input" placeholder="ex: 280" min="0" />
+            </div>
+          </div>
+
+          <!-- Row 4: URL Screenshot / Image -->
+          <div class="form-group">
+            <label for="ctg-item-image">URL Image / Screenshot</label>
+            <input type="text" id="ctg-item-image" class="admin-input" placeholder="ex: /uploads/vehicle-screenshots/... ou URL complète" />
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-actions" style="margin-top: 10px; display: flex; gap: 12px;">
+            <button type="button" class="admin-btn-secondary" id="ctg-modal-cancel-btn" style="flex: 1; height: 44px; min-height: 44px; border-radius: 12px; font-weight: 600;">Annuler</button>
+            <button type="submit" class="admin-btn-primary" style="flex: 1; height: 44px; min-height: 44px; border-radius: 12px; justify-content: center; font-weight: 600;"><i class="fa-solid fa-floppy-disk"></i> Enregistrer dans la Base</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Ultra Luxury Citizen Profile & Passport Modal -->
+    <div class="admin-modal-overlay" id="user-modal-overlay" aria-hidden="true">
+      <div class="admin-modal" style="max-width: 580px; background: linear-gradient(180deg, #14141c 0%, #0a0a0e 100%); border: 1px solid rgba(197, 168, 128, 0.3); box-shadow: 0 30px 90px rgba(0, 0, 0, 0.85), 0 0 40px rgba(197, 168, 128, 0.08); border-radius: 24px; padding: 24px;">
+        <!-- Modal Header -->
+        <div class="admin-modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.07); padding-bottom: 14px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(197, 168, 128, 0.15); display: flex; align-items: center; justify-content: center; color: #c5a880; font-size: 15px;">
+              <i class="fa-solid fa-id-card-clip"></i>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 17px; color: #ffffff; font-weight: 700; letter-spacing: -0.01em;">Passeport Citoyen &amp; Identité RP</h3>
+              <span style="font-size: 11px; color: #a1a1aa;">Fiche signalétique et permissions de l'utilisateur</span>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="user-modal-close-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: #a1a1aa; border: none; cursor: pointer; transition: all 0.2s;">&times;</button>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- 1) Citizen VIP Hero Card -->
+          <div style="position: relative; overflow: hidden; padding: 18px 20px; background: radial-gradient(circle at top right, rgba(197, 168, 128, 0.15) 0%, rgba(22, 22, 28, 0.9) 100%); border: 1px solid rgba(197, 168, 128, 0.25); border-radius: 18px; display: flex; align-items: center; gap: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+            <div style="position: relative; width: 68px; height: 68px; flex-shrink: 0;">
+              <img id="user-modal-avatar" src="assets/logo.webp" alt="" style="width: 68px; height: 68px; border-radius: 50%; object-fit: cover; border: 2px solid #c5a880; box-shadow: 0 0 25px rgba(197, 168, 128, 0.35); display: none;" />
+              <div id="user-modal-initial" class="admin-avatar" style="width: 68px; height: 68px; font-size: 26px; font-weight: 700; background: linear-gradient(135deg, #242432 0%, #121218 100%); color: #c5a880; border: 2px solid rgba(197, 168, 128, 0.5); box-shadow: 0 0 25px rgba(197, 168, 128, 0.25), inset 0 0 15px rgba(197, 168, 128, 0.12);">N</div>
+              <span style="position: absolute; bottom: 0; right: 0; width: 16px; height: 16px; background: #10b981; border: 2.5px solid #14141c; border-radius: 50%; box-shadow: 0 0 10px #10b981;" title="En ligne"></span>
+            </div>
+            
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <h3 id="user-modal-fullname" style="margin: 0; font-size: 20px; color: #ffffff; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">NALYD</h3>
+                <span id="user-modal-role-badge" class="type-tag" style="background: rgba(197, 168, 128, 0.2); color: #c5a880; border: 1px solid rgba(197, 168, 128, 0.4); font-size: 11px; padding: 2px 9px;">👑 Fondateur</span>
+              </div>
+              <div id="user-modal-email" style="font-size: 12px; color: #a1a1aa; margin-top: 3px; font-family: var(--font-sans);">contact@richman-estate.com</div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+                <span id="user-modal-rp-id" style="font-size: 11px; color: #c5a880; font-family: monospace; background: rgba(197, 168, 128, 0.1); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(197, 168, 128, 0.2);">ID RP: #62336</span>
+                <span style="font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2);"><i class="fa-solid fa-circle-check"></i> Compte Certifié</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2) 4-Card Identity Matrix -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="background: #111116; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 10.5px; color: #71717a; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;"><i class="fa-brands fa-discord" style="color: #5865F2; margin-right: 4px;"></i> ID Discord</span>
+                <button type="button" id="user-modal-copy-discord-btn" style="background: rgba(255,255,255,0.06); border: none; color: #a1a1aa; border-radius: 6px; padding: 3px 6px; font-size: 10px; cursor: pointer; transition: all 0.2s;" title="Copier l'ID"><i class="fa-regular fa-copy"></i></button>
+              </div>
+              <div id="user-modal-discord-id" style="font-size: 13px; color: #f4f4f5; font-family: monospace; font-weight: 600; margin-top: 4px;">1015310406169923665</div>
+            </div>
+
+            <div style="background: #111116; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; justify-content: space-between;">
+              <span style="font-size: 10.5px; color: #71717a; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;"><i class="fa-regular fa-calendar" style="color: #c5a880; margin-right: 4px;"></i> Membre Depuis</span>
+              <div id="user-modal-created-at" style="font-size: 13px; color: #f4f4f5; font-weight: 600; margin-top: 4px;">13 août 2026</div>
+            </div>
+          </div>
+
+          <!-- 3) Discord Server Roles & Interactive Management -->
+          <div style="background: #111116; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <span style="font-size: 12px; font-weight: 600; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-brands fa-discord" style="color: #5865F2;"></i> Rôles Discord &amp; Permissions
+              </span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="user-modal-discord-roles-count" style="font-size: 10.5px; color: #a1a1aa; font-family: monospace; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 6px;">0 grade(s)</span>
+                <button type="button" id="user-modal-refresh-roles-btn" style="background: rgba(255,255,255,0.06); border: none; color: #a1a1aa; border-radius: 6px; padding: 3px 7px; font-size: 10.5px; cursor: pointer; transition: all 0.2s;" title="Rafraîchir les grades Discord"><i class="fa-solid fa-arrows-rotate"></i></button>
+              </div>
+            </div>
+            <div id="user-modal-discord-roles-list" style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 32px; align-items: center; margin-bottom: 12px;">
+              <span style="color: #71717a; font-size: 11.5px;">Chargement des rôles Discord en direct...</span>
+            </div>
+
+            <!-- Add Role to Member on Discord & Sync Web Perms -->
+            <div style="border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 12px;">
+              <label style="font-size: 11px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
+                <i class="fa-solid fa-plus-circle" style="color: #c5a880; margin-right: 4px;"></i> Attribuer un rôle Discord &amp; Accès
+              </label>
+              <div style="display: flex; gap: 8px;">
+                <select id="user-modal-role-select" class="admin-input" style="flex: 1; height: 38px; background: #0c0c10; border-color: rgba(255,255,255,0.1); font-size: 12.5px;">
+                  <option value="citoyen">🌲 Citoyen (Compte Standard)</option>
+                  <option value="vip">⭐ Membre VIP</option>
+                  <option value="gerant_vehicules">🚗 Gérant Véhicules (Gestion Voitures)</option>
+                  <option value="gerant_hotel">🏨 Gérant Hôtel (Gestion Hébergements)</option>
+                  <option value="admin">🛡️ Administrateur (Gestion Globale)</option>
+                  <option value="owner">👑 Fondateur (Accès Total Console)</option>
+                </select>
+                <button type="button" id="user-modal-save-role-btn" class="admin-btn-primary" style="height: 38px; padding: 0 14px; border-radius: 9px; font-weight: 600; font-size: 12px; white-space: nowrap; background: linear-gradient(135deg, #c5a880 0%, #a6895d 100%); border: none; color: #000; box-shadow: 0 4px 14px rgba(197, 168, 128, 0.35);">
+                  <i class="fa-solid fa-plus"></i> Ajouter
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4) Associated Bookings History -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 11.5px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;"><i class="fa-solid fa-clock-rotate-left" style="color: #c5a880; margin-right: 6px;"></i> Historique des Réservations</span>
+              <span id="user-modal-bookings-count" style="font-size: 10.5px; color: #71717a;">0 location(s)</span>
+            </div>
+            <div id="user-modal-bookings-list" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+              <div style="text-align: center; color: #71717a; font-size: 12px; padding: 14px; background: #111116; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.06);">Aucune réservation enregistrée pour ce citoyen.</div>
+            </div>
+          </div>
+
+          <!-- 6) Danger Zone & Actions Bar -->
+          <div style="display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 16px; margin-top: 2px;">
+            <button type="button" id="user-modal-delete-btn" class="admin-btn-danger" style="flex: 1; height: 42px; border-radius: 12px; font-weight: 600; font-size: 13px; justify-content: center; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; transition: all 0.2s;"><i class="fa-solid fa-user-slash" style="margin-right: 6px;"></i> Supprimer ce compte</button>
+            <button type="button" id="user-modal-close-bottom-btn" class="admin-btn-secondary" style="height: 42px; padding: 0 24px; border-radius: 12px; font-weight: 600; font-size: 13px; background: #1a1a22; border: 1px solid rgba(255,255,255,0.08); color: #e4e4e7;">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Luxury Confirmation Modal -->
+    <div class="admin-modal-overlay" id="confirm-modal-overlay" aria-hidden="true" style="z-index: 1000;">
+      <div class="admin-modal" style="max-width: 440px; text-align: center; padding: 28px 24px 24px;">
+        <div id="confirm-modal-icon-wrap" style="width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ef4444;">
+          <i id="confirm-modal-icon" class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        
+        <h3 id="confirm-modal-title" style="margin: 0 0 8px 0; font-size: 18px; color: #ffffff; font-weight: 700;">Confirmer l'action</h3>
+        <p id="confirm-modal-message" style="margin: 0 0 24px 0; font-size: 13.5px; color: #a1a1aa; line-height: 1.5;">Êtes-vous certain de vouloir continuer ?</p>
+        
+        <div style="display: flex; gap: 12px;">
+          <button type="button" id="confirm-modal-cancel-btn" class="admin-btn-secondary" style="flex: 1; height: 44px; border-radius: 12px; font-weight: 600; font-size: 13.5px;">Annuler</button>
+          <button type="button" id="confirm-modal-action-btn" class="admin-btn-danger" style="flex: 1; height: 44px; border-radius: 12px; font-weight: 600; font-size: 13.5px; justify-content: center; background: #dc2626; color: #ffffff; border: none; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);">Confirmer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Booking Chat Modal -->
+    <div class="admin-modal-overlay" id="admin-chat-modal-overlay" aria-hidden="true" style="z-index: 990;">
+      <div class="admin-modal" style="max-width: 620px; padding: 0; overflow: hidden; border-radius: 20px;">
+        <div class="admin-modal-header" style="padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; background: #14141a;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="width: 32px; height: 32px; border-radius: 8px; background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.3); display: grid; place-items: center; color: #c5a880; font-size: 14px;"><i class="fa-solid fa-comments"></i></span>
+            <div>
+              <h3 id="admin-chat-modal-title" style="margin: 0; font-size: 15px; color: #fff; font-weight: 700;">Discussion Dossier</h3>
+              <span id="admin-chat-modal-sub" style="font-size: 11.5px; color: #a1a1aa;">Client &bull; ID Dossier</span>
+            </div>
+          </div>
+          <button type="button" class="admin-modal-close" id="admin-chat-modal-close" onclick="window.closeAdminChatModal()" style="background: none; border: none; color: #a1a1aa; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div id="admin-chat-messages-container" style="height: 380px; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; background: #0c0c10;">
+          <!-- Messages dynamically loaded here -->
+        </div>
+
+        <form id="admin-chat-form" onsubmit="window.handleAdminSendBookingMessage(event)" style="display: flex; gap: 10px; padding: 14px 18px; background: #14141a; border-top: 1px solid rgba(255,255,255,0.08);">
+          <input type="hidden" id="admin-chat-booking-id" value="" />
+          <input type="hidden" id="admin-chat-discord-id" value="" />
+          <input type="text" id="admin-chat-input" placeholder="Répondre au client (synchronisé sur Discord et Site)..." style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 13px; outline: none;" autocomplete="off" />
+          <button type="submit" class="admin-btn-primary" style="padding: 0 18px; height: 38px; border-radius: 10px; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-paper-plane"></i> Envoyer</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="admin-toast-container" id="toast-container"></div>
+
+    <!-- Supabase JS SDK -->
+    <!-- DOMPurify (XSS Protection) -->
+    <!-- Vanilla JS -->
+      <script type="module" src="/src/main/admin.ts"></script>
+  </body>
+</html>
