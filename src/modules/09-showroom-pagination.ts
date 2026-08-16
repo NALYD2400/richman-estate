@@ -375,6 +375,12 @@ export function fallbackCopyTextToClipboard(text: string, displayTitle: string) 
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Compat inter-modules : fonctions partagées également exposées sur window
+  // (07 appelle window.applyPublicFleetFilters, 12 window.goToSuitesPage, etc.)
+  (window as any).renderShowroomPagination = renderShowroomPagination;
+  (window as any).applyPublicFleetFilters = applyPublicFleetFilters;
+  (window as any).fallbackCopyTextToClipboard = fallbackCopyTextToClipboard;
+
   (window as any).changeFleetPage = function (delta: number) {
     const isAll = fleetPerPage === 'all';
     const numPerPage = isAll ? state.publicVehiclesList.length : fleetPerPage;
