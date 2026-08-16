@@ -123,7 +123,7 @@ function applyRolePermissions(role: any) {
   }
 }
 
-export function bindAdminUserCardDetails(displayName: any, avatarUrl: any, isOwnerFlag: any, customRole: any) {
+export function bindAdminUserCardDetails(displayName: any, avatarUrl: any, isOwnerFlag: any, customRole?: any) {
   const adminAvatar = document.getElementById("admin-user-avatar") as HTMLImageElement | null;
   const adminInitial = document.getElementById("admin-user-initial");
   const adminName = document.getElementById("admin-user-name");

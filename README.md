@@ -32,16 +32,16 @@ npm run bot        # depuis la racine
 ## Structure
 
 ```
+├── *.html                # Les 7 pages à la racine (une seule balise <script type="module">)
 ├── public/               # Statiques servis tels quels (assets, fonts, data, robots)
 ├── src/
 │   ├── core/             # Noyau typé : config, supabase, api (botFetch), sanitize, state, vehicles
 │   ├── modules/          # Les 15 modules applicatifs portés (01→15), ordre historique conservé
 │   ├── main/<page>.ts    # Entrée de chaque page (importe les modules)
-│   ├── pages/*.html      # HTML des 7 pages (une seule balise <script type="module">)
 │   └── styles/           # CSS inchangé (variables, base, components, pages)
 ├── bot/                  # Bot Discord + API REST (inchangé, durci — voir son README)
 ├── database/             # Schéma Supabase durci + patches de sécurité datés
-├── scripts/              # Outils (adapt-pages.mjs)
+├── PORTING_RULES.md      # Contrat de portage documenté (JS → TS)
 └── tests/                # Suites de tests (voir ci-dessous)
 ```
 
@@ -59,9 +59,14 @@ npm run bot        # depuis la racine
 
 ```bash
 npm run build       # vérification TypeScript + bundling
-npm test            # suite connectivité (nécessite le preview/dev lancé)
-npm run audit       # audit sécurité live Supabase
+npm test            # suite intégrité (sert dist/ automatiquement)
+npm run test:assets # audit des références d'assets (HTML + CSS + CDN)
+npm run audit       # audit sécurité live Supabase + API bot
 ```
+
+Validation de la livraison : `tsc --noEmit` exit 0 · build Vite 7 pages ·
+suite 33/33 · assets 66/66 · audit 55/55 · smoke test preview (7 pages 200,
+bundle JS 473 Ko / gzip 124 Ko, CSS 117 Ko).
 
 ## Sécurité — rappels hérités de l'audit v2
 

@@ -35,8 +35,9 @@ const server = http.createServer((req, res) => {
     res.end(body);
   };
 
-  // Fichiers sensibles et traversal
-  if (urlPath.includes('..') || urlPath.toLowerCase().includes('%2e') || urlPath.includes('\0')) {
+  // Fichiers sensibles et traversal (req.url BRUT : l'URL constructor normaliserait ../)
+  const rawUrl = req.url || '';
+  if (rawUrl.includes('..') || rawUrl.toLowerCase().includes('%2e') || rawUrl.includes('\0') || urlPath.includes('\0')) {
     return onEnd(403, 'Forbidden');
   }
   const first = urlPath.split('/')[1];
@@ -45,13 +46,11 @@ const server = http.createServer((req, res) => {
   }
 
   let filePath = path.join(ROOT, urlPath);
-  try {
-    if (fs.statSync(filePath).isDirectory() || !path.extname(filePath)) {
-      // Clean URL : /vehicules -> /vehicules.html
-      const candidate = path.join(ROOT, `${urlPath.replace(/\/$/, '')}.html`);
-      if (fs.existsSync(candidate)) filePath = candidate;
-    }
-  } catch { /* n'existe pas : 404 naturel */ }
+  // Clean URL : /vehicules -> /vehicules.html (avant tout statSync)
+  if (!path.extname(filePath)) {
+    const candidate = path.join(ROOT, `${urlPath.replace(/\/$/, '')}.html`);
+    if (fs.existsSync(candidate)) filePath = candidate;
+  }
 
   fs.readFile(filePath, (err, data) => {
     if (err) return onEnd(404, 'Not Found');

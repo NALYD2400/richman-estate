@@ -61,7 +61,7 @@ async function auditAllAssets() {
   let passed = 0;
   let failed = 0;
 
-  const htmlFiles = fs.readdirSync(path.join(ROOT, 'src', 'pages')).filter(f => f.endsWith('.html')).map(f => path.join(ROOT, 'src', 'pages', f));
+  const htmlFiles = fs.readdirSync(ROOT).filter(f => f.endsWith('.html')).map(f => path.join(ROOT, f));
   const cssFiles = [
     path.join(ROOT, 'src', 'styles', 'styles.css'),
     path.join(ROOT, 'src', 'styles', 'variables.css'),
@@ -137,7 +137,7 @@ async function auditAllAssets() {
     const candidates = [
       path.join(ROOT, 'public', stripped),
       path.join(ROOT, clean.replace(/^\//, '')),
-      path.resolve(path.dirname(path.join(ROOT, 'src', 'pages', path.basename(item.source))), clean)
+      path.resolve(ROOT, clean)
     ];
     let resolved = candidates.find(c => fs.existsSync(c));
     if (!resolved) resolved = candidates[candidates.length - 1];

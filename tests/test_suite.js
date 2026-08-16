@@ -15,7 +15,8 @@ async function testUrl(url, method = 'GET', postData = null, headers = {}) {
       const options = {
         hostname: urlObj.hostname,
         port: urlObj.port || 80,
-        path: urlObj.pathname + urlObj.search,
+        // Chemin brut (non normalisé) : préserve les ../ pour les tests de path traversal
+        path: url,
         method: method,
         headers: reqHeaders,
         timeout: 5000

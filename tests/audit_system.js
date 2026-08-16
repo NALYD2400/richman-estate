@@ -113,8 +113,8 @@ async function runComprehensiveAudit() {
   console.log("📂 [SECTION 1/4] AUDIT DE L'INTÉGRITÉ DES FICHIERS, ASSETS & ROUTAGE DU SERVEUR");
   
   const filesToCheck = [
-    'src/pages/index.html', 'src/pages/vehicules.html', 'src/pages/suites.html', 'src/pages/contact.html',
-    'src/pages/client.html', 'src/pages/login.html', 'src/pages/admin.html',
+    'index.html', 'vehicules.html', 'suites.html', 'contact.html',
+    'client.html', 'login.html', 'admin.html',
     'src/styles/styles.css', 'src/styles/variables.css',
     'src/core/supabase.ts', 'src/core/sanitize.ts', 'src/core/api.ts', 'src/core/state.ts',
     'src/modules/06-auth-oauth.ts', 'src/modules/15-atmosphere.ts',
