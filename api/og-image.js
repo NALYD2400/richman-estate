@@ -11,7 +11,7 @@
    modifie les images) pour invalider le cache rapidement.
    ========================================================================== */
 
-const { fetchItem, firstMediaUrl } = require("./_og-lib");
+const { fetchItem, firstMediaUrl, siteUrl } = require("./_og-lib");
 
 const ALLOWED_HOSTS = new Set([
   "api.staff.gta.ctgaming.fr",
@@ -21,7 +21,8 @@ const ALLOWED_HOSTS = new Set([
 
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024; // 15 Mo
 const SCREENSHOT_CDN = "https://api.staff.gta.ctgaming.fr:2096/uploads/vehicle-screenshots";
-const LOGO_FALLBACK = "https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/logo.webp";
+// Bucket Supabase public_assets inexistant sur ce projet — logo servi depuis le site
+const LOGO_FALLBACK = `${siteUrl()}/assets/logo.webp`;
 
 function sendImage(res, buffer, contentType) {
   res.setHeader("Content-Type", contentType);
@@ -32,7 +33,8 @@ function sendImage(res, buffer, contentType) {
 
 async function proxyHttpImage(res, url) {
   const target = new URL(url);
-  if (target.protocol !== "https:" || !ALLOWED_HOSTS.has(target.hostname)) {
+  const ownHost = new URL(siteUrl()).hostname;
+  if (target.protocol !== "https:" || (!ALLOWED_HOSTS.has(target.hostname) && target.hostname !== ownHost)) {
     res.status(403).send("Hôte non autorisé");
     return false;
   }
