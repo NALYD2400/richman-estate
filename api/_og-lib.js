@@ -23,13 +23,25 @@ function siteUrl() {
 }
 
 /**
- * Passe l'image OG par notre proxy /api/og-image : le proxy de Discord ne
- * rapatrie pas les images servies sur un port non standard (CDN CTG :2096),
- * donc on les resert depuis notre domaine en 443.
+ * Hash court du média (cache-buster) : change quand l'admin modifie les images
+ * d'un véhicule/suite, ce qui génère une og:image fraîche pour Discord.
  */
-function proxyImageUrl(image) {
-  if (!image || !/^https?:\/\//i.test(image)) return image;
-  return `${siteUrl()}/api/og-image?src=${encodeURIComponent(image)}`;
+function mediaVersion(media) {
+  const s = String(media || "");
+  if (!s) return "0";
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(36);
+}
+
+/**
+ * og:image passant par /api/og-image : sert la 1re image admin (même stockée
+ * en base64 dans la base), sinon le screenshot CDN / le logo. L'endpoint
+ * resert tout depuis notre domaine en 443 — le proxy Discord ne peut pas
+ * rapatrier le CDN CTG (port :2096) ni les data: URIs.
+ */
+function ogImageFor(type, select, media) {
+  return `${siteUrl()}/api/og-image?type=${encodeURIComponent(type)}&select=${encodeURIComponent(String(select).toLowerCase().trim())}&v=${mediaVersion(media)}`;
 }
 
 function escapeAttr(v) {
@@ -110,7 +122,8 @@ function renderOgHtml(opts) {
 module.exports = {
   isBotUserAgent,
   siteUrl,
-  proxyImageUrl,
+  ogImageFor,
+  mediaVersion,
   escapeAttr,
   fetchItem,
   firstMediaUrl,

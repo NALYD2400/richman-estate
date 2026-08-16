@@ -4,10 +4,9 @@
    Les humains sont redirigés vers la page suites (la fiche s'ouvre via ?select=).
    ========================================================================== */
 
-const { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl, proxyImageUrl } = require("./_og-lib");
+const { isBotUserAgent, fetchItem, truncate, renderOgHtml, siteUrl, ogImageFor } = require("./_og-lib");
 
 const DEFAULT_DESC = "Hébergement de prestige Richman Estate — conciergerie privée 24/7 et service hôtelier VIP.";
-const LOGO_FALLBACK = "https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/logo.webp";
 
 module.exports = async function handler(req, res) {
   const query = (req.query || {});
@@ -29,9 +28,6 @@ module.exports = async function handler(req, res) {
     }
 
     const name = String(suite.name || select);
-    const rawImage = firstMediaUrl(suite.media_urls);
-    // Discord ne rend pas les data: URIs en og:image — fallback logo si non http(s)
-    const image = /^https?:\/\//i.test(rawImage) ? rawImage : LOGO_FALLBACK;
     const priceRaw = String(suite.price || "Sur devis");
     const price = /\//.test(priceRaw) ? priceRaw : `${priceRaw} / nuit`;
     const title = `${name} — ${price} | Richman Estate`;
@@ -43,7 +39,8 @@ module.exports = async function handler(req, res) {
     res.status(200).send(renderOgHtml({
       title,
       description: truncate(suite.specs || DEFAULT_DESC),
-      image: proxyImageUrl(image),
+      // 1re image de la liste admin (base64 inclus), fallback logo
+      image: ogImageFor("suite", name, suite.media_urls),
       url: shareUrl
     }));
   } catch (e) {

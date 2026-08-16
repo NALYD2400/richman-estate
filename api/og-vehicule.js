@@ -4,9 +4,8 @@
    Les humains sont redirigés vers la page flotte (la fiche s'ouvre via ?select=).
    ========================================================================== */
 
-const { isBotUserAgent, fetchItem, firstMediaUrl, truncate, renderOgHtml, siteUrl, proxyImageUrl } = require("./_og-lib");
+const { isBotUserAgent, fetchItem, truncate, renderOgHtml, siteUrl, ogImageFor } = require("./_og-lib");
 
-const SCREENSHOT_CDN = "https://api.staff.gta.ctgaming.fr:2096/uploads/vehicle-screenshots";
 const DEFAULT_DESC = "Véhicule d'exception de la flotte Richman Estate — location RP avec conciergerie privée et livraison sur demande.";
 
 module.exports = async function handler(req, res) {
@@ -46,7 +45,6 @@ module.exports = async function handler(req, res) {
       description = DEFAULT_DESC;
     }
 
-    const image = firstMediaUrl(media) || `${SCREENSHOT_CDN}/${encodeURIComponent(name.toLowerCase().trim())}.webp`;
     const priceRaw = String(vehicle.price || "Sur devis");
     const price = /\//.test(priceRaw) ? priceRaw : `${priceRaw} / 24h`;
     const title = `${name.toUpperCase()} — ${price} | Richman Estate`;
@@ -58,7 +56,8 @@ module.exports = async function handler(req, res) {
     res.status(200).send(renderOgHtml({
       title,
       description: truncate(description || DEFAULT_DESC),
-      image: proxyImageUrl(image),
+      // 1re image de la liste admin (base64 inclus), fallback screenshot CDN
+      image: ogImageFor("vehicule", name, media),
       url: shareUrl
     }));
   } catch (e) {
