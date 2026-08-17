@@ -6,7 +6,7 @@
 
 import { escapeHTML, sanitizeUrl, safeJsArg } from "../core/sanitize";
 import { state } from "../core/state";
-import { showToast, openModal, updateCalculatedPrice, writeLog } from "./02-admin-crud";
+import { showToast, openModal, updateCalculatedPrice, writeLog, renderUploadPreviews } from "./02-admin-crud";
 
 // ==========================================================================
 // CTG Database Loader & Pagination Logic
@@ -365,14 +365,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const rentalPercentInput = document.getElementById('item-rental-percent') as HTMLInputElement | null;
     if (rentalPercentInput) rentalPercentInput.value = meta.rental_pct || 0.5;
 
-    const mediaUrlInput = document.getElementById('item-media-url') as HTMLInputElement | null;
-    if (mediaUrlInput && meta.media_url) {
+    // Populate photos gallery
+    state.uploadedImagesArray = [];
+    if (meta.media_url) {
       if (typeof meta.media_url === 'string') {
-        mediaUrlInput.value = meta.media_url;
+        if (meta.media_url.startsWith("[")) {
+          try {
+            const parsed = JSON.parse(meta.media_url);
+            if (Array.isArray(parsed)) state.uploadedImagesArray = parsed.filter(Boolean);
+          } catch (e) {
+            state.uploadedImagesArray = [meta.media_url];
+          }
+        } else if (meta.media_url.includes(",")) {
+          state.uploadedImagesArray = meta.media_url.split(",").map((s: string) => s.trim()).filter(Boolean);
+        } else if (meta.media_url.trim()) {
+          state.uploadedImagesArray = [meta.media_url.trim()];
+        }
       } else if (Array.isArray(meta.media_url)) {
-        mediaUrlInput.value = meta.media_url.join(', ');
+        state.uploadedImagesArray = meta.media_url.filter(Boolean);
       }
+    } else if (item.name) {
+      const spawnCode = encodeURIComponent((item.name || '').toLowerCase().trim());
+      state.uploadedImagesArray = [`https://api.staff.gta.ctgaming.fr:2096/uploads/vehicle-screenshots/${spawnCode}.webp`];
     }
+    renderUploadPreviews();
 
     const mode = meta.use_auto_price ? 'auto' : 'custom';
     const modeRadio = document.querySelector(`input[name='price-mode'][value='${mode}']`) as HTMLInputElement | null;
@@ -404,6 +420,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (specsInput) {
       specsInput.value = `Gamme ${type || 'SPORT'}`;
     }
+
+    // Set default CTG image
+    const spawnCode = encodeURIComponent((name || '').toLowerCase().trim());
+    state.uploadedImagesArray = [`https://api.staff.gta.ctgaming.fr:2096/uploads/vehicle-screenshots/${spawnCode}.webp`];
+    renderUploadPreviews();
 
     // Pre-calculate price
     updateCalculatedPrice();

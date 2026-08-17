@@ -801,22 +801,38 @@
 
           <!-- Row 6: Image / Média -->
           <div class="form-group" style="gap: 8px;">
-            <label>Média (Image(s) ou Vidéo)</label>
-            <div>
-              <input type="file" id="item-image-file" accept="image/*" multiple style="display: none;" />
-              <button type="button" id="upload-trigger-btn" class="admin-btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; height: 38px;"><i class="fa-solid fa-cloud-arrow-up"></i> Choisir un ou plusieurs fichiers images</button>
-              
-              <div id="upload-preview-container" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px; border: 1px dashed #27272a; padding: 10px; border-radius: 8px; background: #121215;">
-                <div id="upload-preview-grid" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #71717a; border-top: 1px solid #27272a; padding-top: 6px;">
-                  <span id="upload-file-count">0 image(s)</span>
-                  <button type="button" id="upload-clear-btn" style="background: none; border: none; color: #f87171; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;"><i class="fa-solid fa-trash-can"></i> Tout effacer</button>
-                </div>
-              </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="margin-bottom: 0;">Photos du Véhicule</label>
+              <span id="upload-file-count" style="font-size: 11px; color: #a1a1aa; font-weight: 500;">0 photo</span>
             </div>
 
-            <div style="text-align: center; color: #52525b; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin: 2px 0;">— ou coller un ou plusieurs liens (séparés par virgule) —</div>
-            <input type="url" id="item-media-url" class="admin-input" placeholder="ex: Lien youtube, image, .mp4" />
+            <!-- Action buttons: Upload files + Add via clean URL -->
+            <div style="display: flex; gap: 8px;">
+              <input type="file" id="item-image-file" accept="image/*" multiple style="display: none;" />
+              <button type="button" id="upload-trigger-btn" class="admin-btn-secondary" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; height: 38px;">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Choisir des fichiers images
+              </button>
+              <button type="button" id="upload-toggle-url-btn" class="admin-btn-secondary" style="height: 38px; padding: 0 12px; display: flex; align-items: center; gap: 6px;" title="Ajouter une image par URL">
+                <i class="fa-solid fa-link"></i> <span style="font-size: 11.5px;">Ajouter URL</span>
+              </button>
+            </div>
+
+            <!-- Optional URL input bar (toggled on click) -->
+            <div id="upload-url-input-container" style="display: none; gap: 6px; margin-top: 4px;">
+              <input type="text" id="item-media-url-input" class="admin-input" placeholder="Coller une URL d'image (ex: https://...)" style="height: 36px; font-size: 12px; flex: 1;" />
+              <button type="button" id="btn-confirm-add-url" class="admin-btn-primary" style="height: 36px; padding: 0 14px; font-size: 12px;">Ajouter</button>
+            </div>
+
+            <!-- Hidden input for backwards compatibility -->
+            <input type="hidden" id="item-media-url" />
+
+            <!-- Gallery Previews Grid -->
+            <div id="upload-preview-container" style="display: none; flex-direction: column; gap: 8px; margin-top: 4px; border: 1px dashed #27272a; padding: 10px; border-radius: 8px; background: #121215;">
+              <div id="upload-preview-grid" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+              <div style="display: flex; justify-content: flex-end; align-items: center; font-size: 11px; color: #71717a; border-top: 1px solid #27272a; padding-top: 6px;">
+                <button type="button" id="upload-clear-btn" style="background: none; border: none; color: #f87171; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 11px;"><i class="fa-solid fa-trash-can"></i> Tout effacer</button>
+              </div>
+            </div>
           </div>
 
           <!-- Actions -->

@@ -289,15 +289,17 @@ if (adminModalForm) {
     const status = (document.getElementById('item-status') as HTMLSelectElement).value;
 
     let mediaVal = "";
-    if (state.uploadedImagesArray.length > 0) {
+    if (state.uploadedImagesArray && state.uploadedImagesArray.length > 0) {
       mediaVal = state.uploadedImagesArray.length === 1 ? state.uploadedImagesArray[0] : JSON.stringify(state.uploadedImagesArray);
     } else {
-      const rawUrl = ((document.getElementById('item-media-url') as HTMLInputElement | null)?.value || '').trim();
-      if (rawUrl.includes(',')) {
-        const urls = rawUrl.split(',').map(u => u.trim()).filter(Boolean);
-        mediaVal = JSON.stringify(urls);
-      } else {
-        mediaVal = rawUrl;
+      const rawUrl = ((document.getElementById('item-media-url-input') as HTMLInputElement | null)?.value || (document.getElementById('item-media-url') as HTMLInputElement | null)?.value || '').trim();
+      if (rawUrl) {
+        if (rawUrl.includes(',')) {
+          const urls = rawUrl.split(',').map(u => u.trim()).filter(Boolean);
+          mediaVal = JSON.stringify(urls);
+        } else {
+          mediaVal = rawUrl;
+        }
       }
     }
 

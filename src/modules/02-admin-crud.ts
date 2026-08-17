@@ -98,6 +98,10 @@ export function closeModal() {
       state.uploadedImagesArray = [];
       const fileInput = document.getElementById("item-image-file") as HTMLInputElement | null;
       if (fileInput) fileInput.value = "";
+      const urlContainer = document.getElementById("upload-url-input-container");
+      if (urlContainer) urlContainer.style.display = "none";
+      const urlInput = document.getElementById("item-media-url-input") as HTMLInputElement | null;
+      if (urlInput) urlInput.value = "";
       renderUploadPreviews();
       if (adminModalForm) delete adminModalForm.dataset.editId;
       const modalTitle = document.getElementById('modal-title');
@@ -210,73 +214,52 @@ export function updateCalculatedPrice() {
   }
 }
 
-function renderUploadPreviews() {
+export function renderUploadPreviews() {
   if (!previewGrid || !previewContainer) return;
   previewGrid.innerHTML = "";
 
   if (state.uploadedImagesArray.length === 0) {
     previewContainer.style.display = "none";
-    if (mediaUrlInput) {
-      mediaUrlInput.disabled = false;
-      mediaUrlInput.placeholder = "ex: Lien youtube, image, .mp4";
-    }
+    if (fileCountSpan) fileCountSpan.textContent = "0 photo";
+    if (mediaUrlInput) mediaUrlInput.value = "";
     return;
   }
 
   previewContainer.style.display = "flex";
-  if (mediaUrlInput) {
-    mediaUrlInput.value = "";
-    mediaUrlInput.placeholder = "Image(s) chargée(s) depuis des fichiers";
-    mediaUrlInput.disabled = true;
-  }
-
   if (fileCountSpan) {
-    fileCountSpan.textContent = `${state.uploadedImagesArray.length} image(s) sélectionnée(s)`;
+    fileCountSpan.textContent = `${state.uploadedImagesArray.length} photo(s) prête(s)`;
+  }
+  if (mediaUrlInput) {
+    mediaUrlInput.value = state.uploadedImagesArray.length === 1 ? state.uploadedImagesArray[0] : JSON.stringify(state.uploadedImagesArray);
   }
 
-  state.uploadedImagesArray.forEach((base64, index) => {
+  state.uploadedImagesArray.forEach((src, index) => {
     const thumb = document.createElement("div");
-    thumb.style.position = "relative";
-    thumb.style.width = "52px";
-    thumb.style.height = "52px";
+    thumb.className = "admin-thumb-item";
 
     const img = document.createElement("img");
-    img.src = base64;
+    img.className = "admin-thumb-img";
+    img.src = src;
     img.title = "Cliquez pour agrandir";
-    img.style.width = "100%";
-    img.style.height = "100%";
-    img.style.objectFit = "cover";
-    img.style.borderRadius = "8px";
-    img.style.border = "1px solid rgba(255,255,255,0.15)";
-    img.style.cursor = "zoom-in";
-    img.addEventListener("click", () => openAdminImagePreview(base64));
+    img.addEventListener("click", () => openAdminImagePreview(src));
+
+    const badge = document.createElement("span");
+    badge.className = "admin-thumb-badge";
+    badge.textContent = `${index + 1}`;
 
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
+    removeBtn.className = "admin-thumb-remove";
     removeBtn.innerHTML = "&times;";
-    removeBtn.style.position = "absolute";
-    removeBtn.style.top = "-5px";
-    removeBtn.style.right = "-5px";
-    removeBtn.style.width = "18px";
-    removeBtn.style.height = "18px";
-    removeBtn.style.borderRadius = "50%";
-    removeBtn.style.background = "#ef4444";
-    removeBtn.style.color = "#ffffff";
-    removeBtn.style.border = "none";
-    removeBtn.style.fontSize = "12px";
-    removeBtn.style.fontWeight = "bold";
-    removeBtn.style.cursor = "pointer";
-    removeBtn.style.display = "flex";
-    removeBtn.style.alignItems = "center";
-    removeBtn.style.justifyContent = "center";
-    removeBtn.style.boxShadow = "0 2px 4px rgba(0,0,0,0.5)";
-
-    removeBtn.addEventListener("click", () => {
+    removeBtn.title = "Supprimer cette photo";
+    removeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
       state.uploadedImagesArray.splice(index, 1);
       renderUploadPreviews();
     });
 
     thumb.appendChild(img);
+    thumb.appendChild(badge);
     thumb.appendChild(removeBtn);
     previewGrid.appendChild(thumb);
   });
@@ -415,11 +398,17 @@ export function applyFleetFilters() {
 
                 mediaHtml = `
                   <div class="ctg-image-wrapper" style="position: relative;">
-                    <div class="vehicle-slideshow" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; width: 100%; height: 100%; scrollbar-width: none;">
+                    <div id="vehicle-slideshow-${item.id}" class="vehicle-slideshow" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; width: 100%; height: 100%; scrollbar-width: none; scroll-behavior: smooth;">
                       ${slidesHtml}
                     </div>
-                    <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; background: rgba(0,0,0,0.55); padding: 4px 8px; border-radius: 99px; z-index: 2; pointer-events: none; backdrop-filter: blur(4px);">
-                      ${mediaArray.map((_, i) => `<span style="width: 5px; height: 5px; border-radius: 50%; background: ${i === 0 ? '#ffffff' : 'rgba(255,255,255,0.4)'};"></span>`).join('')}
+                    <button type="button" class="card-carousel-nav-btn prev" onclick="event.stopPropagation(); window.slideVehicleCardCarousel('${item.id}', -1)" aria-label="Image précédente" title="Photo précédente">
+                      <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="card-carousel-nav-btn next" onclick="event.stopPropagation(); window.slideVehicleCardCarousel('${item.id}', 1)" aria-label="Image suivante" title="Photo suivante">
+                      <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div id="vehicle-dots-${item.id}" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; background: rgba(0,0,0,0.55); padding: 4px 8px; border-radius: 99px; z-index: 2; pointer-events: none; backdrop-filter: blur(4px);">
+                      ${mediaArray.map((_, i) => `<span class="vehicle-carousel-dot" style="width: 5px; height: 5px; border-radius: 50%; background: ${i === 0 ? '#ffffff' : 'rgba(255,255,255,0.4)'}; transition: all 0.2s;"></span>`).join('')}
                     </div>
                   </div>`;
               }
@@ -534,10 +523,14 @@ export function applyFleetFilters() {
         </div>
         <p class="card-sub" style="margin-bottom: 12px; min-height: 18px;">${escapeHTML(displaySpecs)}</p>
         ${renterInfoHtml}
-        <div class="admin-card-actions">
-          ${toggleButton}
-          <button class="admin-btn-secondary" onclick="window.editFleetItem('${item.id}')"><i class="fa-solid fa-pen"></i> Modifier</button>
-          <button class="admin-btn-danger" onclick="window.deleteItem('${item.id}', 'fleet')"><i class="fa-solid fa-ban"></i> Supprimer</button>
+        <div class="admin-card-actions-v2">
+          <div class="admin-card-actions-row-main">
+            ${toggleButton}
+          </div>
+          <div class="admin-card-actions-row-sub">
+            <button class="admin-btn-secondary" onclick="window.editFleetItem('${item.id}')" title="Modifier la fiche"><i class="fa-solid fa-pen"></i> Modifier</button>
+            <button class="admin-btn-danger" onclick="window.deleteItem('${item.id}', 'fleet')" title="Supprimer définitivement"><i class="fa-solid fa-trash"></i> Supprimer</button>
+          </div>
         </div>
       `;
     container.appendChild(card);
@@ -1331,6 +1324,73 @@ if (clearBtn) {
     renderUploadPreviews();
   });
 }
+
+// URL Add bindings
+const toggleUrlBtn = document.getElementById("upload-toggle-url-btn");
+const urlContainer = document.getElementById("upload-url-input-container");
+const urlInput = document.getElementById("item-media-url-input") as HTMLInputElement | null;
+const confirmAddUrlBtn = document.getElementById("btn-confirm-add-url");
+
+if (toggleUrlBtn && urlContainer) {
+  toggleUrlBtn.addEventListener("click", () => {
+    const isHidden = urlContainer.style.display === "none" || !urlContainer.style.display;
+    urlContainer.style.display = isHidden ? "flex" : "none";
+    if (isHidden && urlInput) urlInput.focus();
+  });
+}
+
+function handleAddUrl() {
+  if (!urlInput) return;
+  const val = urlInput.value.trim();
+  if (!val) return;
+
+  if (val.includes(",")) {
+    const splitUrls = val.split(",").map(u => u.trim()).filter(Boolean);
+    state.uploadedImagesArray.push(...splitUrls);
+  } else {
+    state.uploadedImagesArray.push(val);
+  }
+
+  urlInput.value = "";
+  if (urlContainer) urlContainer.style.display = "none";
+  renderUploadPreviews();
+}
+
+if (confirmAddUrlBtn) confirmAddUrlBtn.addEventListener("click", handleAddUrl);
+if (urlInput) {
+  urlInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddUrl();
+    }
+  });
+}
+
+// Glissement fluide carrousel cartes véhicules
+(window as any).slideVehicleCardCarousel = function (itemId: string, direction: number) {
+  const container = document.getElementById(`vehicle-slideshow-${itemId}`);
+  if (!container) return;
+  const slideWidth = container.clientWidth || container.offsetWidth || 260;
+  const maxScroll = container.scrollWidth - slideWidth;
+  let newScroll = container.scrollLeft + direction * slideWidth;
+
+  if (direction > 0 && container.scrollLeft >= maxScroll - 5) {
+    newScroll = 0;
+  } else if (direction < 0 && container.scrollLeft <= 5) {
+    newScroll = maxScroll;
+  }
+
+  container.scrollTo({ left: newScroll, behavior: 'smooth' });
+
+  const dotsContainer = document.getElementById(`vehicle-dots-${itemId}`);
+  if (dotsContainer) {
+    const dots = dotsContainer.querySelectorAll('.vehicle-carousel-dot');
+    const activeIndex = Math.round(newScroll / (slideWidth || 1)) % dots.length;
+    dots.forEach((dot, idx) => {
+      (dot as HTMLElement).style.background = idx === activeIndex ? '#ffffff' : 'rgba(255,255,255,0.4)';
+    });
+  }
+};
 
 (window as any).openEditSuiteModal = function(suiteDataOrId) {
   let target = suiteDataOrId;
