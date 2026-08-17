@@ -586,13 +586,25 @@ export function appendMessageBubble(containerEl: any, msg: any) {
   const isStaff = senderRole === 'staff';
   const timeStr = new Date(msgTimestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
-  // 1. Detection of Official Status Milestones
+  // 1. Detection of Official Status Milestones (Validation / Refusal)
   const isAcceptedMilestone = cleanContent.includes("ACCEPTÉE et VALIDÉE") || cleanContent.includes("ACCEPTÉE");
   const isRefusedMilestone = cleanContent.includes("n'a pas pu être retenue") || cleanContent.includes("REFUSÉE");
   const isInitialRequestMilestone = cleanContent.startsWith("Demande de réservation pour");
-  const isMilestone = isAcceptedMilestone || isRefusedMilestone || isInitialRequestMilestone;
+
+  // Skip rendering the raw booking initialization text as a chat card (already in header & status recap)
+  if (isInitialRequestMilestone) return;
+
+  const isMilestone = isAcceptedMilestone || isRefusedMilestone;
 
   if (isMilestone) {
+    // Deduplication check for milestones
+    const existingMilestones = containerEl.querySelectorAll(".chat-milestone-row");
+    for (const m of existingMilestones) {
+      if (msgId && m.getAttribute("data-msg-id") === msgId) return;
+      const desc = (m.querySelector(".milestone-badge-desc")?.textContent || "").trim();
+      if (desc && desc === cleanContent.replace(/^[✅❌\s]+/, '').trim()) return;
+    }
+
     const row = document.createElement("div");
     row.className = "chat-milestone-row";
     row.setAttribute("data-timestamp", String(msgTimestamp));
@@ -609,24 +621,13 @@ export function appendMessageBubble(containerEl: any, msg: any) {
           </div>
         </div>
       `;
-    } else if (isRefusedMilestone) {
+    } else {
       row.innerHTML = `
         <div class="chat-system-milestone cancelled">
           <div class="milestone-badge-icon"><i class="fa-solid fa-circle-xmark"></i></div>
           <div class="milestone-badge-body">
             <span class="milestone-badge-title">DEMANDE NON RETENUE</span>
             <p class="milestone-badge-desc">${escapeHTML(cleanContent.replace(/^[❌\s]+/, ''))}</p>
-            <span class="milestone-badge-time"><i class="fa-regular fa-clock"></i> ${timeStr}</span>
-          </div>
-        </div>
-      `;
-    } else {
-      row.innerHTML = `
-        <div class="chat-system-milestone request">
-          <div class="milestone-badge-icon"><i class="fa-solid fa-file-invoice"></i></div>
-          <div class="milestone-badge-body">
-            <span class="milestone-badge-title">DOSSIER DE RÉSERVATION DÉPOSÉ</span>
-            <p class="milestone-badge-desc">${escapeHTML(cleanContent)}</p>
             <span class="milestone-badge-time"><i class="fa-regular fa-clock"></i> ${timeStr}</span>
           </div>
         </div>
@@ -664,7 +665,10 @@ export function appendMessageBubble(containerEl: any, msg: any) {
     row.setAttribute("data-pending-key", tempKey);
   }
 
-  const senderDisplayName = isStaff ? 'Staff Richman' : 'Vous';
+  const senderDisplayName = isStaff
+    ? (msg.sender_name || 'Staff Richman')
+    : 'Vous';
+
   const roleBadgeHtml = isStaff
     ? `<span class="chat-msg-role-chip staff"><i class="fa-solid fa-shield-halved"></i> Staff Richman</span>`
     : `<span class="chat-msg-role-chip client"><i class="fa-solid fa-user"></i> Membre VIP</span>`;

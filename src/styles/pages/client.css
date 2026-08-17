@@ -1299,16 +1299,16 @@
   }
 }
 
-/* Client messages -> Right aligned */
+/* Client messages -> Left aligned (as per user spec) */
 .chat-msg-row.client {
-  align-self: flex-end;
-  align-items: flex-end;
-}
-
-/* Staff messages -> Left aligned */
-.chat-msg-row.staff {
   align-self: flex-start;
   align-items: flex-start;
+}
+
+/* Staff / Admin messages -> Right aligned (as per user spec) */
+.chat-msg-row.staff {
+  align-self: flex-end;
+  align-items: flex-end;
 }
 
 /* Grouping for consecutive messages */
@@ -1350,10 +1350,10 @@
 }
 
 .chat-msg-role-chip.staff {
-  background: rgba(197, 168, 128, 0.16);
-  color: #f7ede2;
-  border: 1px solid rgba(197, 168, 128, 0.45);
-  box-shadow: 0 2px 6px rgba(197, 168, 128, 0.12);
+  background: rgba(197, 168, 128, 0.2);
+  color: #fbf5eb;
+  border: 1px solid rgba(197, 168, 128, 0.55);
+  box-shadow: 0 2px 6px rgba(197, 168, 128, 0.15);
 }
 
 .chat-msg-role-chip.client {
@@ -1403,30 +1403,30 @@
   color: var(--accent-gold, #c5a880);
 }
 
-/* Client Bubble (Right) */
+/* Client Bubble (Left) */
 .chat-msg-row.client .chat-msg-bubble {
-  background: linear-gradient(135deg, #1f212c 0%, #151621 100%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(135deg, #1d1f2b 0%, #13141f 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #ffffff;
-  border-radius: 20px 20px 4px 20px;
+  border-radius: 20px 20px 20px 4px;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
 }
 
 .chat-msg-row.client.grouped-continuation .chat-msg-bubble {
-  border-radius: 20px 4px 4px 20px;
+  border-radius: 4px 20px 20px 4px;
 }
 
-/* Staff Bubble (Left) */
+/* Staff / Admin Bubble (Right) */
 .chat-msg-row.staff .chat-msg-bubble {
-  background: linear-gradient(135deg, rgba(197, 168, 128, 0.14) 0%, rgba(20, 21, 30, 0.96) 100%);
-  border: 1px solid rgba(197, 168, 128, 0.45);
-  color: #f7f3ec;
-  border-radius: 20px 20px 20px 4px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 20px rgba(197, 168, 128, 0.08);
+  background: linear-gradient(135deg, rgba(197, 168, 128, 0.2) 0%, rgba(28, 22, 16, 0.96) 100%);
+  border: 1px solid rgba(197, 168, 128, 0.55);
+  color: #faf5ee;
+  border-radius: 20px 20px 4px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 20px rgba(197, 168, 128, 0.12);
 }
 
 .chat-msg-row.staff.grouped-continuation .chat-msg-bubble {
-  border-radius: 4px 20px 20px 4px;
+  border-radius: 20px 4px 4px 20px;
 }
 
 /* Quick Suggestion Chips */
