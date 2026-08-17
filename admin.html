@@ -63,8 +63,8 @@
             <span>Véhicules</span>
           </button>
           <button class="admin-nav-item" data-tab="bookings-cars">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Réservations Voitures</span>
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Statistiques Locations</span>
           </button>
           <button class="admin-nav-item" data-tab="tickets-cars">
             <i class="fa-solid fa-comments"></i>
@@ -82,8 +82,8 @@
             <span>Hôtel &amp; Suites</span>
           </button>
           <button class="admin-nav-item" data-tab="bookings-suites">
-            <i class="fa-solid fa-calendar-check"></i>
-            <span>Réservations Suites</span>
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Statistiques Suites</span>
           </button>
           <button class="admin-nav-item" data-tab="tickets-suites">
             <i class="fa-solid fa-comments"></i>
@@ -346,31 +346,99 @@
           </div>
         </section>
 
-        <!-- Tab 4a: Bookings Cars -->
+        <!-- Tab 4a: Statistiques & Performance des Locations -->
         <section class="admin-tab-content" id="tab-bookings-cars">
           <div class="admin-page-header">
             <div>
-              <h1>Réservations de Véhicules</h1>
-              <p>Validez et suivez l'historique complet des locations de véhicules.</p>
+              <h1>Statistiques &amp; Performance des Locations</h1>
+              <p>Analyse détaillée des revenus, des supercars les plus sollicitées et des meilleurs clients.</p>
+            </div>
+            <button class="admin-btn-secondary" onclick="window.loadBookings()"><i class="fa-solid fa-rotate-right"></i> Rafraîchir les Stats</button>
+          </div>
+
+          <!-- KPI Grid Stats Locations -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon" style="color: #c5a880; background: rgba(197, 168, 128, 0.1); border-color: rgba(197, 168, 128, 0.25);">
+                <i class="fa-solid fa-coins"></i>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Revenu Total Locations</span>
+                <span class="kpi-value" id="stats-cars-total-revenue">0 €</span>
+                <span class="kpi-trend positive" id="stats-cars-revenue-sub">0 locations validées</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.25);">
+                <i class="fa-solid fa-car"></i>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Total Demandes Locations</span>
+                <span class="kpi-value" id="stats-cars-total-bookings">0</span>
+                <span class="kpi-trend" id="stats-cars-bookings-sub">0 en attente</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.25);">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Taux de Validation</span>
+                <span class="kpi-value" id="stats-cars-conversion-rate">0%</span>
+                <span class="kpi-trend positive" id="stats-cars-conversion-sub">Acceptation dossiers</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.25);">
+                <i class="fa-solid fa-receipt"></i>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Panier Moyen / Location</span>
+                <span class="kpi-value" id="stats-cars-avg-price">0 €</span>
+                <span class="kpi-trend" id="stats-cars-avg-sub">Moyenne par contrat</span>
+              </div>
             </div>
           </div>
 
-          <div class="vercel-table-card">
-            <table class="vercel-table">
-              <thead>
-                <tr>
-                  <th style="width: 12%;">ID Dossier</th>
-                  <th style="width: 24%;">Client</th>
-                  <th style="width: 24%;">Véhicule</th>
-                  <th style="width: 14%;">Montant</th>
-                  <th style="width: 14%;">Statut</th>
-                  <th style="width: 12%; text-align: right;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="bookings-cars-table-body">
-                <!-- Dynamic bookings will load here -->
-              </tbody>
-            </table>
+          <!-- Dashboard 2 Columns -->
+          <div class="dashboard-grid">
+            <!-- Left: Top Supercars les plus louées -->
+            <div class="stats-ranking-card">
+              <div class="stats-ranking-header">
+                <h3><i class="fa-solid fa-trophy" style="color: #eab308;"></i> Top Supercars les Plus Demandées</h3>
+                <span style="font-size: 11.5px; color: #71717a;" id="stats-cars-unique-count">0 modèles</span>
+              </div>
+              <div class="stats-ranking-list" id="stats-cars-top-vehicles-list">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Right: Top Clients VIP & Répartition -->
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Top Clients -->
+              <div class="stats-ranking-card">
+                <div class="stats-ranking-header">
+                  <h3><i class="fa-solid fa-crown" style="color: var(--accent-gold, #c5a880);"></i> Top Loueurs VIP</h3>
+                  <span style="font-size: 11.5px; color: #71717a;" id="stats-cars-clients-count">0 loueur(s)</span>
+                </div>
+                <div class="stats-ranking-list" id="stats-cars-top-clients-list">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- Répartition Statuts -->
+              <div class="stats-ranking-card">
+                <div class="stats-ranking-header">
+                  <h3><i class="fa-solid fa-chart-pie" style="color: #3b82f6;"></i> État des Dossiers Véhicules</h3>
+                </div>
+                <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;" id="stats-cars-status-breakdown">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -456,31 +524,99 @@
           </div>
         </section>
 
-        <!-- Tab 4b: Bookings Suites -->
+        <!-- Tab 4b: Statistiques & Performance Hôtelière -->
         <section class="admin-tab-content" id="tab-bookings-suites">
           <div class="admin-page-header">
             <div>
-              <h1>Réservations de Suites</h1>
-              <p>Validez et suivez l'historique complet des réservations d'hébergements.</p>
+              <h1>Statistiques &amp; Performance Hôtelière</h1>
+              <p>Analyse détaillée des revenus générés par les suites, de l'occupation et des résidents VIP.</p>
+            </div>
+            <button class="admin-btn-secondary" onclick="window.loadBookings()"><i class="fa-solid fa-rotate-right"></i> Rafraîchir les Stats</button>
+          </div>
+
+          <!-- KPI Grid Stats Suites -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon" style="color: #c5a880; background: rgba(197, 168, 128, 0.1); border-color: rgba(197, 168, 128, 0.25);">
+                <i class="fa-solid fa-coins"></i>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Revenu Total Hôtellerie</span>
+                <span class="kpi-value" id="stats-suites-total-revenue">0 €</span>
+                <span class="kpi-trend positive" id="stats-suites-revenue-sub">0 séjours validés</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon" style="color: #a855f7; background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.25);">
+                <i class="fa-solid fa-hotel"></i>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Total Demandes Séjours</span>
+                <span class="kpi-value" id="stats-suites-total-bookings">0</span>
+                <span class="kpi-trend" id="stats-suites-bookings-sub">0 en attente</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.25);">
+                <i class="fa-solid fa-circle-check"></i>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Taux d'Acceptation</span>
+                <span class="kpi-value" id="stats-suites-conversion-rate">0%</span>
+                <span class="kpi-trend positive" id="stats-suites-conversion-sub">Confirmation séjours</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.25);">
+                <i class="fa-solid fa-receipt"></i>
+              </div>
+              <div class="kpi-details">
+                <span class="kpi-label">Panier Moyen / Séjour</span>
+                <span class="kpi-value" id="stats-suites-avg-price">0 €</span>
+                <span class="kpi-trend" id="stats-suites-avg-sub">Moyenne par réservation</span>
+              </div>
             </div>
           </div>
 
-          <div class="vercel-table-card">
-            <table class="vercel-table">
-              <thead>
-                <tr>
-                  <th style="width: 12%;">ID Dossier</th>
-                  <th style="width: 24%;">Client</th>
-                  <th style="width: 24%;">Hébergement</th>
-                  <th style="width: 14%;">Montant</th>
-                  <th style="width: 14%;">Statut</th>
-                  <th style="width: 12%; text-align: right;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="bookings-suites-table-body">
-                <!-- Dynamic bookings will load here -->
-              </tbody>
-            </table>
+          <!-- Dashboard 2 Columns -->
+          <div class="dashboard-grid">
+            <!-- Left: Top Suites les plus réservées -->
+            <div class="stats-ranking-card">
+              <div class="stats-ranking-header">
+                <h3><i class="fa-solid fa-trophy" style="color: #eab308;"></i> Top Suites &amp; Hébergements Prisés</h3>
+                <span style="font-size: 11.5px; color: #71717a;" id="stats-suites-unique-count">0 suites</span>
+              </div>
+              <div class="stats-ranking-list" id="stats-suites-top-suites-list">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Right: Top Clients VIP & Répartition -->
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Top Clients -->
+              <div class="stats-ranking-card">
+                <div class="stats-ranking-header">
+                  <h3><i class="fa-solid fa-crown" style="color: var(--accent-gold, #c5a880);"></i> Top Résidents VIP</h3>
+                  <span style="font-size: 11.5px; color: #71717a;" id="stats-suites-clients-count">0 résident(s)</span>
+                </div>
+                <div class="stats-ranking-list" id="stats-suites-top-clients-list">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+
+              <!-- Répartition Statuts -->
+              <div class="stats-ranking-card">
+                <div class="stats-ranking-header">
+                  <h3><i class="fa-solid fa-chart-pie" style="color: #a855f7;"></i> État des Dossiers Hébergements</h3>
+                </div>
+                <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;" id="stats-suites-status-breakdown">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

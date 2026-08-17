@@ -811,8 +811,6 @@ export async function loadConciergeMessages() {
 }
 
 export async function loadBookings() {
-  const carsContainer = document.getElementById("bookings-cars-table-body");
-  const suitesContainer = document.getElementById("bookings-suites-table-body");
   if (!supabaseClient) return;
   const { data, error } = await supabaseClient.from("bookings").select("*").order("created_at", { ascending: false });
   if (error) return console.error("Error loading bookings:", error.message);
@@ -821,99 +819,8 @@ export async function loadBookings() {
     applyFleetFilters();
   }
 
-  if (carsContainer) {
-    carsContainer.innerHTML = "";
-    const carBookings = data.filter(item => item.type === 'vehicule');
-    if (carBookings.length === 0) {
-      carsContainer.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune réservation de véhicule enregistrée.</td></tr>`;
-    } else {
-      carBookings.forEach(item => {
-        const tr = document.createElement("tr");
-        const discordId = item.discord_id || '';
-        const encId = safeJsArg(item.id);
-        const encClient = safeJsArg(item.client_name);
-        const encItem = safeJsArg(item.item_name);
-        const encDiscord = safeJsArg(discordId);
-
-        const dmBtn = discordId ? `
-          <button class="user-act-btn-clean" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="MP Discord">
-            <i class="fa-brands fa-discord"></i>
-          </button>
-        ` : '';
-        const chatBtn = `
-          <button class="user-act-btn-clean" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Discussion">
-            <i class="fa-solid fa-comments"></i>
-          </button>
-        `;
-        tr.innerHTML = `
-          <td style="font-family: monospace; font-size: 11.5px; color: #a1a1aa;">#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
-          <td>
-            <strong style="color: #ffffff; font-size: 13px;">${escapeHTML(item.client_name)}</strong>
-            ${discordId ? `<span style="display: block; font-size: 11px; color: #71717a; margin-top: 1px;"><i class="fa-brands fa-discord"></i> ${escapeHTML(discordId)}</span>` : ''}
-          </td>
-          <td style="color: #ffffff; font-size: 13px;">${escapeHTML(item.item_name)}</td>
-          <td style="font-weight: 600; color: #ffffff; font-size: 13px;">${escapeHTML(item.amount)}</td>
-          <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
-          <td style="text-align: right;">
-            <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-              <button class="user-act-btn-clean" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check" style="color: #34d399;"></i></button>
-              <button class="user-act-btn-clean danger" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Refuser"><i class="fa-solid fa-xmark"></i></button>
-              ${chatBtn}
-              ${dmBtn}
-            </div>
-          </td>
-        `;
-        carsContainer.appendChild(tr);
-      });
-    }
-  }
-
-  if (suitesContainer) {
-    suitesContainer.innerHTML = "";
-    const suiteBookings = data.filter(item => item.type !== 'vehicule');
-    if (suiteBookings.length === 0) {
-      suitesContainer.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune réservation de suite enregistrée.</td></tr>`;
-    } else {
-      suiteBookings.forEach(item => {
-        const tr = document.createElement("tr");
-        const discordId = item.discord_id || '';
-        const encId = safeJsArg(item.id);
-        const encClient = safeJsArg(item.client_name);
-        const encItem = safeJsArg(item.item_name);
-        const encDiscord = safeJsArg(discordId);
-
-        const dmBtn = discordId ? `
-          <button class="user-act-btn-clean" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="MP Discord">
-            <i class="fa-brands fa-discord"></i>
-          </button>
-        ` : '';
-        const chatBtn = `
-          <button class="user-act-btn-clean" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Discussion">
-            <i class="fa-solid fa-comments"></i>
-          </button>
-        `;
-        tr.innerHTML = `
-          <td style="font-family: monospace; font-size: 11.5px; color: #a1a1aa;">#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
-          <td>
-            <strong style="color: #ffffff; font-size: 13px;">${escapeHTML(item.client_name)}</strong>
-            ${discordId ? `<span style="display: block; font-size: 11px; color: #71717a; margin-top: 1px;"><i class="fa-brands fa-discord"></i> ${escapeHTML(discordId)}</span>` : ''}
-          </td>
-          <td style="color: #ffffff; font-size: 13px;">${escapeHTML(item.item_name)}</td>
-          <td style="font-weight: 600; color: #ffffff; font-size: 13px;">${escapeHTML(item.amount)}</td>
-          <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
-          <td style="text-align: right;">
-            <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
-              <button class="user-act-btn-clean" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check" style="color: #34d399;"></i></button>
-              <button class="user-act-btn-clean danger" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Refuser"><i class="fa-solid fa-xmark"></i></button>
-              ${chatBtn}
-              ${dmBtn}
-            </div>
-          </td>
-        `;
-        suitesContainer.appendChild(tr);
-      });
-    }
-  }
+  // Populate dedicated analytics dashboards for locations & suites
+  renderAnalyticsDashboards(data || []);
 
   const overviewContainer = document.getElementById("overview-bookings-tbody");
   if (overviewContainer) {
@@ -938,11 +845,344 @@ export async function loadBookings() {
   updateKPIs();
 }
 
+export function renderAnalyticsDashboards(allBookings: any[]) {
+  const fmtEur = (val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(val);
+
+  // 1. CARS STATS
+  const carBookings = (allBookings || []).filter(b => b.type === 'vehicule' || !b.type);
+  const carConfirmed = carBookings.filter(b => b.status === 'confirmed');
+  const carPending = carBookings.filter(b => b.status === 'pending');
+  const carCancelled = carBookings.filter(b => b.status === 'cancelled');
+
+  let carRevenue = 0;
+  carConfirmed.forEach(b => {
+    const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(num)) carRevenue += num;
+  });
+
+  const carTotal = carBookings.length;
+  const carConversionRate = carTotal > 0 ? Math.round((carConfirmed.length / carTotal) * 100) : 0;
+  const carAvgPrice = carConfirmed.length > 0 ? Math.round(carRevenue / carConfirmed.length) : 0;
+
+  // Update Cars KPI DOM
+  const cRevEl = document.getElementById("stats-cars-total-revenue");
+  const cRevSub = document.getElementById("stats-cars-revenue-sub");
+  const cTotEl = document.getElementById("stats-cars-total-bookings");
+  const cTotSub = document.getElementById("stats-cars-bookings-sub");
+  const cConvEl = document.getElementById("stats-cars-conversion-rate");
+  const cAvgEl = document.getElementById("stats-cars-avg-price");
+
+  if (cRevEl) cRevEl.textContent = fmtEur(carRevenue);
+  if (cRevSub) cRevSub.textContent = `${carConfirmed.length} location(s) validée(s)`;
+  if (cTotEl) cTotEl.textContent = String(carTotal);
+  if (cTotSub) cTotSub.textContent = `${carPending.length} en attente • ${carCancelled.length} refusée(s)`;
+  if (cConvEl) cConvEl.textContent = `${carConversionRate}%`;
+  if (cAvgEl) cAvgEl.textContent = fmtEur(carAvgPrice);
+
+  // Top Cars calculation
+  const carCounts: Record<string, { count: number; revenue: number; name: string }> = {};
+  carBookings.forEach(b => {
+    const name = (b.item_name || 'Supercar').trim();
+    if (!carCounts[name]) carCounts[name] = { count: 0, revenue: 0, name };
+    carCounts[name].count++;
+    if (b.status === 'confirmed') {
+      const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num)) carCounts[name].revenue += num;
+    }
+  });
+
+  const sortedCars = Object.values(carCounts).sort((a, b) => b.count - a.count || b.revenue - a.revenue);
+  const topCarsContainer = document.getElementById("stats-cars-top-vehicles-list");
+  const carsUniqueCount = document.getElementById("stats-cars-unique-count");
+  if (carsUniqueCount) carsUniqueCount.textContent = `${sortedCars.length} modèle(s)`;
+
+  if (topCarsContainer) {
+    topCarsContainer.innerHTML = "";
+    if (sortedCars.length === 0) {
+      topCarsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 13px;">Aucune donnée de location enregistrée.</div>`;
+    } else {
+      const maxCount = sortedCars[0]?.count || 1;
+      sortedCars.slice(0, 7).forEach((car, index) => {
+        const rank = index + 1;
+        const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+        const medal = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `#${rank}`));
+        const pct = Math.max(12, Math.round((car.count / maxCount) * 100));
+
+        const matchedVehicle = state.allVehicles.find(v => v.name && v.name.toLowerCase() === car.name.toLowerCase());
+        const imgUrl = matchedVehicle ? (matchedVehicle.photo_main || (matchedVehicle.photos && matchedVehicle.photos[0]) || 'assets/logo.webp') : 'assets/logo.webp';
+
+        const itemEl = document.createElement("div");
+        itemEl.className = "stats-ranking-item";
+        itemEl.innerHTML = `
+          <span class="stats-rank-num ${rankClass}">${medal}</span>
+          <img src="${escapeHTML(imgUrl)}" alt="" class="stats-item-thumb" onerror="this.onerror=null; this.src='assets/logo.webp';" />
+          <div class="stats-item-details">
+            <div class="stats-item-name-row">
+              <span class="stats-item-title">${escapeHTML(car.name)}</span>
+              <span class="stats-item-amount">${fmtEur(car.revenue)}</span>
+            </div>
+            <div class="stats-progress-track">
+              <div class="stats-progress-fill" style="width: ${pct}%;"></div>
+            </div>
+            <div class="stats-item-meta">
+              <span><strong>${car.count}</strong> réservation(s)</span>
+              <span>&bull;</span>
+              <span>${Math.round((car.count / carTotal) * 100)}% de la demande</span>
+            </div>
+          </div>
+        `;
+        topCarsContainer.appendChild(itemEl);
+      });
+    }
+  }
+
+  // Top Clients Cars
+  const carClients: Record<string, { name: string; discordId: string; count: number; spent: number }> = {};
+  carBookings.forEach(b => {
+    const cName = (b.client_name || 'Client Inconnu').trim();
+    if (!carClients[cName]) carClients[cName] = { name: cName, discordId: b.discord_id || '', count: 0, spent: 0 };
+    carClients[cName].count++;
+    if (b.status === 'confirmed') {
+      const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num)) carClients[cName].spent += num;
+    }
+  });
+
+  const sortedCarClients = Object.values(carClients).sort((a, b) => b.spent - a.spent || b.count - a.count);
+  const topCarClientsContainer = document.getElementById("stats-cars-top-clients-list");
+  const carClientsCountEl = document.getElementById("stats-cars-clients-count");
+  if (carClientsCountEl) carClientsCountEl.textContent = `${sortedCarClients.length} loueur(s)`;
+
+  if (topCarClientsContainer) {
+    topCarClientsContainer.innerHTML = "";
+    if (sortedCarClients.length === 0) {
+      topCarClientsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 20px; font-size: 12.5px;">Aucun client enregistré.</div>`;
+    } else {
+      sortedCarClients.slice(0, 4).forEach((client, idx) => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "stats-ranking-item";
+        itemEl.innerHTML = `
+          <div class="stats-rank-num ${idx === 0 ? 'rank-1' : ''}">${idx + 1}</div>
+          <div class="stats-item-details">
+            <div class="stats-item-name-row">
+              <span class="stats-item-title">${escapeHTML(client.name)}</span>
+              <span class="stats-item-amount">${fmtEur(client.spent)}</span>
+            </div>
+            <div class="stats-item-meta">
+              <span><strong>${client.count}</strong> location(s)</span>
+              ${client.discordId ? `<span>&bull; <i class="fa-brands fa-discord"></i> ${escapeHTML(client.discordId)}</span>` : ''}
+            </div>
+          </div>
+        `;
+        topCarClientsContainer.appendChild(itemEl);
+      });
+    }
+  }
+
+  // Cars Status Breakdown
+  const carStatusContainer = document.getElementById("stats-cars-status-breakdown");
+  if (carStatusContainer) {
+    const confPct = carTotal > 0 ? Math.round((carConfirmed.length / carTotal) * 100) : 0;
+    const pendPct = carTotal > 0 ? Math.round((carPending.length / carTotal) * 100) : 0;
+    const cancPct = carTotal > 0 ? Math.round((carCancelled.length / carTotal) * 100) : 0;
+
+    carStatusContainer.innerHTML = `
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+          <span style="color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Validées (${carConfirmed.length})</span>
+          <span style="color: #ffffff; font-weight: 700;">${confPct}%</span>
+        </div>
+        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${confPct}%; background: #10b981;"></div></div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+          <span style="color: #fbbf24; font-weight: 600;"><i class="fa-solid fa-hourglass-half"></i> En attente (${carPending.length})</span>
+          <span style="color: #ffffff; font-weight: 700;">${pendPct}%</span>
+        </div>
+        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${pendPct}%; background: #f59e0b;"></div></div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+          <span style="color: #f87171; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> Annulées / Refusées (${carCancelled.length})</span>
+          <span style="color: #ffffff; font-weight: 700;">${cancPct}%</span>
+        </div>
+        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${cancPct}%; background: #ef4444;"></div></div>
+      </div>
+    `;
+  }
+
+  // 2. SUITES STATS
+  const suiteBookings = (allBookings || []).filter(b => b.type === 'suite');
+  const suiteConfirmed = suiteBookings.filter(b => b.status === 'confirmed');
+  const suitePending = suiteBookings.filter(b => b.status === 'pending');
+  const suiteCancelled = suiteBookings.filter(b => b.status === 'cancelled');
+
+  let suiteRevenue = 0;
+  suiteConfirmed.forEach(b => {
+    const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(num)) suiteRevenue += num;
+  });
+
+  const suiteTotal = suiteBookings.length;
+  const suiteConversionRate = suiteTotal > 0 ? Math.round((suiteConfirmed.length / suiteTotal) * 100) : 0;
+  const suiteAvgPrice = suiteConfirmed.length > 0 ? Math.round(suiteRevenue / suiteConfirmed.length) : 0;
+
+  // Update Suites KPI DOM
+  const sRevEl = document.getElementById("stats-suites-total-revenue");
+  const sRevSub = document.getElementById("stats-suites-revenue-sub");
+  const sTotEl = document.getElementById("stats-suites-total-bookings");
+  const sTotSub = document.getElementById("stats-suites-bookings-sub");
+  const sConvEl = document.getElementById("stats-suites-conversion-rate");
+  const sAvgEl = document.getElementById("stats-suites-avg-price");
+
+  if (sRevEl) sRevEl.textContent = fmtEur(suiteRevenue);
+  if (sRevSub) sRevSub.textContent = `${suiteConfirmed.length} séjour(s) validé(s)`;
+  if (sTotEl) sTotEl.textContent = String(suiteTotal);
+  if (sTotSub) sTotSub.textContent = `${suitePending.length} en attente • ${suiteCancelled.length} annulé(s)`;
+  if (sConvEl) sConvEl.textContent = `${suiteConversionRate}%`;
+  if (sAvgEl) sAvgEl.textContent = fmtEur(suiteAvgPrice);
+
+  // Top Suites calculation
+  const suiteCounts: Record<string, { count: number; revenue: number; name: string }> = {};
+  suiteBookings.forEach(b => {
+    const name = (b.item_name || 'Suite Prestige').trim();
+    if (!suiteCounts[name]) suiteCounts[name] = { count: 0, revenue: 0, name };
+    suiteCounts[name].count++;
+    if (b.status === 'confirmed') {
+      const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num)) suiteCounts[name].revenue += num;
+    }
+  });
+
+  const sortedSuites = Object.values(suiteCounts).sort((a, b) => b.count - a.count || b.revenue - a.revenue);
+  const topSuitesContainer = document.getElementById("stats-suites-top-suites-list");
+  const suitesUniqueCount = document.getElementById("stats-suites-unique-count");
+  if (suitesUniqueCount) suitesUniqueCount.textContent = `${sortedSuites.length} suite(s)`;
+
+  if (topSuitesContainer) {
+    topSuitesContainer.innerHTML = "";
+    if (sortedSuites.length === 0) {
+      topSuitesContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 13px;">Aucune donnée de réservation hôtelière disponible.</div>`;
+    } else {
+      const maxCount = sortedSuites[0]?.count || 1;
+      sortedSuites.slice(0, 7).forEach((suite, index) => {
+        const rank = index + 1;
+        const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+        const medal = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `#${rank}`));
+        const pct = Math.max(12, Math.round((suite.count / maxCount) * 100));
+
+        const matchedSuite = state.allSuites.find(s => s.name && s.name.toLowerCase() === suite.name.toLowerCase());
+        const imgUrl = matchedSuite ? (matchedSuite.photo_main || (matchedSuite.photos && matchedSuite.photos[0]) || 'assets/logo.webp') : 'assets/logo.webp';
+
+        const itemEl = document.createElement("div");
+        itemEl.className = "stats-ranking-item";
+        itemEl.innerHTML = `
+          <span class="stats-rank-num ${rankClass}">${medal}</span>
+          <img src="${escapeHTML(imgUrl)}" alt="" class="stats-item-thumb" onerror="this.onerror=null; this.src='assets/logo.webp';" />
+          <div class="stats-item-details">
+            <div class="stats-item-name-row">
+              <span class="stats-item-title">${escapeHTML(suite.name)}</span>
+              <span class="stats-item-amount">${fmtEur(suite.revenue)}</span>
+            </div>
+            <div class="stats-progress-track">
+              <div class="stats-progress-fill" style="width: ${pct}%; background: linear-gradient(90deg, #a855f7 0%, #c084fc 100%);"></div>
+            </div>
+            <div class="stats-item-meta">
+              <span><strong>${suite.count}</strong> réservation(s)</span>
+              <span>&bull;</span>
+              <span>${Math.round((suite.count / suiteTotal) * 100)}% des séjours</span>
+            </div>
+          </div>
+        `;
+        topSuitesContainer.appendChild(itemEl);
+      });
+    }
+  }
+
+  // Top Clients Suites
+  const suiteClients: Record<string, { name: string; discordId: string; count: number; spent: number }> = {};
+  suiteBookings.forEach(b => {
+    const cName = (b.client_name || 'Résident Inconnu').trim();
+    if (!suiteClients[cName]) suiteClients[cName] = { name: cName, discordId: b.discord_id || '', count: 0, spent: 0 };
+    suiteClients[cName].count++;
+    if (b.status === 'confirmed') {
+      const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num)) suiteClients[cName].spent += num;
+    }
+  });
+
+  const sortedSuiteClients = Object.values(suiteClients).sort((a, b) => b.spent - a.spent || b.count - a.count);
+  const topSuiteClientsContainer = document.getElementById("stats-suites-top-clients-list");
+  const suiteClientsCountEl = document.getElementById("stats-suites-clients-count");
+  if (suiteClientsCountEl) suiteClientsCountEl.textContent = `${sortedSuiteClients.length} résident(s)`;
+
+  if (topSuiteClientsContainer) {
+    topSuiteClientsContainer.innerHTML = "";
+    if (sortedSuiteClients.length === 0) {
+      topSuiteClientsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 20px; font-size: 12.5px;">Aucun résident enregistré.</div>`;
+    } else {
+      sortedSuiteClients.slice(0, 4).forEach((client, idx) => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "stats-ranking-item";
+        itemEl.innerHTML = `
+          <div class="stats-rank-num ${idx === 0 ? 'rank-1' : ''}">${idx + 1}</div>
+          <div class="stats-item-details">
+            <div class="stats-item-name-row">
+              <span class="stats-item-title">${escapeHTML(client.name)}</span>
+              <span class="stats-item-amount">${fmtEur(client.spent)}</span>
+            </div>
+            <div class="stats-item-meta">
+              <span><strong>${client.count}</strong> séjour(s)</span>
+              ${client.discordId ? `<span>&bull; <i class="fa-brands fa-discord"></i> ${escapeHTML(client.discordId)}</span>` : ''}
+            </div>
+          </div>
+        `;
+        topSuiteClientsContainer.appendChild(itemEl);
+      });
+    }
+  }
+
+  // Suites Status Breakdown
+  const suiteStatusContainer = document.getElementById("stats-suites-status-breakdown");
+  if (suiteStatusContainer) {
+    const confPct = suiteTotal > 0 ? Math.round((suiteConfirmed.length / suiteTotal) * 100) : 0;
+    const pendPct = suiteTotal > 0 ? Math.round((suitePending.length / suiteTotal) * 100) : 0;
+    const cancPct = suiteTotal > 0 ? Math.round((suiteCancelled.length / suiteTotal) * 100) : 0;
+
+    suiteStatusContainer.innerHTML = `
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+          <span style="color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Validés (${suiteConfirmed.length})</span>
+          <span style="color: #ffffff; font-weight: 700;">${confPct}%</span>
+        </div>
+        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${confPct}%; background: #10b981;"></div></div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+          <span style="color: #fbbf24; font-weight: 600;"><i class="fa-solid fa-hourglass-half"></i> En attente (${suitePending.length})</span>
+          <span style="color: #ffffff; font-weight: 700;">${pendPct}%</span>
+        </div>
+        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${pendPct}%; background: #f59e0b;"></div></div>
+      </div>
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+          <span style="color: #f87171; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> Annulés / Refusés (${suiteCancelled.length})</span>
+          <span style="color: #ffffff; font-weight: 700;">${cancPct}%</span>
+        </div>
+        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${cancPct}%; background: #ef4444;"></div></div>
+      </div>
+    `;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 // ==========================================================================
 // Admin Dashboard Tab Switcher & Modal CRUD & Live Search
 // ==========================================================================
-function switchAdminTab(tabName) {
+function switchAdminTab(tabName: string) {
+  if (tabName === 'stats-cars') tabName = 'bookings-cars';
+  if (tabName === 'stats-suites') tabName = 'bookings-suites';
+
   const navItems = document.querySelectorAll('.admin-nav-item');
   const tabContents = document.querySelectorAll('.admin-tab-content');
 
@@ -997,7 +1237,9 @@ document.querySelectorAll('.admin-nav-item').forEach((btn) => {
 });
 
 // Check initial tab from hash on load
-const currentHash = window.location.hash.replace('#', '').split('?')[0];
+let currentHash = window.location.hash.replace('#', '').split('?')[0];
+if (currentHash === 'stats-cars') currentHash = 'bookings-cars';
+if (currentHash === 'stats-suites') currentHash = 'bookings-suites';
 if (currentHash === 'user-detail') {
   switchAdminTab('users');
 } else if (currentHash && document.getElementById(`tab-${currentHash}`)) {
