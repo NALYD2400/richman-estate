@@ -3,7 +3,7 @@
    Pagination showroom (flotte & suites)
    ========================================================================== */
 
-import { escapeHTML } from "../core/sanitize";
+import { escapeHTML, safeJsArg } from "../core/sanitize";
 import { formatLuxuryCarName } from "../core/vehicles";
 import { state } from "../core/state";
 import { showToast } from "./02-admin-crud";
@@ -279,7 +279,7 @@ export function applyPublicFleetFilters() {
           <span class="public-badge-category">
             ${escapeHTML(displayClass)}
           </span>
-          <button type="button" class="btn-card-fav ${isFav ? 'active' : ''}" data-vehicle-id="${escapeHTML(item.id)}" onclick="window.toggleVehicleFavorite(event, '${escapeHTML(item.id)}', '${escapeHTML(item.name)}')" title="${isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+          <button type="button" class="btn-card-fav ${isFav ? 'active' : ''}" data-vehicle-id="${escapeHTML(item.id)}" onclick="window.toggleVehicleFavorite(event, decodeURIComponent('${safeJsArg(item.id)}'), decodeURIComponent('${safeJsArg(item.name)}'))" title="${isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
             <i class="fa-${isFav ? 'solid' : 'regular'} fa-heart"></i>
           </button>
           <button type="button" class="btn-card-fullscreen" title="Voir en Plein Écran" onclick="event.stopPropagation(); window.openRichmanLightbox('${escapeHTML(item.id)}', 'vehicule')">
@@ -333,7 +333,7 @@ export function applyPublicFleetFilters() {
             </div>
 
             <div class="public-card-actions">
-              <button type="button" class="btn-card-share-action" onclick="window.shareVehicleLink(decodeURIComponent('${encodeURIComponent(item.name || '')}'), decodeURIComponent('${encodeURIComponent(cleanTitle || '')}'))" title="Partager ce véhicule">
+              <button type="button" class="btn-card-share-action" onclick="window.shareVehicleLink(decodeURIComponent('${safeJsArg(item.name || '')}'), decodeURIComponent('${safeJsArg(cleanTitle || '')}'))" title="Partager ce véhicule">
                 <i class="fa-solid fa-share-nodes"></i>
               </button>
               <button type="button" class="btn-card-reserve ${isAvailable ? '' : 'rented'}" onclick="window.openVehicleReservationModal('${escapeHTML(item.id)}')">

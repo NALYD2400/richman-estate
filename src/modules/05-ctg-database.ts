@@ -4,7 +4,7 @@
    Porté de main.js (05-ctg-database.js) — ES module + TypeScript.
    ========================================================================== */
 
-import { escapeHTML, sanitizeUrl } from "../core/sanitize";
+import { escapeHTML, sanitizeUrl, safeJsArg } from "../core/sanitize";
 import { state } from "../core/state";
 import { showToast, openModal, updateCalculatedPrice, writeLog } from "./02-admin-crud";
 
@@ -173,7 +173,6 @@ export async function loadCTGDatabase(page = 1) {
     const displayName = escapeHTML(`${item.Manufacturer ? item.Manufacturer.toLowerCase() : ''} ${item.Name}`.trim());
     const safeItemName = escapeHTML(item.Name || '');
     const safeClass = escapeHTML(item.Class || 'SPORT');
-    const encodedName = encodeURIComponent(item.Name || '');
     const safePriceNum = Number(item.Price) || 0;
     const classStyle = getCTGClassStyle(item.Class);
 
@@ -190,8 +189,8 @@ export async function loadCTGDatabase(page = 1) {
         <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid #1f1f23; flex-wrap: wrap;">
           <span class="card-price">${item.Price ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(item.Price) : 'Importable'}</span>
           <div style="display: flex; gap: 4px;">
-            <button class="admin-btn-secondary" onclick="window.openEditCTGModal(decodeURIComponent('${encodedName}'))" style="padding: 0 8px; font-size: 11px; height: 28px;" title="Modifier les infos"><i class="fa-solid fa-pen"></i></button>
-            <button class="admin-btn-primary" onclick="window.importCTGToFleet(decodeURIComponent('${encodedName}'), '${safePriceNum}', '${safeClass}')" style="padding: 0 10px; font-size: 11.5px; height: 28px;" title="Importer dans la Flotte"><i class="fa-solid fa-file-import"></i> Importer</button>
+            <button class="admin-btn-secondary" onclick="window.openEditCTGModal(decodeURIComponent('${safeJsArg(item.Name || '')}'))" style="padding: 0 8px; font-size: 11px; height: 28px;" title="Modifier les infos"><i class="fa-solid fa-pen"></i></button>
+            <button class="admin-btn-primary" onclick="window.importCTGToFleet(decodeURIComponent('${safeJsArg(item.Name || '')}'), '${safePriceNum}', decodeURIComponent('${safeJsArg(item.Class || 'SPORT')}'))" style="padding: 0 10px; font-size: 11.5px; height: 28px;" title="Importer dans la Flotte"><i class="fa-solid fa-file-import"></i> Importer</button>
           </div>
         </div>
       `;

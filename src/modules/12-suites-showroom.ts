@@ -3,7 +3,7 @@
    Suites & résidences : chargement, filtres, calculateur séjour
    ========================================================================== */
 
-import { escapeHTML } from "../core/sanitize";
+import { escapeHTML, safeJsArg } from "../core/sanitize";
 import { botFetch } from "../core/api";
 import { supabaseClient } from "../core/supabase";
 import { state } from "../core/state";
@@ -234,7 +234,7 @@ export function applyPublicSuitesFilters() {
             </div>
 
             <div class="public-card-actions">
-              <button type="button" class="btn-card-share-action" onclick="window.shareSuiteLink(decodeURIComponent('${encodeURIComponent(item.id || '')}'), decodeURIComponent('${encodeURIComponent(item.name || '')}'))" title="Partager cette résidence">
+              <button type="button" class="btn-card-share-action" onclick="window.shareSuiteLink(decodeURIComponent('${safeJsArg(item.id || '')}'), decodeURIComponent('${safeJsArg(item.name || '')}'))" title="Partager cette résidence">
                 <i class="fa-solid fa-share-nodes"></i>
               </button>
                 <button type="button" class="btn-card-reserve ${isAvailable ? '' : 'rented'}" onclick="window.openSuiteReservationModal('${escapeHTML(item.id)}')">
