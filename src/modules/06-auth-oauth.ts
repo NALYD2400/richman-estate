@@ -331,7 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast(`🎉 Bienvenue ${finalNickname} ! Enregistrement validé avec succès.`, "success");
 
         setTimeout(() => {
-          window.location.href = "client.html";
+          window.location.href = "index.html";
         }, 800);
       } catch (err: any) {
         console.error("Erreur validation onboarding:", err);
@@ -350,23 +350,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Check if user is already registered on website
   const existingUserStr = localStorage.getItem("richman_user");
-  const authFormWrap = document.querySelector(".auth-right-content");
+  const authFormWrap = document.querySelector(".auth-right-content") || document.querySelector(".auth-form-container");
   if (existingUserStr && authFormWrap && window.location.pathname.includes("login")) {
     try {
       const existingUser = JSON.parse(existingUserStr);
       authFormWrap.innerHTML = `
-        <div class="auth-header">
-          <h2 class="auth-title">Profil Enregistré</h2>
-          <p class="auth-subtitle">Vous disposez déjà d'un profil activé sur Richman Estate.</p>
+        <div style="text-align: center; padding: 10px 0 16px 0;">
+          <div style="width: 60px; height: 60px; border-radius: 50%; background: #ffffff; border: 1px solid rgba(255, 255, 255, 0.4); display: grid; place-items: center; box-shadow: 0 0 25px rgba(255, 255, 255, 0.35); margin: 0 auto 16px auto;">
+            <img src="assets/logo.webp" alt="Richman Estate" style="width: 38px; height: 38px; object-fit: contain;">
+          </div>
+          <h2 style="font-size: 22px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">Profil Connecté</h2>
+          <p style="font-size: 13.5px; color: #a1a1aa; line-height: 1.5; margin-bottom: 18px;">Vous êtes déjà authentifié sur Richman Estate.</p>
         </div>
-        <div style="background: #141418; border: 1px solid rgba(255, 255, 255, 0.12); padding: 24px; border-radius: 16px; margin: 20px 0; text-align: center;">
-          <i class="fa-solid fa-circle-check" style="font-size: 36px; color: #34d399; margin-bottom: 12px;"></i>
-          <h3 style="color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 6px;">${escapeHTML(existingUser.name)}</h3>
-          <p style="color: #8e8e8e; font-size: 13px;">ID RP : ${escapeHTML(existingUser.rpId || '')}</p>
+        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); padding: 18px; border-radius: 16px; margin: 0 0 18px 0; text-align: center;">
+          <i class="fa-solid fa-circle-check" style="font-size: 32px; color: #34d399; margin-bottom: 8px; display: block;"></i>
+          <h3 style="color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 4px;">${escapeHTML(existingUser.name)}</h3>
+          ${existingUser.rpId ? `<p style="color: #8e8e8e; font-size: 12.5px;">ID RP : ${escapeHTML(existingUser.rpId)}</p>` : ''}
         </div>
-        <a href="index.html" class="auth-submit-btn" style="display: block; text-align: center; text-decoration: none; line-height: 44px; margin-top: 10px;">
-          Accéder au site
-        </a>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <a href="index.html" class="btn-register-submit" style="display: flex; align-items: center; justify-content: center; text-decoration: none; text-align: center; line-height: normal; gap: 8px;">
+            <i class="fa-solid fa-house"></i>
+            <span>Accéder à la page d'accueil</span>
+          </a>
+          <button type="button" onclick="window.handleUserLogout()" style="background: transparent; border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 12px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Se déconnecter / Changer de compte</span>
+          </button>
+        </div>
       `;
     } catch (err) {
       console.error(err);
@@ -390,6 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
       const authNavBtn = document.querySelector(".header-right .btn-signin") || document.querySelector("a[href='login.html']");
       const authErrorBanner = document.getElementById("auth-error-banner");
+      const isLoginPage = window.location.pathname.includes("login");
 
       if (session && session.user) {
         const user = session.user;
@@ -484,8 +495,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 renderHeaderNavUserPill(finalNickname, finalAvatar, isStaff ? "admin.html" : "client.html");
                 bindAdminUserCardDetails(finalNickname, finalAvatar, isOwner, userRole);
 
-                if (window.location.pathname.includes("login.html")) {
-                  window.location.href = isStaff ? "admin.html" : "client.html";
+                if (isLoginPage) {
+                  window.location.href = "index.html";
                 }
                 return;
               }
@@ -517,16 +528,8 @@ document.addEventListener("DOMContentLoaded", () => {
             };
           })
           .then(res => {
-            if (res.botUnreachable) {
-              if (authErrorBanner) {
-                authErrorBanner.style.display = "block";
-                authErrorBanner.innerHTML = `⚠️ Service d'authentification Discord temporairement indisponible. Veuillez réessayer dans quelques instants.`;
-              }
-              return;
-            }
-
-            const finalAvatar = res.avatarUrl || avatar || "assets/logo.webp";
-            const displayName = res.nickname || rawName || "Citoyen";
+            const finalAvatar = res?.avatarUrl || avatar || "assets/logo.webp";
+            const displayName = res?.nickname || rawName || "Citoyen";
 
             // Auto-sync profile details into public.profiles
             supabaseClient.from("profiles").upsert({
@@ -548,8 +551,25 @@ document.addEventListener("DOMContentLoaded", () => {
               }));
               renderHeaderNavUserPill(displayName, finalAvatar, "admin.html");
               bindAdminUserCardDetails(displayName, finalAvatar, true, userRole);
-              if (window.location.pathname.includes("login.html")) {
-                window.location.href = "admin.html";
+              if (isLoginPage) {
+                window.location.href = "index.html";
+              }
+              return;
+            }
+
+            if (res.botUnreachable) {
+              // Bot offline fallback: still allow the user to be recognized as logged in and redirected
+              localStorage.setItem("richman_user", JSON.stringify({
+                name: displayName,
+                role: userRole,
+                avatar: finalAvatar,
+                discord_id: discordUserId,
+                is_admin: isStaff || isOwner
+              }));
+              renderHeaderNavUserPill(displayName, finalAvatar, isStaff ? "admin.html" : "client.html");
+              bindAdminUserCardDetails(displayName, finalAvatar, isOwner, userRole);
+              if (isLoginPage) {
+                window.location.href = "index.html";
               }
               return;
             }
@@ -565,7 +585,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const onboardFirst = document.getElementById("onboard-firstname") as HTMLInputElement | null;
               const onboardLast = document.getElementById("onboard-lastname") as HTMLInputElement | null;
 
-              if (onboardPanel && window.location.pathname.includes("login.html")) {
+              if (onboardPanel && isLoginPage) {
                 if (tabsContainer) tabsContainer.style.display = "none";
                 if (paneLogin) paneLogin.style.display = "none";
                 if (paneRegister) paneRegister.style.display = "none";
@@ -595,8 +615,8 @@ document.addEventListener("DOMContentLoaded", () => {
               }));
               renderHeaderNavUserPill(displayName, finalAvatar, isStaff ? "admin.html" : "client.html");
               bindAdminUserCardDetails(displayName, finalAvatar, isOwner, userRole);
-              if (window.location.pathname.includes("login.html")) {
-                window.location.href = isStaff ? "admin.html" : "client.html";
+              if (isLoginPage) {
+                window.location.href = "index.html";
               }
             }
           });
