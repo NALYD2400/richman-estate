@@ -961,8 +961,8 @@ export async function loadBookings() {
   updateKPIs();
 }
 
-let currentStatsPeriod: Record<string, string> = { cars: 'all', suites: 'all' };
-let currentStatsMetric: Record<string, string> = { cars: 'revenue', suites: 'revenue' };
+let currentStatsPeriod: Record<string, string> = { general: 'all', cars: 'all', suites: 'all' };
+let currentStatsMetric: Record<string, string> = { general: 'revenue', cars: 'revenue', suites: 'revenue' };
 
 (window as any).setStatsPeriod = function(type: string, period: string) {
   currentStatsPeriod[type] = period;
@@ -1663,6 +1663,202 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
       });
     }
   }
+
+  // 3. GENERAL / GLOBAL CONSOLIDATED STATS
+  const rawGeneralBookings = allBookings || [];
+  const generalBookings = filterByPeriod(rawGeneralBookings, currentStatsPeriod.general || 'all');
+  const generalConfirmed = generalBookings.filter(b => b.status === 'confirmed');
+  const generalPending = generalBookings.filter(b => b.status === 'pending');
+  const generalCancelled = generalBookings.filter(b => b.status === 'cancelled');
+
+  let generalRevenue = 0;
+  let carsRevPart = 0;
+  let suitesRevPart = 0;
+
+  generalConfirmed.forEach(b => {
+    const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(num)) {
+      generalRevenue += num;
+      if (b.type === 'suite') suitesRevPart += num;
+      else carsRevPart += num;
+    }
+  });
+
+  const generalTotal = generalBookings.length;
+  const generalConversionRate = generalTotal > 0 ? Math.round((generalConfirmed.length / generalTotal) * 100) : 0;
+  const generalAvgPrice = generalConfirmed.length > 0 ? Math.round(generalRevenue / generalConfirmed.length) : 0;
+
+  // Update General KPI DOM
+  const gRevEl = document.getElementById("stats-general-total-revenue");
+  const gRevSub = document.getElementById("stats-general-revenue-sub");
+  const gTotEl = document.getElementById("stats-general-total-bookings");
+  const gTotSub = document.getElementById("stats-general-bookings-sub");
+  const gConvEl = document.getElementById("stats-general-conversion-rate");
+  const gAvgEl = document.getElementById("stats-general-avg-price");
+
+  if (gRevEl) gRevEl.textContent = fmtEur(generalRevenue);
+  if (gRevSub) gRevSub.textContent = `${fmtEur(carsRevPart)} Voitures • ${fmtEur(suitesRevPart)} Suites`;
+  if (gTotEl) gTotEl.textContent = String(generalTotal);
+  if (gTotSub) gTotSub.textContent = `${generalConfirmed.length} validée(s) • ${generalPending.length} en cours`;
+  if (gConvEl) gConvEl.textContent = `${generalConversionRate}%`;
+  if (gAvgEl) gAvgEl.textContent = fmtEur(generalAvgPrice);
+
+  // Group General Bookings by Day for Timeline Chart
+  const genDaysCount = currentStatsPeriod.general === '7d' ? 7 : (currentStatsPeriod.general === '30d' ? 14 : 10);
+  const genDailyMap: Record<string, { label: string; date: string; revenue: number; count: number }> = {};
+  for (let i = genDaysCount - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const key = d.toISOString().split('T')[0];
+    const label = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    genDailyMap[key] = { label, date: key, revenue: 0, count: 0 };
+  }
+
+  generalBookings.forEach(b => {
+    const dStr = (b.created_at || new Date().toISOString()).split('T')[0];
+    if (!genDailyMap[dStr]) {
+      const dObj = new Date(dStr);
+      genDailyMap[dStr] = {
+        label: !isNaN(dObj.getTime()) ? dObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : dStr,
+        date: dStr,
+        revenue: 0,
+        count: 0
+      };
+    }
+    genDailyMap[dStr].count++;
+    if (b.status === 'confirmed') {
+      const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num)) genDailyMap[dStr].revenue += num;
+    }
+  });
+
+  const genTimelineData = Object.values(genDailyMap).sort((a, b) => a.date.localeCompare(b.date));
+
+  // Render General Timeline Area Chart
+  const genTimelineContainer = document.getElementById("stats-general-timeline-chart");
+  if (genTimelineContainer) {
+    drawTimelineAreaChart(genTimelineContainer, genTimelineData, (currentStatsMetric.general as any) || 'revenue');
+  }
+
+  // Render General Donut Chart
+  const genDonutContainer = document.getElementById("stats-general-donut-chart");
+  if (genDonutContainer) {
+    drawDonutChart(genDonutContainer, generalConfirmed.length, generalPending.length, generalCancelled.length);
+  }
+
+  // Top General Offerings (Vehicles + Suites)
+  const genOfferingCounts: Record<string, { count: number; revenue: number; name: string; type: string }> = {};
+  generalBookings.forEach(b => {
+    const name = (b.item_name || (b.type === 'suite' ? 'Suite' : 'Véhicule')).trim();
+    const type = b.type === 'suite' ? 'suite' : 'vehicule';
+    if (!genOfferingCounts[name]) genOfferingCounts[name] = { count: 0, revenue: 0, name, type };
+    genOfferingCounts[name].count++;
+    if (b.status === 'confirmed') {
+      const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num)) genOfferingCounts[name].revenue += num;
+    }
+  });
+
+  const sortedOfferings = Object.values(genOfferingCounts).sort((a, b) => b.count - a.count || b.revenue - a.revenue);
+
+  // Render General Demand Bar Chart
+  const genBarChartContainer = document.getElementById("stats-general-barchart");
+  if (genBarChartContainer) {
+    drawDemandBarChart(genBarChartContainer, sortedOfferings);
+  }
+
+  const topOfferingsContainer = document.getElementById("stats-general-top-offerings-list");
+  const offeringsUniqueCount = document.getElementById("stats-general-unique-count");
+  if (offeringsUniqueCount) offeringsUniqueCount.textContent = `${sortedOfferings.length} prestation(s)`;
+
+  if (topOfferingsContainer) {
+    topOfferingsContainer.innerHTML = "";
+    if (sortedOfferings.length === 0) {
+      topOfferingsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune donnée de réservation disponible.</div>`;
+    } else {
+      const maxCount = sortedOfferings[0]?.count || 1;
+      sortedOfferings.slice(0, 6).forEach((item, index) => {
+        const rank = index + 1;
+        const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+        const pct = Math.max(10, Math.round((item.count / maxCount) * 100));
+
+        let imgUrl = 'assets/logo.webp';
+        if (item.type === 'suite') {
+          const matchedSuite = state.allSuites.find(s => s.name && s.name.toLowerCase() === item.name.toLowerCase());
+          if (matchedSuite) imgUrl = matchedSuite.photo_main || (matchedSuite.photos && matchedSuite.photos[0]) || 'assets/logo.webp';
+        } else {
+          const matchedVehicle = state.allVehicles.find(v => v.name && v.name.toLowerCase() === item.name.toLowerCase());
+          if (matchedVehicle) imgUrl = matchedVehicle.photo_main || (matchedVehicle.photos && matchedVehicle.photos[0]) || 'assets/logo.webp';
+        }
+
+        const typeBadge = item.type === 'suite' ? '🏨 Suite' : '🚗 Véhicule';
+
+        const itemEl = document.createElement("div");
+        itemEl.className = "stats-ranking-item";
+        itemEl.innerHTML = `
+          <span class="stats-rank-num ${rankClass}">${rank < 10 ? '0' + rank : rank}</span>
+          <img src="${escapeHTML(imgUrl)}" alt="" class="stats-item-thumb" onerror="this.onerror=null; this.src='assets/logo.webp';" />
+          <div class="stats-item-details">
+            <div class="stats-item-name-row">
+              <span class="stats-item-title">${escapeHTML(item.name)} <span style="font-size: 10px; color: #71717a; font-weight: 500;">${typeBadge}</span></span>
+              <span class="stats-item-amount">${fmtEur(item.revenue)}</span>
+            </div>
+            <div class="stats-progress-track">
+              <div class="stats-progress-fill" style="width: ${pct}%;"></div>
+            </div>
+            <div class="stats-item-meta">
+              <span><strong>${item.count}</strong> réservation(s)</span>
+              <span>&bull;</span>
+              <span>${generalTotal > 0 ? Math.round((item.count / generalTotal) * 100) : 0}% du total</span>
+            </div>
+          </div>
+        `;
+        topOfferingsContainer.appendChild(itemEl);
+      });
+    }
+  }
+
+  // Top Clients Globaux (All Bookings)
+  const genClients: Record<string, { name: string; discordId: string; count: number; spent: number }> = {};
+  generalBookings.forEach(b => {
+    const cName = (b.client_name || 'Citoyen Inconnu').trim();
+    if (!genClients[cName]) genClients[cName] = { name: cName, discordId: b.discord_id || '', count: 0, spent: 0 };
+    genClients[cName].count++;
+    if (b.status === 'confirmed') {
+      const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num)) genClients[cName].spent += num;
+    }
+  });
+
+  const sortedGenClients = Object.values(genClients).sort((a, b) => b.spent - a.spent || b.count - a.count);
+  const topGenClientsContainer = document.getElementById("stats-general-top-clients-list");
+  const genClientsCountEl = document.getElementById("stats-general-clients-count");
+  if (genClientsCountEl) genClientsCountEl.textContent = `${sortedGenClients.length} client(s)`;
+
+  if (topGenClientsContainer) {
+    topGenClientsContainer.innerHTML = "";
+    if (sortedGenClients.length === 0) {
+      topGenClientsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 20px; font-size: 12px;">Aucun client enregistré.</div>`;
+    } else {
+      sortedGenClients.slice(0, 5).forEach((client, idx) => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "stats-ranking-item";
+        itemEl.innerHTML = `
+          <div class="stats-rank-num ${idx === 0 ? 'rank-1' : ''}">${idx + 1}</div>
+          <div class="stats-item-details">
+            <div class="stats-item-name-row">
+              <span class="stats-item-title">${escapeHTML(client.name)}</span>
+              <span class="stats-item-amount">${fmtEur(client.spent)}</span>
+            </div>
+            <div class="stats-item-meta">
+              <span><strong>${client.count}</strong> réservation(s)</span>
+              ${client.discordId ? `<span>&bull; <i class="fa-brands fa-discord"></i> ${escapeHTML(client.discordId)}</span>` : ''}
+            </div>
+          </div>
+        `;
+        topGenClientsContainer.appendChild(itemEl);
+      });
+    }
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1711,7 +1907,7 @@ function switchAdminTab(tabName: string) {
       (window as any).loadAdminTickets('suite');
     }
   }
-  if (tabName === 'bookings-cars' || tabName === 'bookings-suites' || tabName === 'overview') {
+  if (tabName === 'stats-general' || tabName === 'bookings-cars' || tabName === 'bookings-suites' || tabName === 'overview') {
     loadBookings();
     if (typeof (window as any).loadAdminTickets === 'function') {
       (window as any).loadAdminTickets();
@@ -1736,6 +1932,7 @@ document.querySelectorAll('.admin-nav-item').forEach((btn) => {
 let currentHash = window.location.hash.replace('#', '').split('?')[0];
 if (currentHash === 'stats-cars') currentHash = 'bookings-cars';
 if (currentHash === 'stats-suites') currentHash = 'bookings-suites';
+if (currentHash === 'stats-general' || currentHash === 'general') currentHash = 'stats-general';
 if (currentHash === 'user-detail') {
   switchAdminTab('users');
 } else if (currentHash && document.getElementById(`tab-${currentHash}`)) {

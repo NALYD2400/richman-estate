@@ -115,7 +115,7 @@ function applyRolePermissions(role: any) {
   }
 
   if (role === 'gerant_hotel') {
-    const forbiddenTabs = ['fleet', 'bookings-cars', 'tickets-cars', 'ctg-database', 'users', 'logs'];
+    const forbiddenTabs = ['fleet', 'bookings-cars', 'tickets-cars', 'ctg-database', 'users', 'logs', 'stats-general'];
     forbiddenTabs.forEach(tabKey => {
       const btn = document.querySelector(`.admin-nav-item[data-tab="${tabKey}"]`) as HTMLElement | null;
       if (btn) btn.style.display = 'none';
@@ -136,7 +136,7 @@ function applyRolePermissions(role: any) {
       (window as any).switchAdminTab('suites');
     }
   } else if (role === 'gerant_vehicules') {
-    const forbiddenTabs = ['suites', 'bookings-suites', 'tickets-suites', 'users', 'logs'];
+    const forbiddenTabs = ['suites', 'bookings-suites', 'tickets-suites', 'users', 'logs', 'stats-general'];
     forbiddenTabs.forEach(tabKey => {
       const btn = document.querySelector(`.admin-nav-item[data-tab="${tabKey}"]`) as HTMLElement | null;
       if (btn) btn.style.display = 'none';

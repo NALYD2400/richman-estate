@@ -48,6 +48,10 @@
             <i class="fa-solid fa-chart-pie"></i>
             <span>Vue d'ensemble</span>
           </button>
+          <button class="admin-nav-item" data-tab="stats-general">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Statistiques Générales</span>
+          </button>
           <button class="admin-nav-item" data-tab="users">
             <i class="fa-solid fa-users"></i>
             <span>Utilisateurs &amp; Citoyens</span>
@@ -199,6 +203,142 @@
               </div>
               <div class="fleet-status-list" id="overview-fleet-status-list">
                 <!-- Dynamic fleet status will load here -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab: General / Global SaaS Statistics Dashboard -->
+        <section class="admin-tab-content" id="tab-stats-general">
+          <div class="admin-tab-header-clean">
+            <div>
+              <h1>Statistiques Générales • Vue Consolidée</h1>
+              <p>Analyse analytique et financière globale combinant le pôle Véhicules &amp; Hébergements de Richman Estate.</p>
+            </div>
+            <!-- Global Period Selector -->
+            <div class="saas-pills-group" id="general-period-filter">
+              <button type="button" class="saas-pill-btn active" data-period="all" onclick="window.setStatsPeriod('general', 'all')">Tout</button>
+              <button type="button" class="saas-pill-btn" data-period="30d" onclick="window.setStatsPeriod('general', '30d')">30 Jours</button>
+              <button type="button" class="saas-pill-btn" data-period="7d" onclick="window.setStatsPeriod('general', '7d')">7 Jours</button>
+              <button type="button" class="saas-pill-btn" data-period="today" onclick="window.setStatsPeriod('general', 'today')">Aujourd'hui</button>
+            </div>
+          </div>
+
+          <!-- Executive KPI Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fa-solid fa-vault"></i></div>
+              <div class="kpi-details">
+                <span class="kpi-label">Chiffre d'Affaires Global</span>
+                <span class="kpi-value" id="stats-general-total-revenue">0 €</span>
+                <span class="kpi-trend positive" id="stats-general-revenue-sub">0 € Voitures • 0 € Suites</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+              <div class="kpi-details">
+                <span class="kpi-label">Volume de Réservations</span>
+                <span class="kpi-value" id="stats-general-total-bookings">0</span>
+                <span class="kpi-trend" id="stats-general-bookings-sub">0 validées • 0 en attente</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fa-solid fa-chart-pie"></i></div>
+              <div class="kpi-details">
+                <span class="kpi-label">Taux de Réussite Global</span>
+                <span class="kpi-value" id="stats-general-conversion-rate">0%</span>
+                <span class="kpi-trend positive" id="stats-general-conversion-sub">Dossiers confirmés</span>
+              </div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-icon"><i class="fa-solid fa-receipt"></i></div>
+              <div class="kpi-details">
+                <span class="kpi-label">Panier Moyen Global</span>
+                <span class="kpi-value" id="stats-general-avg-price">0 €</span>
+                <span class="kpi-trend" id="stats-general-avg-sub">Moyenne globale par contrat</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main SaaS Charts Row (Timeline Area Chart + Donut Distribution) -->
+          <div class="saas-charts-row">
+            <!-- Area Timeline Curve -->
+            <div class="saas-chart-card">
+              <div class="saas-chart-header">
+                <div class="saas-chart-title-wrap">
+                  <span class="saas-chart-title"><i class="fa-solid fa-chart-area"></i> Trajectoire des Revenus Consolidés</span>
+                  <span class="saas-chart-subtitle">Évolution journalière du chiffre d'affaires global (Véhicules + Hébergements)</span>
+                </div>
+                <div class="saas-pills-group" id="general-chart-metric-toggle">
+                  <button type="button" class="saas-pill-btn active" data-metric="revenue" onclick="window.toggleStatsMetric('general', 'revenue')">Revenu (€)</button>
+                  <button type="button" class="saas-pill-btn" data-metric="count" onclick="window.toggleStatsMetric('general', 'count')">Volume</button>
+                </div>
+              </div>
+              <div class="saas-chart-svg-wrap" id="stats-general-timeline-chart">
+                <!-- SVG dynamic line/area curve -->
+              </div>
+            </div>
+
+            <!-- Donut Status Breakdown -->
+            <div class="saas-chart-card">
+              <div class="saas-chart-header">
+                <div class="saas-chart-title-wrap">
+                  <span class="saas-chart-title"><i class="fa-solid fa-chart-pie"></i> Répartition des Dossiers</span>
+                  <span class="saas-chart-subtitle">Statuts globaux de l'ensemble des réservations</span>
+                </div>
+              </div>
+              <div class="saas-donut-grid" id="stats-general-donut-chart">
+                <!-- SVG donut + Legend -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SaaS Grid: Leaderboard Prestations & Top Clients Globaux -->
+          <div class="dashboard-grid">
+            <!-- Left: Top Offerings Leaderboard -->
+            <div class="saas-chart-card">
+              <div class="saas-chart-header">
+                <div class="saas-chart-title-wrap">
+                  <span class="saas-chart-title"><i class="fa-solid fa-trophy"></i> Prestations Phares les Plus Demandées</span>
+                  <span class="saas-chart-subtitle">Classement combiné des véhicules et suites phares</span>
+                </div>
+                <span style="font-size: 11.5px; color: #71717a;" id="stats-general-unique-count">0 prestation(s)</span>
+              </div>
+              <div class="stats-ranking-list" id="stats-general-top-offerings-list">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Right Column: Histogram & Top VIP Clients -->
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Histogramme de demande -->
+              <div class="saas-chart-card">
+                <div class="saas-chart-header">
+                  <div class="saas-chart-title-wrap">
+                    <span class="saas-chart-title"><i class="fa-solid fa-chart-simple"></i> Répartition des Volumes Leaders</span>
+                    <span class="saas-chart-subtitle">Volume comparatif des prestations les plus populaires</span>
+                  </div>
+                </div>
+                <div class="saas-chart-svg-wrap" id="stats-general-barchart" style="min-height: 150px;">
+                  <!-- SVG dynamic bar chart -->
+                </div>
+              </div>
+
+              <!-- Top Clients VIP Globaux -->
+              <div class="saas-chart-card">
+                <div class="saas-chart-header">
+                  <div class="saas-chart-title-wrap">
+                    <span class="saas-chart-title"><i class="fa-solid fa-crown"></i> Top Clients VIP Richman</span>
+                    <span class="saas-chart-subtitle">Citoyens ayant le plus dépensé et réservé</span>
+                  </div>
+                  <span style="font-size: 11.5px; color: #71717a;" id="stats-general-clients-count">0 client(s)</span>
+                </div>
+                <div class="stats-ranking-list" id="stats-general-top-clients-list">
+                  <!-- Rendered dynamically -->
+                </div>
               </div>
             </div>
           </div>
