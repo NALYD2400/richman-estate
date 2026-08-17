@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Auto-init Luxury Custom Dropdowns
   // ==========================================================================
   function initLuxuryCustomSelects() {
-    document.querySelectorAll(".showroom-select-wrap select, .luxury-input-wrap select").forEach(nativeSelectEl => {
+    document.querySelectorAll(".showroom-select-wrap select").forEach(nativeSelectEl => {
       const nativeSelect = nativeSelectEl as HTMLSelectElement;
       if (nativeSelect.dataset.customized === "true") return;
       nativeSelect.dataset.customized = "true";

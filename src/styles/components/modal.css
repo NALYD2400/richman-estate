@@ -277,9 +277,9 @@
 
 .luxury-input-wrap input[type="date"] {
   color-scheme: dark;
-  line-height: 36px;
-  display: flex;
-  align-items: center;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .luxury-input-wrap input[type="date"]::-webkit-datetime-edit {
@@ -290,14 +290,11 @@
 .luxury-input-wrap input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.8) brightness(1.2);
   cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  opacity: 0.7;
   padding: 0;
   margin: 0;
-}
-
-.luxury-input-wrap input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
+  width: 14px;
+  height: 14px;
 }
 
 .luxury-input-wrap input::placeholder {
@@ -306,11 +303,20 @@
 
 .luxury-input-wrap select {
   cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 12px;
+  padding-right: 18px;
 }
 
 .luxury-input-wrap select option {
   background: #18181b;
   color: #ffffff;
+  padding: 6px 10px;
 }
 
 /* Dropdown inside luxury-input-wrap injected by custom selects */

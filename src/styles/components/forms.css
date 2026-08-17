@@ -8,17 +8,19 @@
   gap: 10px;
   height: 38px;
   min-height: 38px;
+  max-height: 38px;
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 0 12px;
   transition: all 0.2s ease;
+  overflow: hidden;
 }
 
 .luxury-input-wrap:focus-within {
   border-color: rgba(197, 168, 128, 0.5);
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 14px rgba(197, 168, 128, 0.2);
 }
 
@@ -44,10 +46,51 @@
   line-height: normal;
 }
 
+.luxury-input-wrap input[type="date"] {
+  color-scheme: dark;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.luxury-input-wrap input[type="date"]::-webkit-datetime-edit {
+  padding: 0;
+  margin: 0;
+}
+
+.luxury-input-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) brightness(1.2);
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 0;
+  margin: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.luxury-input-wrap select {
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 12px;
+  padding-right: 18px;
+}
+
+.luxury-input-wrap select option {
+  background: #181820;
+  color: #ffffff;
+  padding: 6px 10px;
+}
+
 .luxury-input-wrap.luxury-textarea-wrap,
 .luxury-input-wrap:has(textarea) {
   height: auto;
   min-height: 48px;
+  max-height: none;
   align-items: flex-start;
   padding: 7px 12px;
 }
@@ -71,11 +114,6 @@
 .luxury-input-wrap input::placeholder,
 .luxury-input-wrap textarea::placeholder {
   color: #71717a;
-}
-
-.luxury-input-wrap select option {
-  background: #181820;
-  color: #ffffff;
 }
 
 /* Star Rating Picker */
