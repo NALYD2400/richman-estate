@@ -99,7 +99,7 @@ function renderUsersTable(usersList: any[]) {
          </span>`
       : `<span style="color: #52525b; font-size: 12px;">Non lié</span>`;
 
-    const effectiveRpId = item.rp_id || extractRpIdFromName(item.full_name);
+    const effectiveRpId = extractRpIdFromName(item.full_name) || item.rp_id;
     const rpMatricule = effectiveRpId
       ? `<span class="user-rp-badge-clean">#${escapeHTML(effectiveRpId)}</span>`
       : `<span style="color: #52525b; font-size: 12px;">—</span>`;
@@ -144,17 +144,19 @@ export function applyUsersFilters() {
   const searchInput = document.getElementById("users-search-input") as HTMLInputElement | null;
   const roleFilter = document.getElementById("users-filter-role") as HTMLInputElement | null;
 
-  const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
+  const q = searchInput ? searchInput.value.toLowerCase().trim() : "";
   const roleVal = roleFilter ? roleFilter.value : "";
 
   const filtered = state.usersCache.filter(u => {
-    const effectiveRpId = (u.rp_id || extractRpIdFromName(u.full_name) || '').toLowerCase();
-    const nameMatch = (u.full_name || '').toLowerCase().includes(query) ||
-                      (u.discord_id || '').toLowerCase().includes(query) ||
-                      effectiveRpId.includes(query) ||
-                      (u.email || '').toLowerCase().includes(query);
-    const roleMatch = !roleVal || u.role === roleVal;
-    return nameMatch && roleMatch;
+    const effectiveRpId = (extractRpIdFromName(u.full_name) || u.rp_id || '').toLowerCase();
+    const matchesSearch = !q || (
+      (u.full_name || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.discord_id || '').toLowerCase().includes(q) ||
+      effectiveRpId.includes(q)
+    );
+    const matchesRole = !roleVal || (roleVal === 'all') || (u.role === roleVal);
+    return matchesSearch && matchesRole;
   });
 
   renderUsersTable(filtered);
@@ -216,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (fullNameEl) fullNameEl.textContent = safeName;
     if (emailEl) emailEl.textContent = user.email || 'Aucune adresse email';
     
-    const effectiveRpId = user.rp_id || extractRpIdFromName(user.full_name);
+    const effectiveRpId = extractRpIdFromName(user.full_name) || user.rp_id;
     if (rpIdEl) rpIdEl.textContent = effectiveRpId ? `ID RP: #${effectiveRpId}` : 'ID RP: Non renseigné';
     if (discordIdEl) discordIdEl.textContent = user.discord_id || 'Non lié';
     if (createdAtEl) createdAtEl.textContent = user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Date inconnue';
