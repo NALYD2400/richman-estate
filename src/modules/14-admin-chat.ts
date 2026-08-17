@@ -546,6 +546,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  (window as any).openDiscordTicketChannel = async function(category: string = 'vehicule') {
+    if (!adminActiveTicket || !adminActiveTicket.id) {
+      showToast("Veuillez sélectionner un ticket d'abord", "warning");
+      return;
+    }
+
+    const bookingId = adminActiveTicket.id;
+    showToast("Ouverture du salon Discord...", "info");
+
+    try {
+      const res = await botFetch(`/api/get-ticket-channel?booking_id=${encodeURIComponent(bookingId)}`);
+      const data = await res.json();
+      if (res.ok && data.success && data.url) {
+        window.open(data.url, '_blank');
+      } else if (data.fallbackUrl) {
+        window.open(data.fallbackUrl, '_blank');
+      } else {
+        window.open(`https://discord.com/channels/1537171063715401870`, '_blank');
+      }
+    } catch (err: any) {
+      window.open(`https://discord.com/channels/1537171063715401870`, '_blank');
+    }
+  };
+
   // Immediate Local Header Nav Pill Update on DOMContentLoaded
   const savedUser = localStorage.getItem("richman_user");
   if (savedUser) {
