@@ -999,31 +999,32 @@ export async function loadBookings() {
   if (pendingBox && pendingList) {
     if (pendingBookings.length > 0) {
       pendingBox.style.display = "flex";
-      if (pendingBadge) pendingBadge.textContent = `${pendingBookings.length} en attente`;
+      if (pendingBadge) pendingBadge.textContent = `${pendingBookings.length} dossier${pendingBookings.length > 1 ? 's' : ''} à traiter`;
       pendingList.innerHTML = "";
       pendingBookings.forEach(item => {
         const itemEl = document.createElement("div");
         itemEl.className = "overview-pending-item";
         const isSuite = item.type === 'suite';
-        const typeBadge = isSuite ? '🏨 Suite' : '🚗 Véhicule';
+        const typeBadge = isSuite ? 'Suite VIP' : 'Supercar';
         itemEl.innerHTML = `
           <div class="overview-pending-item-top">
-            <span class="overview-pending-client">${escapeHTML(item.client_name || 'Citoyen')}</span>
-            <span class="status-pill pending" style="font-size: 9.5px; padding: 1px 6px;">En attente</span>
+            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+              <span class="overview-pending-client">${escapeHTML(item.client_name || 'Citoyen')}</span>
+              <span class="overview-pending-ref">#${escapeHTML(item.id.slice(0, 6).toUpperCase())}</span>
+            </div>
+            <span class="status-pill pending">En attente</span>
           </div>
           <div class="overview-pending-item-details">
-            <span>${typeBadge}</span>
-            <span>&bull;</span>
-            <strong style="color: #fff;">${escapeHTML(item.item_name || 'Prestation')}</strong>
-            <span>&bull;</span>
-            <span>${escapeHTML(item.amount || 'Devis')}</span>
+            <span class="type-tag ${isSuite ? 'suite' : 'car'}">${typeBadge}</span>
+            <span class="overview-pending-item-name">${escapeHTML(item.item_name || 'Prestation')}</span>
+            <span class="overview-pending-price">${escapeHTML(item.amount || 'Devis')}</span>
           </div>
           <div class="overview-pending-actions">
-            <button type="button" class="overview-action-btn-discord" onclick="window.quickOpenDiscordTicket('${item.id}', '${item.discord_id || ''}', '${escapeHTML(item.client_name || '')}')" title="Ouvrir le salon Discord du ticket">
+            <button type="button" class="admin-btn-secondary overview-btn-discord" onclick="window.quickOpenDiscordTicket('${item.id}', '${item.discord_id || ''}', '${escapeHTML(item.client_name || '')}')" title="Ouvrir le salon Discord">
               <i class="fa-brands fa-discord"></i> Salon Discord
             </button>
-            <button type="button" class="overview-action-btn-open" onclick="window.quickOpenAdminTicket('${item.id}', '${item.type || 'vehicule'}')" title="Traiter sur le panel">
-              <i class="fa-solid fa-bolt"></i> Traiter
+            <button type="button" class="admin-btn-primary overview-btn-panel" onclick="window.quickOpenAdminTicket('${item.id}', '${item.type || 'vehicule'}')" title="Traiter sur le panel">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Traiter
             </button>
           </div>
         `;
@@ -1056,7 +1057,7 @@ export async function loadBookings() {
           <td style="font-weight: 600; color: #ffffff; font-size: 13px;">${escapeHTML(item.amount || 'Devis')}</td>
           <td><span class="status-pill ${escapeHTML(item.status || 'pending')}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
           <td style="text-align: right;">
-            <div style="display: inline-flex; gap: 5px; justify-content: flex-end;">
+            <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
               <button type="button" class="overview-action-btn-discord" onclick="window.quickOpenDiscordTicket('${item.id}', '${item.discord_id || ''}', '${escapeHTML(item.client_name || '')}')" title="Ouvrir le salon Discord">
                 <i class="fa-brands fa-discord"></i> Salon
               </button>

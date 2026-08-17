@@ -631,13 +631,15 @@
 }
 
 .kpi-trend.warning {
-  color: #fbbf24;
+  color: #a1a1aa;
 }
 
-/* Express Shortcuts Grid */
+/* ==========================================================================
+   Vercel Black & White Overview Shortcuts Grid
+   ========================================================================== */
 .overview-shortcuts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 10px;
   margin-bottom: 20px;
 }
@@ -649,7 +651,7 @@
   padding: 12px 14px;
   background: #09090b;
   border: 1px solid #27272a;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #ffffff;
   text-decoration: none;
   cursor: pointer;
@@ -659,14 +661,14 @@
 
 .overview-shortcut-btn:hover {
   background: #18181b;
-  border-color: #3f3f46;
+  border-color: #52525b;
   transform: translateY(-1px);
 }
 
 .overview-shortcut-btn .shortcut-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   background: #18181b;
   border: 1px solid #27272a;
   color: #ffffff;
@@ -674,12 +676,18 @@
   place-items: center;
   font-size: 14px;
   flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.overview-shortcut-btn:hover .shortcut-icon {
+  background: #27272a;
+  border-color: #52525b;
 }
 
 .overview-shortcut-btn .shortcut-icon.discord {
-  background: rgba(88, 101, 242, 0.15);
-  border-color: rgba(88, 101, 242, 0.3);
-  color: #818cf8;
+  background: #18181b;
+  border-color: #27272a;
+  color: #ffffff;
 }
 
 .overview-shortcut-btn .shortcut-text {
@@ -689,7 +697,7 @@
 }
 
 .overview-shortcut-btn .shortcut-title {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #ffffff;
   white-space: nowrap;
@@ -705,16 +713,18 @@
   text-overflow: ellipsis;
 }
 
-/* Priority Alert Box: Pending Tickets */
+/* ==========================================================================
+   Vercel Pure Monochrome Pending Alert Box
+   ========================================================================== */
 .overview-pending-box {
   background: #09090b;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 12px;
-  padding: 16px;
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  padding: 16px 18px;
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .overview-pending-header {
@@ -731,40 +741,46 @@
 }
 
 .overview-pending-title-wrap i {
-  color: #f59e0b;
-  font-size: 15px;
+  color: #ffffff;
+  font-size: 14px;
 }
 
 .overview-pending-title {
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: #ffffff;
+  letter-spacing: -0.01em;
 }
 
 .overview-pending-badge {
-  font-size: 10.5px;
-  font-weight: 700;
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #18181b;
+  color: #ffffff;
+  border: 1px solid #3f3f46;
+  padding: 3px 9px;
   border-radius: 6px;
 }
 
 .overview-pending-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
 }
 
 .overview-pending-item {
   background: #121215;
   border: 1px solid #27272a;
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+  transition: border-color 0.15s ease;
+}
+
+.overview-pending-item:hover {
+  border-color: #3f3f46;
 }
 
 .overview-pending-item-top {
@@ -778,6 +794,19 @@
   font-size: 13px;
   font-weight: 600;
   color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overview-pending-ref {
+  font-size: 10.5px;
+  color: #71717a;
+  font-family: var(--font-mono, monospace);
+  background: #18181b;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #27272a;
 }
 
 .overview-pending-item-details {
@@ -785,58 +814,122 @@
   color: #a1a1aa;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
+}
+
+.overview-pending-item-name {
+  color: #e4e4e7;
+  font-size: 12.5px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-pending-price {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .overview-pending-actions {
   display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.overview-btn-discord {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  background: #18181b;
+  color: #ffffff;
+  border: 1px solid #27272a;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  margin-top: 4px;
+  flex: 1;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.overview-btn-discord:hover {
+  background: #27272a;
+  border-color: #52525b;
+  color: #ffffff;
+}
+
+.overview-btn-panel {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.overview-btn-panel:hover {
+  background: #e4e4e7;
+  border-color: #e4e4e7;
 }
 
 .overview-action-btn-discord {
   height: 28px;
-  padding: 0 8px;
+  padding: 0 10px;
   border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(88, 101, 242, 0.12);
-  color: #818cf8;
-  border: 1px solid rgba(88, 101, 242, 0.3);
+  background: #18181b;
+  color: #ffffff;
+  border: 1px solid #27272a;
   transition: all 0.15s ease;
 }
 
 .overview-action-btn-discord:hover {
-  background: rgba(88, 101, 242, 0.25);
-  border-color: rgba(88, 101, 242, 0.55);
+  background: #27272a;
+  border-color: #52525b;
   color: #ffffff;
   transform: translateY(-1px);
 }
 
 .overview-action-btn-open {
   height: 28px;
-  padding: 0 8px;
+  padding: 0 10px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: #18181b;
-  color: #e4e4e7;
-  border: 1px solid #27272a;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #ffffff;
   transition: all 0.15s ease;
 }
 
 .overview-action-btn-open:hover {
-  background: #27272a;
-  color: #ffffff;
-  border-color: #52525b;
+  background: #e4e4e7;
+  color: #000000;
   transform: translateY(-1px);
 }
 
