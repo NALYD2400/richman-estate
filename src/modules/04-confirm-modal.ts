@@ -316,6 +316,8 @@ if (adminModalForm) {
 
     const editId = adminModalForm.dataset.editId;
     let resError;
+    let savedId = editId;
+
     if (editId) {
       const { error } = await supabaseClient.from('vehicules').update({
         name,
@@ -325,13 +327,16 @@ if (adminModalForm) {
       }).eq('id', editId);
       resError = error;
     } else {
-      const { error } = await supabaseClient.from('vehicules').insert([{
+      const { data: insertData, error } = await supabaseClient.from('vehicules').insert([{
         name,
         price,
         specs: finalSpecs,
         status
-      }]);
+      }]).select('id');
       resError = error;
+      if (insertData && insertData[0]) {
+        savedId = insertData[0].id;
+      }
     }
 
     if (resError) {
@@ -345,24 +350,12 @@ if (adminModalForm) {
       loadVehicles();
       loadLogs();
 
-      // Trigger live Discord embed update (name, price, plate, specs, photo)
-      if (editId) {
+      // Trigger live Discord embed creation / update in Forum (ID 1537811600822636584)
+      if (savedId) {
         botFetch('/api/update-fleet-vehicle-status', {
           method: 'POST',
-          body: JSON.stringify({ vehicleId: editId, status })
-        }).catch(() => {});
-      } else {
-        setTimeout(async () => {
-          try {
-            const { data: latest } = await supabaseClient.from('vehicules').select('id').order('created_at', { ascending: false }).limit(1);
-            if (latest && latest[0]) {
-              botFetch('/api/update-fleet-vehicle-status', {
-                method: 'POST',
-                body: JSON.stringify({ vehicleId: latest[0].id, status })
-              }).catch(() => {});
-            }
-          } catch (e) { console.warn('[Richman]', e); }
-        }, 300);
+          body: JSON.stringify({ vehicleId: savedId, status })
+        }).catch((err) => console.warn('[Richman Discord Sync]', err));
       }
     }
   });
