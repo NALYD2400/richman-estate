@@ -14,6 +14,8 @@ import { extractItemMediaArray } from "./08-media-carousel";
 import { applyPublicFleetFilters } from "./09-showroom-pagination";
 
 export function initRichmanGridSystem() {
+  const isSuitesPage = !!document.getElementById("public-suites-grid");
+  const validCols = isSuitesPage ? [2, 3, 4] : [2, 3, 4, 5];
   const targetGrids = [
     document.getElementById("public-fleet-grid"),
     document.getElementById("public-suites-grid")
@@ -21,10 +23,11 @@ export function initRichmanGridSystem() {
   if (targetGrids.length === 0) return;
   let savedCols = 3;
   try {
-    const stored = localStorage.getItem("richman_fleet_grid_cols");
+    const key = isSuitesPage ? "richman_suites_grid_cols" : "richman_fleet_grid_cols";
+    const stored = localStorage.getItem(key);
     if (stored) savedCols = parseInt(stored, 10);
   } catch (e) { console.warn('[Richman]', e); }
-  if (![2, 3, 4, 5].includes(savedCols)) savedCols = 3;
+  if (!validCols.includes(savedCols)) savedCols = 3;
   (window as any).setRichmanGridCols(savedCols, false);
 }
 
@@ -140,12 +143,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // SHOWROOM DYNAMIC GRID CONTROLLER (2, 3, 4, 5 COLUMNS - VEHICULES & SUITES)
   // ==========================================================================
   (window as any).setRichmanGridCols = function (cols: number, save = true) {
-    const validCols = [2, 3, 4, 5];
+    const isSuites = !!document.getElementById("public-suites-grid");
+    const validCols = isSuites ? [2, 3, 4] : [2, 3, 4, 5];
     const targetCols = validCols.includes(Number(cols)) ? Number(cols) : 3;
 
     if (save) {
       try {
-        localStorage.setItem(GRID_PREF_KEY, String(targetCols));
+        const key = isSuites ? "richman_suites_grid_cols" : "richman_fleet_grid_cols";
+        localStorage.setItem(key, String(targetCols));
       } catch (e) { console.warn('[Richman]', e); }
     }
 
@@ -156,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ].filter(Boolean) as HTMLElement[];
 
     targetGrids.forEach(grid => {
-      validCols.forEach(c => grid.classList.remove(`grid-cols-${c}`));
+      [2, 3, 4, 5].forEach(c => grid.classList.remove(`grid-cols-${c}`));
       grid.classList.add(`grid-cols-${targetCols}`);
     });
 

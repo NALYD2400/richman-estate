@@ -237,10 +237,10 @@ export function applyPublicSuitesFilters() {
               <button type="button" class="btn-card-share-action" onclick="window.shareSuiteLink(decodeURIComponent('${encodeURIComponent(item.id || '')}'), decodeURIComponent('${encodeURIComponent(item.name || '')}'))" title="Partager cette résidence">
                 <i class="fa-solid fa-share-nodes"></i>
               </button>
-              <button type="button" class="btn-card-reserve ${isAvailable ? '' : 'rented'}" onclick="window.openSuiteReservationModal('${escapeHTML(item.id)}')">
-                <i class="fa-solid ${isAvailable ? 'fa-key' : 'fa-calendar-days'}"></i>
-                <span>${isAvailable ? 'Réserver la Suite' : 'Demander Disponibilité'}</span>
-              </button>
+                <button type="button" class="btn-card-reserve ${isAvailable ? '' : 'rented'}" onclick="window.openSuiteReservationModal('${escapeHTML(item.id)}')">
+                  <i class="fa-solid ${isAvailable ? 'fa-key' : 'fa-calendar-days'}"></i>
+                  <span>${isAvailable ? 'Réserver' : 'Disponibilité'}</span>
+                </button>
             </div>
           </div>
         </div>
