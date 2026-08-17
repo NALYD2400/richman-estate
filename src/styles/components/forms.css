@@ -90,25 +90,25 @@
 
 .luxury-input-wrap.luxury-textarea-wrap,
 .luxury-input-wrap:has(textarea) {
-  height: auto;
-  min-height: 48px;
-  max-height: none;
+  height: auto !important;
+  min-height: 105px !important;
+  max-height: none !important;
   align-items: flex-start;
-  padding: 7px 12px;
+  padding: 10px 14px;
 }
 
 .luxury-input-wrap textarea {
   width: 100%;
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  font-size: 12.5px;
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 13px;
   font-family: var(--font-sans, inherit);
-  outline: none;
-  resize: none;
-  min-height: 34px;
-  height: 34px;
-  line-height: 1.35;
+  outline: none !important;
+  resize: vertical;
+  min-height: 85px !important;
+  height: 85px;
+  line-height: 1.5;
   margin: 0;
   padding: 0;
 }

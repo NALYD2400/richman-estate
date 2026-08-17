@@ -4,9 +4,9 @@
 .luxury-reservation-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(3, 3, 6, 0.88);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   z-index: 99999;
   display: flex;
   align-items: center;
@@ -14,7 +14,7 @@
   padding: 20px;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .luxury-reservation-modal-overlay.active {
@@ -365,26 +365,26 @@
 
 .luxury-input-wrap.luxury-textarea-wrap,
 .luxury-input-wrap:has(textarea) {
-  height: auto;
-  min-height: 48px;
-  max-height: none;
+  height: auto !important;
+  min-height: 105px !important;
+  max-height: none !important;
   align-items: flex-start;
-  padding: 7px 12px;
+  padding: 10px 14px;
 }
 
 .luxury-input-wrap textarea {
   flex: 1;
   width: 100%;
-  background: transparent;
-  border: none;
-  color: #ffffff;
-  font-size: 12.5px;
-  font-family: var(--font-sans);
-  outline: none;
-  resize: none;
-  min-height: 34px;
-  height: 34px;
-  line-height: 1.35;
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 13px;
+  font-family: var(--font-sans, inherit);
+  outline: none !important;
+  resize: vertical;
+  min-height: 85px !important;
+  height: 85px;
+  line-height: 1.5;
   margin: 0;
   padding: 0;
 }
