@@ -55,7 +55,7 @@ export async function initClientPortal() {
       localStorage.setItem("richman_is_owner", "true");
       roleBadgeEl.innerHTML = `<span><i class="fa-solid fa-crown" style="color: #ffffff; margin-right: 6px;"></i> Propriétaire Fondateur</span>`;
     } else if (activeUser.is_admin || (activeUser.role && activeUser.role !== 'client')) {
-      roleBadgeEl.innerHTML = `<span><i class="fa-solid fa-shield-halved" style="color: #ffffff; margin-right: 6px;"></i> Staff Conciergerie</span>`;
+      roleBadgeEl.innerHTML = `<span><i class="fa-solid fa-shield-halved" style="color: #ffffff; margin-right: 6px;"></i> Staff Richman</span>`;
     } else {
       roleBadgeEl.innerHTML = `<span><i class="fa-solid fa-gem" style="color: #ffffff; margin-right: 6px;"></i> Membre Citoyen VIP</span>`;
     }
@@ -475,7 +475,7 @@ async function loadBookingMessages(bookingId: any, containerEl: any, currentBook
             <div class="banner-icon-wrap"><i class="fa-solid fa-hourglass-half"></i></div>
             <div class="banner-content">
               <h4>Demande en Cours de Traitement</h4>
-              <p>Notre conciergerie vérifie la disponibilité et vous répondra sous peu directement ici et sur Discord.</p>
+              <p>Notre équipe vérifie la disponibilité et vous répondra sous peu directement ici et sur Discord.</p>
             </div>
           </div>
         `;
@@ -485,7 +485,7 @@ async function loadBookingMessages(bookingId: any, containerEl: any, currentBook
             <div class="banner-icon-wrap"><i class="fa-solid fa-circle-xmark"></i></div>
             <div class="banner-content">
               <h4>Demande Non Retenue / Clôturée</h4>
-              <p>Ce dossier n'est plus actif. Vous pouvez échanger ci-dessous avec le majordome ou formuler une nouvelle demande.</p>
+              <p>Ce dossier n'est plus actif. Vous pouvez échanger ci-dessous avec notre équipe ou formuler une nouvelle demande.</p>
             </div>
           </div>
         `;
@@ -586,7 +586,59 @@ export function appendMessageBubble(containerEl: any, msg: any) {
   const isStaff = senderRole === 'staff';
   const timeStr = new Date(msgTimestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
-  // Intelligent Message Grouping (avoid repeating author & time header for consecutive messages < 2 min)
+  // 1. Detection of Official Status Milestones
+  const isAcceptedMilestone = cleanContent.includes("ACCEPTÉE et VALIDÉE") || cleanContent.includes("ACCEPTÉE");
+  const isRefusedMilestone = cleanContent.includes("n'a pas pu être retenue") || cleanContent.includes("REFUSÉE");
+  const isInitialRequestMilestone = cleanContent.startsWith("Demande de réservation pour");
+  const isMilestone = isAcceptedMilestone || isRefusedMilestone || isInitialRequestMilestone;
+
+  if (isMilestone) {
+    const row = document.createElement("div");
+    row.className = "chat-milestone-row";
+    row.setAttribute("data-timestamp", String(msgTimestamp));
+    if (msgId) row.setAttribute("data-msg-id", msgId);
+
+    if (isAcceptedMilestone) {
+      row.innerHTML = `
+        <div class="chat-system-milestone confirmed">
+          <div class="milestone-badge-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="milestone-badge-body">
+            <span class="milestone-badge-title">RÉSERVATION ACCEPTÉE &amp; VALIDÉE</span>
+            <p class="milestone-badge-desc">${escapeHTML(cleanContent.replace(/^[✅\s]+/, ''))}</p>
+            <span class="milestone-badge-time"><i class="fa-regular fa-clock"></i> ${timeStr}</span>
+          </div>
+        </div>
+      `;
+    } else if (isRefusedMilestone) {
+      row.innerHTML = `
+        <div class="chat-system-milestone cancelled">
+          <div class="milestone-badge-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+          <div class="milestone-badge-body">
+            <span class="milestone-badge-title">DEMANDE NON RETENUE</span>
+            <p class="milestone-badge-desc">${escapeHTML(cleanContent.replace(/^[❌\s]+/, ''))}</p>
+            <span class="milestone-badge-time"><i class="fa-regular fa-clock"></i> ${timeStr}</span>
+          </div>
+        </div>
+      `;
+    } else {
+      row.innerHTML = `
+        <div class="chat-system-milestone request">
+          <div class="milestone-badge-icon"><i class="fa-solid fa-file-invoice"></i></div>
+          <div class="milestone-badge-body">
+            <span class="milestone-badge-title">DOSSIER DE RÉSERVATION DÉPOSÉ</span>
+            <p class="milestone-badge-desc">${escapeHTML(cleanContent)}</p>
+            <span class="milestone-badge-time"><i class="fa-regular fa-clock"></i> ${timeStr}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    containerEl.appendChild(row);
+    containerEl.scrollTop = containerEl.scrollHeight;
+    return;
+  }
+
+  // 2. Intelligent Grouping for standard chat messages
   const allRows = containerEl.querySelectorAll(".chat-msg-row");
   const lastRow = allRows.length > 0 ? allRows[allRows.length - 1] : null;
   let isGroupedContinuation = false;
@@ -612,14 +664,23 @@ export function appendMessageBubble(containerEl: any, msg: any) {
     row.setAttribute("data-pending-key", tempKey);
   }
 
+  const senderDisplayName = isStaff ? 'Staff Richman' : 'Vous';
+  const roleBadgeHtml = isStaff
+    ? `<span class="chat-msg-role-chip staff"><i class="fa-solid fa-shield-halved"></i> Staff Richman</span>`
+    : `<span class="chat-msg-role-chip client"><i class="fa-solid fa-user"></i> Membre VIP</span>`;
+
   row.innerHTML = `
     <div class="chat-msg-meta">
-      <span class="chat-msg-sender">${escapeHTML(msg.sender_name || (isStaff ? 'Conciergerie Richman' : 'Client'))}</span>
-      ${isStaff ? '<span class="chat-msg-role-chip staff"><i class="fa-solid fa-shield-halved"></i> Conciergerie</span>' : ''}
+      <span class="chat-msg-sender">${escapeHTML(senderDisplayName)}</span>
+      ${roleBadgeHtml}
       <span class="chat-msg-time">&bull; ${timeStr}</span>
     </div>
     <div class="chat-msg-bubble">
-      ${escapeHTML(cleanContent)}
+      <div class="chat-bubble-text">${escapeHTML(cleanContent)}</div>
+      <div class="chat-bubble-footer">
+        <span class="chat-bubble-time">${timeStr}</span>
+        ${!isStaff ? '<span class="chat-bubble-receipt" title="Délivré"><i class="fa-solid fa-check"></i></span>' : ''}
+      </div>
     </div>
   `;
 
@@ -954,6 +1015,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (msgContainer) {
       await loadBookingMessages((window as any).activeChatBookingId, msgContainer, booking);
       showToast("Discussion rafraîchie", "info");
+    }
+  };
+
+  (window as any).insertQuickChatMessage = function (text: string) {
+    const input = document.getElementById("chat-message-input") as HTMLInputElement | null;
+    if (input) {
+      input.value = text;
+      input.focus();
     }
   };
 

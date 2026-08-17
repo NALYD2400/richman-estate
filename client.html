@@ -428,12 +428,25 @@
         <!-- Zone de Messages -->
         <div class="dialog-messages-container" id="dialog-messages-container"></div>
 
+        <!-- Suggestions Rapides Staff -->
+        <div class="dialog-quick-chips" id="dialog-quick-chips">
+          <button type="button" class="quick-chip-btn" onclick="window.insertQuickChatMessage('Bonjour, où et comment s\'effectue la remise des clés ?')">
+            <i class="fa-solid fa-key"></i> Remise des clés
+          </button>
+          <button type="button" class="quick-chip-btn" onclick="window.insertQuickChatMessage('Bonjour, quel est l\'état d\'avancement de mon dossier s\'il vous plaît ?')">
+            <i class="fa-solid fa-circle-info"></i> Statut dossier
+          </button>
+          <button type="button" class="quick-chip-btn" onclick="window.insertQuickChatMessage('Le véhicule est-il prêt à l\'accueil du Domaine Richman ?')">
+            <i class="fa-solid fa-car-side"></i> Véhicule prêt ?
+          </button>
+        </div>
+
         <!-- Barre de saisie -->
         <form class="dialog-input-bar" id="dialog-chat-form" onsubmit="window.handleClientSendMessage(event)">
           <input
             type="text"
             id="chat-message-input"
-            placeholder="Écrivez à votre majordome..."
+            placeholder="Écrivez au staff Richman..."
             autocomplete="off"
           />
           <button type="submit" id="chat-send-btn" class="chat-send-btn" aria-label="Envoyer">
