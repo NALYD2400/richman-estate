@@ -723,18 +723,37 @@ export async function loadSuites() {
 export async function loadLogs() {
   const container = document.getElementById("logs-table-body");
   if (!container || !supabaseClient) return;
-  const { data, error } = await supabaseClient.from("logs").select("*").order("created_at", { ascending: false }).limit(20);
+  const { data, error } = await supabaseClient.from("logs").select("*").order("created_at", { ascending: false }).limit(30);
   if (error) return console.error("Error loading logs:", error.message);
 
   container.innerHTML = "";
+  if (!data || data.length === 0) {
+    container.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #71717a; padding: 32px; font-size: 13px;">Aucun événement d'audit enregistré.</td></tr>`;
+    return;
+  }
+
   data.forEach(item => {
     const tr = document.createElement("tr");
     const dateStr = new Date(item.created_at).toLocaleString('fr-FR');
+    let levelClass = 'role-citizen';
+    let levelLabel = 'INFO';
+    if (item.type === 'danger' || item.type === 'critical') {
+      levelClass = 'role-owner';
+      levelLabel = 'CRITIQUE';
+    } else if (item.type === 'warning') {
+      levelClass = 'role-vip';
+      levelLabel = 'AVERTISSEMENT';
+    } else if (item.type === 'success') {
+      levelClass = 'role-admin';
+      levelLabel = 'SUCCÈS';
+    }
+
     tr.innerHTML = `
-      <td>${dateStr}</td>
-      <td><strong>${escapeHTML(item.user_name)}</strong></td>
-      <td>${escapeHTML(item.action)}</td>
-      <td><span class="type-tag ${escapeHTML(item.type)}">${item.type === 'success' ? 'Succès' : item.type === 'danger' ? 'Alerte' : 'Info'}</span></td>
+      <td style="font-family: monospace; font-size: 11.5px; color: #71717a;">${dateStr}</td>
+      <td><strong style="color: #ffffff; font-size: 13px;">${escapeHTML(item.user_name || 'Système')}</strong></td>
+      <td style="color: #e4e4e7; font-size: 12.5px;">${escapeHTML(item.action)}</td>
+      <td><span style="font-family: monospace; font-size: 11px; background: #18181b; border: 1px solid #27272a; padding: 2px 6px; border-radius: 4px; color: #a1a1aa;">${escapeHTML(item.ip || 'Console Admin')}</span></td>
+      <td><span class="user-role-badge-clean ${levelClass}">${levelLabel}</span></td>
     `;
     container.appendChild(tr);
   });
@@ -748,58 +767,50 @@ export async function loadConciergeMessages() {
 
   container.innerHTML = "";
   if (!data || data.length === 0) {
-    container.innerHTML = `<div style="text-align: center; color: #8e8e8e; padding: 40px 0; font-family: var(--font-sans);">Aucune demande de conciergerie en attente.</div>`;
+    container.innerHTML = `<div style="text-align: center; color: #71717a; padding: 40px 0; font-size: 13px;">Aucune demande de contact en attente.</div>`;
     return;
   }
 
   data.forEach(item => {
     const card = document.createElement("div");
-    card.className = "message-card";
+    card.className = "concierge-msg-card";
     const dateStr = new Date(item.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     const safeClient = escapeHTML(item.name || "Citoyen RP");
     const safeInitial = safeClient.slice(0, 2).toUpperCase() || "CL";
     const statusLabel = item.status === 'confirmed' ? 'Traité / Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente';
-    const statusClass = item.status === 'confirmed' ? 'status-confirmed' : item.status === 'cancelled' ? 'status-pending' : 'status-pending';
 
     card.innerHTML = `
-      <div class="message-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
-        <div class="msg-sender-wrap" style="display: flex; align-items: center; gap: 10px;">
-          <div class="msg-avatar" style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #c5a880 0%, #8b6b43 100%); color: #000; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;">${safeInitial}</div>
-          <div class="msg-sender-info">
-            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #fff;">${safeClient}</h4>
-            <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
-              <span class="badge badge-primary" style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: rgba(197, 168, 128, 0.15); color: #c5a880; border: 1px solid rgba(197, 168, 128, 0.3);">🛎️ ${escapeHTML(item.subject || 'Conciergerie')}</span>
-              <span class="status-badge ${statusClass}" style="font-size: 11px; padding: 2px 8px;">${statusLabel}</span>
+      <div class="concierge-msg-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 12px;">${safeInitial}</div>
+          <div>
+            <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: #fff;">${safeClient}</h4>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+              <span class="type-tag" style="font-size: 10.5px;">${escapeHTML(item.subject || 'Contact')}</span>
+              <span class="status-pill ${escapeHTML(item.status || 'pending')}" style="font-size: 10.5px;">${statusLabel}</span>
             </div>
           </div>
         </div>
-        <span class="msg-time" style="font-size: 12px; color: #71717a;"><i class="fa-solid fa-clock"></i> ${dateStr}</span>
+        <span style="font-size: 11.5px; color: #71717a; font-family: monospace;">${dateStr}</span>
       </div>
 
-      <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 14px; margin: 10px 0;">
-        <div style="font-size: 12.5px; color: #a1a1aa; margin-bottom: 8px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-          <span><strong>Contact :</strong> <code style="color: #c5a880; font-size: 13px;">${escapeHTML(item.phone || 'Non renseigné')}</code></span>
-          ${item.discord_id ? `
-            <span><strong>Discord :</strong> <a href="https://discord.com/users/${escapeHTML(item.discord_id)}" target="_blank" rel="noopener noreferrer" style="color: #818cf8; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;"><i class="fa-brands fa-discord"></i> ${escapeHTML(item.discord_id)} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i></a></span>
-          ` : ''}
+      <div class="concierge-msg-body">
+        <div style="font-size: 11.5px; color: #a1a1aa; margin-bottom: 6px; display: flex; gap: 14px; flex-wrap: wrap;">
+          <span><strong>Contact :</strong> ${escapeHTML(item.phone || 'Non renseigné')}</span>
+          ${item.discord_id ? `<span><strong>Discord :</strong> <a href="https://discord.com/users/${escapeHTML(item.discord_id)}" target="_blank" rel="noopener noreferrer" style="color: #818cf8; text-decoration: none;"><i class="fa-brands fa-discord"></i> ${escapeHTML(item.discord_id)}</a></span>` : ''}
         </div>
-        <p class="msg-text" style="color: #e4e4e7; font-size: 13.5px; line-height: 1.5; margin: 0; white-space: pre-wrap;">"${escapeHTML(item.message || 'Aucun détail fourni.')}"</p>
+        <p style="margin: 0; font-size: 13px; color: #ffffff; white-space: pre-wrap;">${escapeHTML(item.message || 'Aucun détail.')}</p>
       </div>
 
-      <div class="msg-actions" style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; align-items: center;">
+      <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center; margin-top: 4px;">
         ${item.ticket_channel_id ? `
-          <a href="https://discord.com/channels/1537171063715401870/${escapeHTML(item.ticket_channel_id)}" target="_blank" rel="noopener noreferrer" class="admin-btn-secondary" style="padding: 6px 14px; font-size: 12px; height: 32px; background: rgba(88, 101, 242, 0.22); border: 1px solid rgba(88, 101, 242, 0.5); color: #c7d2fe; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-weight: 700; text-decoration: none;" title="Ouvrir le salon ticket dans Discord">
-            <i class="fa-brands fa-discord"></i> Ouvrir le Ticket Discord
+          <a href="https://discord.com/channels/1537171063715401870/${escapeHTML(item.ticket_channel_id)}" target="_blank" rel="noopener noreferrer" class="admin-btn-secondary" style="height: 30px; padding: 0 10px; font-size: 11.5px; text-decoration: none;">
+            <i class="fa-brands fa-discord"></i> Ticket Discord
           </a>
         ` : ''}
-        ${item.discord_id ? `
-          <a href="https://discord.com/users/${escapeHTML(item.discord_id)}" target="_blank" rel="noopener noreferrer" class="admin-btn-secondary" style="padding: 6px 14px; font-size: 12px; height: 32px; background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #e5cfb0; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-weight: 600; text-decoration: none;" title="Ouvrir la conversation MP dans Discord">
-            <i class="fa-solid fa-comment-dots"></i> Ouvrir le MP Discord
-          </a>
-        ` : ''}
-        ${item.status !== 'confirmed' ? `<button class="admin-btn-primary" onclick="window.updateContactMessageStatus('${escapeHTML(item.id)}', 'confirmed')" style="padding: 6px 14px; font-size: 12px; height: 32px;"><i class="fa-solid fa-check"></i> Marquer Traité</button>` : ''}
-        ${item.status !== 'cancelled' ? `<button class="admin-btn-secondary" onclick="window.updateContactMessageStatus('${escapeHTML(item.id)}', 'cancelled')" style="padding: 6px 14px; font-size: 12px; height: 32px;"><i class="fa-solid fa-ban"></i> Annuler</button>` : ''}
-        <button class="admin-btn-danger" onclick="window.deleteContactMessage('${escapeHTML(item.id)}')" style="padding: 6px 12px; font-size: 12px; height: 32px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;"><i class="fa-solid fa-trash"></i></button>
+        ${item.status !== 'confirmed' ? `<button class="admin-btn-primary" onclick="window.updateContactMessageStatus('${escapeHTML(item.id)}', 'confirmed')" style="height: 30px; padding: 0 10px; font-size: 11.5px;"><i class="fa-solid fa-check"></i> Marquer Traité</button>` : ''}
+        ${item.status !== 'cancelled' ? `<button class="admin-btn-secondary" onclick="window.updateContactMessageStatus('${escapeHTML(item.id)}', 'cancelled')" style="height: 30px; padding: 0 10px; font-size: 11.5px;"><i class="fa-solid fa-xmark"></i> Annuler</button>` : ''}
+        <button class="user-act-btn-clean danger" onclick="window.deleteContactMessage('${escapeHTML(item.id)}')" title="Supprimer"><i class="fa-solid fa-trash-can"></i></button>
       </div>
     `;
     container.appendChild(card);
@@ -820,104 +831,119 @@ export async function loadBookings() {
   if (carsContainer) {
     carsContainer.innerHTML = "";
     const carBookings = data.filter(item => item.type === 'vehicule');
-    carBookings.forEach(item => {
-      const tr = document.createElement("tr");
-      const discordId = item.discord_id || '';
-      const encId = safeJsArg(item.id);
-      const encClient = safeJsArg(item.client_name);
-      const encItem = safeJsArg(item.item_name);
-      const encDiscord = safeJsArg(discordId);
+    if (carBookings.length === 0) {
+      carsContainer.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune réservation de véhicule enregistrée.</td></tr>`;
+    } else {
+      carBookings.forEach(item => {
+        const tr = document.createElement("tr");
+        const discordId = item.discord_id || '';
+        const encId = safeJsArg(item.id);
+        const encClient = safeJsArg(item.client_name);
+        const encItem = safeJsArg(item.item_name);
+        const encDiscord = safeJsArg(discordId);
 
-      const dmBtn = discordId ? `
-        <button class="table-act-btn icon-only" style="background: rgba(88, 101, 242, 0.15); border: 1px solid rgba(88, 101, 242, 0.35); color: #818cf8;" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="Envoyer un MP Discord au client">
-          <i class="fa-brands fa-discord"></i>
-        </button>
-      ` : '';
-      const chatBtn = `
-        <button class="table-act-btn icon-only" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880;" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Ouvrir la Discussion en Direct (Synchro 4-Voies)">
-          <i class="fa-solid fa-comments"></i>
-        </button>
-      `;
-      tr.innerHTML = `
-        <td>#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
-        <td>
-          <strong>${escapeHTML(item.client_name)}</strong>
-          ${discordId ? `<span style="display: block; font-size: 11px; color: #818cf8; margin-top: 2px;"><i class="fa-brands fa-discord"></i> <@${escapeHTML(discordId)}></span>` : ''}
-        </td>
-        <td>${escapeHTML(item.item_name)}</td>
-        <td>${escapeHTML(item.amount)}</td>
-        <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
-        <td>
-          <div class="table-actions-cell">
-            <button class="table-act-btn success icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check"></i></button>
-            <button class="table-act-btn danger icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Annuler"><i class="fa-solid fa-xmark"></i></button>
-            ${chatBtn}
-            ${dmBtn}
-          </div>
-        </td>
-      `;
-      carsContainer.appendChild(tr);
-    });
+        const dmBtn = discordId ? `
+          <button class="user-act-btn-clean" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="MP Discord">
+            <i class="fa-brands fa-discord"></i>
+          </button>
+        ` : '';
+        const chatBtn = `
+          <button class="user-act-btn-clean" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Discussion">
+            <i class="fa-solid fa-comments"></i>
+          </button>
+        `;
+        tr.innerHTML = `
+          <td style="font-family: monospace; font-size: 11.5px; color: #a1a1aa;">#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
+          <td>
+            <strong style="color: #ffffff; font-size: 13px;">${escapeHTML(item.client_name)}</strong>
+            ${discordId ? `<span style="display: block; font-size: 11px; color: #71717a; margin-top: 1px;"><i class="fa-brands fa-discord"></i> ${escapeHTML(discordId)}</span>` : ''}
+          </td>
+          <td style="color: #ffffff; font-size: 13px;">${escapeHTML(item.item_name)}</td>
+          <td style="font-weight: 600; color: #ffffff; font-size: 13px;">${escapeHTML(item.amount)}</td>
+          <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
+          <td style="text-align: right;">
+            <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+              <button class="user-act-btn-clean" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check" style="color: #34d399;"></i></button>
+              <button class="user-act-btn-clean danger" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Refuser"><i class="fa-solid fa-xmark"></i></button>
+              ${chatBtn}
+              ${dmBtn}
+            </div>
+          </td>
+        `;
+        carsContainer.appendChild(tr);
+      });
+    }
   }
 
   if (suitesContainer) {
     suitesContainer.innerHTML = "";
     const suiteBookings = data.filter(item => item.type !== 'vehicule');
-    suiteBookings.forEach(item => {
-      const tr = document.createElement("tr");
-      const discordId = item.discord_id || '';
-      const encId = safeJsArg(item.id);
-      const encClient = safeJsArg(item.client_name);
-      const encItem = safeJsArg(item.item_name);
-      const encDiscord = safeJsArg(discordId);
+    if (suiteBookings.length === 0) {
+      suitesContainer.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune réservation de suite enregistrée.</td></tr>`;
+    } else {
+      suiteBookings.forEach(item => {
+        const tr = document.createElement("tr");
+        const discordId = item.discord_id || '';
+        const encId = safeJsArg(item.id);
+        const encClient = safeJsArg(item.client_name);
+        const encItem = safeJsArg(item.item_name);
+        const encDiscord = safeJsArg(discordId);
 
-      const dmBtn = discordId ? `
-        <button class="table-act-btn icon-only" style="background: rgba(88, 101, 242, 0.15); border: 1px solid rgba(88, 101, 242, 0.35); color: #818cf8;" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="Envoyer un MP Discord au client">
-          <i class="fa-brands fa-discord"></i>
-        </button>
-      ` : '';
-      const chatBtn = `
-        <button class="table-act-btn icon-only" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880;" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Ouvrir la Discussion en Direct (Synchro 4-Voies)">
-          <i class="fa-solid fa-comments"></i>
-        </button>
-      `;
-      tr.innerHTML = `
-        <td>#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
-        <td>
-          <strong>${escapeHTML(item.client_name)}</strong>
-          ${discordId ? `<span style="display: block; font-size: 11px; color: #818cf8; margin-top: 2px;"><i class="fa-brands fa-discord"></i> <@${escapeHTML(discordId)}></span>` : ''}
-        </td>
-        <td>${escapeHTML(item.item_name)}</td>
-        <td>${escapeHTML(item.amount)}</td>
-        <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
-        <td>
-          <div class="table-actions-cell">
-            <button class="table-act-btn success icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check"></i></button>
-            <button class="table-act-btn danger icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Annuler"><i class="fa-solid fa-xmark"></i></button>
-            ${chatBtn}
-            ${dmBtn}
-          </div>
-        </td>
-      `;
-      suitesContainer.appendChild(tr);
-    });
+        const dmBtn = discordId ? `
+          <button class="user-act-btn-clean" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="MP Discord">
+            <i class="fa-brands fa-discord"></i>
+          </button>
+        ` : '';
+        const chatBtn = `
+          <button class="user-act-btn-clean" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Discussion">
+            <i class="fa-solid fa-comments"></i>
+          </button>
+        `;
+        tr.innerHTML = `
+          <td style="font-family: monospace; font-size: 11.5px; color: #a1a1aa;">#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
+          <td>
+            <strong style="color: #ffffff; font-size: 13px;">${escapeHTML(item.client_name)}</strong>
+            ${discordId ? `<span style="display: block; font-size: 11px; color: #71717a; margin-top: 1px;"><i class="fa-brands fa-discord"></i> ${escapeHTML(discordId)}</span>` : ''}
+          </td>
+          <td style="color: #ffffff; font-size: 13px;">${escapeHTML(item.item_name)}</td>
+          <td style="font-weight: 600; color: #ffffff; font-size: 13px;">${escapeHTML(item.amount)}</td>
+          <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
+          <td style="text-align: right;">
+            <div style="display: flex; gap: 4px; justify-content: flex-end; align-items: center;">
+              <button class="user-act-btn-clean" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check" style="color: #34d399;"></i></button>
+              <button class="user-act-btn-clean danger" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Refuser"><i class="fa-solid fa-xmark"></i></button>
+              ${chatBtn}
+              ${dmBtn}
+            </div>
+          </td>
+        `;
+        suitesContainer.appendChild(tr);
+      });
+    }
   }
 
   const overviewContainer = document.getElementById("overview-bookings-tbody");
   if (overviewContainer) {
     overviewContainer.innerHTML = "";
-    data.slice(0, 3).forEach(item => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><strong>${escapeHTML(item.client_name)}</strong></td>
-        <td><span class="type-tag ${escapeHTML(item.type)}">${item.type === 'vehicule' ? 'Véhicule' : 'Suite'}</span></td>
-        <td>${escapeHTML(item.item_name)}</td>
-        <td>${escapeHTML(item.amount)}</td>
-        <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
-      `;
-      overviewContainer.appendChild(tr);
-    });
+    if (data.length === 0) {
+      overviewContainer.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune activité récente.</td></tr>`;
+    } else {
+      data.slice(0, 4).forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong style="color: #ffffff; font-size: 13px;">${escapeHTML(item.client_name)}</strong></td>
+          <td><span class="type-tag ${item.type === 'vehicule' ? 'car' : 'suite'}">${item.type === 'vehicule' ? 'Véhicule' : 'Suite'}</span></td>
+          <td style="color: #ffffff; font-size: 13px;">${escapeHTML(item.item_name)}</td>
+          <td style="font-weight: 600; color: #ffffff; font-size: 13px;">${escapeHTML(item.amount)}</td>
+          <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
+        `;
+        overviewContainer.appendChild(tr);
+      });
+    }
   }
+
+  updateKPIs();
+}
 
   updateKPIs();
 }

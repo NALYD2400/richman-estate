@@ -180,19 +180,18 @@ export async function loadCTGDatabase(page = 1) {
       card.innerHTML = `
         <div class="ctg-image-wrapper">
           <img src="${imageUrl}" alt="${safeItemName}" onerror="this.src='assets/logo.webp';" />
-          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(ellipse at center, ${classStyle.color}1e 0%, transparent 65%), radial-gradient(ellipse, transparent 20%, #0d0d10 70%); pointer-events: none; z-index: 1;"></div>
-          <span style="position: absolute; top: 12px; right: 12px; background: ${classStyle.bg}; border: ${classStyle.border}; color: ${classStyle.color}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 11px; border-radius: 20px; box-shadow: ${classStyle.shadow}; backdrop-filter: blur(4px); font-family: monospace; z-index: 2;">${safeClass}</span>
+          <span class="type-tag" style="position: absolute; top: 8px; right: 8px; font-family: monospace; font-size: 10px; z-index: 2;">${safeClass}</span>
         </div>
-        <h3 style="margin: 6px 0 6px 0; font-size: 15.5px; font-weight: 700; text-transform: capitalize; color: #ffffff;">${displayName}</h3>
-        <div style="margin: 0 0 12px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-          <span style="font-size: 12.5px; color: #a1a1aa; display: inline-flex; align-items: center; gap: 5px;">Spawn : <strong style="color: #ffffff; font-family: monospace; font-size: 12.5px; background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.12);">${safeItemName}</strong></span>
-          <span style="font-size: 13px; color: #f1ddc0; display: inline-flex; align-items: center; gap: 5px; font-weight: 700;"><i class="fa-solid fa-gauge-high" style="color: #c5a880; font-size: 12px;"></i> ${Math.round(parseFloat(item.MaxSpeed || 0) * 3.6)} km/h</span>
+        <h3 style="margin: 4px 0 2px 0; font-size: 14.5px; font-weight: 700; text-transform: capitalize; color: #ffffff;">${displayName}</h3>
+        <div style="margin: 0 0 8px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 11.5px; color: #71717a; display: inline-flex; align-items: center; gap: 4px;">Spawn : <strong style="color: #ffffff; font-family: monospace; font-size: 11.5px; background: #18181b; padding: 2px 6px; border-radius: 4px; border: 1px solid #27272a;">${safeItemName}</strong></span>
+          <span style="font-size: 12px; color: #a1a1aa; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;"><i class="fa-solid fa-gauge-high" style="font-size: 11px;"></i> ${Math.round(parseFloat(item.MaxSpeed || 0) * 3.6)} km/h</span>
         </div>
-        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.06); flex-wrap: wrap;">
-          <span class="card-price" style="font-size: 13px; padding: 3px 9px;">${item.Price ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(item.Price) : 'Importable'}</span>
-          <div style="display: flex; gap: 6px;">
-            <button class="admin-btn-secondary" onclick="window.openEditCTGModal(decodeURIComponent('${encodedName}'))" style="padding: 6px 10px; font-size: 11.5px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; justify-content: center; font-weight: 600;" title="Modifier les infos"><i class="fa-solid fa-pen" style="font-size: 10px;"></i> Modifier</button>
-            <button class="admin-btn-primary" onclick="window.importCTGToFleet(decodeURIComponent('${encodedName}'), '${safePriceNum}', '${safeClass}')" style="padding: 6px 12px; font-size: 11.5px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; justify-content: center; font-weight: 600;" title="Importer dans la Flotte Prestige"><i class="fa-solid fa-file-import" style="font-size: 10px;"></i> Importer</button>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 1px solid #1f1f23; flex-wrap: wrap;">
+          <span class="card-price">${item.Price ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(item.Price) : 'Importable'}</span>
+          <div style="display: flex; gap: 4px;">
+            <button class="admin-btn-secondary" onclick="window.openEditCTGModal(decodeURIComponent('${encodedName}'))" style="padding: 0 8px; font-size: 11px; height: 28px;" title="Modifier les infos"><i class="fa-solid fa-pen"></i></button>
+            <button class="admin-btn-primary" onclick="window.importCTGToFleet(decodeURIComponent('${encodedName}'), '${safePriceNum}', '${safeClass}')" style="padding: 0 10px; font-size: 11.5px; height: 28px;" title="Importer dans la Flotte"><i class="fa-solid fa-file-import"></i> Importer</button>
           </div>
         </div>
       `;
