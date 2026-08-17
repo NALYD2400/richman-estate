@@ -845,11 +845,351 @@ export async function loadBookings() {
   updateKPIs();
 }
 
+let currentStatsPeriod: Record<string, string> = { cars: 'all', suites: 'all' };
+let currentStatsMetric: Record<string, string> = { cars: 'revenue', suites: 'revenue' };
+
+(window as any).setStatsPeriod = function(type: string, period: string) {
+  currentStatsPeriod[type] = period;
+  const container = document.getElementById(`${type}-period-filter`);
+  if (container) {
+    container.querySelectorAll('.saas-pill-btn').forEach(btn => {
+      if ((btn as HTMLElement).dataset.period === period) btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+  }
+  renderAnalyticsDashboards(state.allBookingsList || []);
+};
+
+(window as any).toggleStatsMetric = function(type: string, metric: string) {
+  currentStatsMetric[type] = metric;
+  const container = document.getElementById(`${type}-chart-metric-toggle`);
+  if (container) {
+    container.querySelectorAll('.saas-pill-btn').forEach(btn => {
+      if ((btn as HTMLElement).dataset.metric === metric) btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+  }
+  renderAnalyticsDashboards(state.allBookingsList || []);
+};
+
+// Global Vercel Chart Tooltip Helper
+function showChartTooltip(e: MouseEvent, date: string, valStr: string, subStr: string) {
+  let tip = document.getElementById("vercel-chart-tooltip");
+  if (!tip) {
+    tip = document.createElement("div");
+    tip.id = "vercel-chart-tooltip";
+    tip.className = "vercel-chart-tooltip";
+    document.body.appendChild(tip);
+  }
+
+  tip.innerHTML = `
+    <div class="vtt-date">${escapeHTML(date)}</div>
+    <div class="vtt-val">${escapeHTML(valStr)}</div>
+    ${subStr ? `<div class="vtt-sub">${escapeHTML(subStr)}</div>` : ''}
+  `;
+
+  tip.style.display = "block";
+  tip.style.left = `${e.pageX}px`;
+  tip.style.top = `${e.pageY}px`;
+}
+
+function hideChartTooltip() {
+  const tip = document.getElementById("vercel-chart-tooltip");
+  if (tip) tip.style.display = "none";
+}
+
+// SVG Cubic Bezier Smoothing Helper
+function getSvgPath(points: { x: number; y: number }[]) {
+  if (points.length === 0) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+  let path = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i === 0 ? 0 : i - 1];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] || p2;
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    path += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return path;
+}
+
+// Draw SaaS Area / Line Timeline Curve
+function drawTimelineAreaChart(
+  containerEl: HTMLElement,
+  dataPoints: { date: string; label: string; revenue: number; count: number }[],
+  metric: 'revenue' | 'count'
+) {
+  containerEl.innerHTML = "";
+  const isRevenue = metric === 'revenue';
+  const fmt = (v: number) => isRevenue
+    ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v)
+    : `${v} dossier(s)`;
+
+  if (dataPoints.length === 0) {
+    containerEl.innerHTML = `<div style="text-align: center; color: #71717a; padding: 40px; font-size: 12.5px;">Aucune donnée chronologique disponible.</div>`;
+    return;
+  }
+
+  const w = 600;
+  const h = 210;
+  const padL = 60;
+  const padR = 25;
+  const padT = 25;
+  const padB = 35;
+
+  const innerW = w - padL - padR;
+  const innerH = h - padT - padB;
+
+  const values = dataPoints.map(d => isRevenue ? d.revenue : d.count);
+  const maxVal = Math.max(...values, isRevenue ? 1000 : 5);
+  const minVal = 0;
+
+  const points = dataPoints.map((d, i) => {
+    const x = padL + (i / Math.max(dataPoints.length - 1, 1)) * innerW;
+    const yVal = isRevenue ? d.revenue : d.count;
+    const y = padT + innerH - (yVal / maxVal) * innerH;
+    return { x, y, data: d, val: yVal };
+  });
+
+  const linePath = getSvgPath(points);
+  const lastX = points[points.length - 1].x;
+  const firstX = points[0].x;
+  const bottomY = padT + innerH;
+  const areaPath = `${linePath} L ${lastX} ${bottomY} L ${firstX} ${bottomY} Z`;
+
+  const gradId = `saas-grad-${Math.random().toString(36).substring(2, 8)}`;
+
+  // Generate 4 Y ticks
+  let yGridHtml = '';
+  for (let step = 0; step <= 3; step++) {
+    const yRatio = step / 3;
+    const yPos = padT + innerH - (yRatio * innerH);
+    const tickVal = Math.round(minVal + yRatio * maxVal);
+    const label = isRevenue
+      ? (tickVal >= 1000 ? `${Math.round(tickVal / 1000)}k €` : `${tickVal} €`)
+      : String(tickVal);
+
+    yGridHtml += `
+      <line x1="${padL}" y1="${yPos}" x2="${w - padR}" y2="${yPos}" stroke="#27272a" stroke-dasharray="3 3" stroke-width="1" />
+      <text x="${padL - 10}" y="${yPos + 3.5}" fill="#71717a" font-size="10" font-family="monospace" text-anchor="end">${label}</text>
+    `;
+  }
+
+  // Generate X labels (pick at most 6 evenly spaced)
+  let xLabelsHtml = '';
+  const labelStep = Math.max(1, Math.floor(dataPoints.length / 6));
+  dataPoints.forEach((d, i) => {
+    if (i % labelStep === 0 || i === dataPoints.length - 1) {
+      const pt = points[i];
+      xLabelsHtml += `
+        <text x="${pt.x}" y="${h - 10}" fill="#71717a" font-size="10.5" font-family="monospace" text-anchor="middle">${escapeHTML(d.label)}</text>
+      `;
+    }
+  });
+
+  // Generate interactive circles & vertical trigger bars
+  let dotsHtml = '';
+  points.forEach((pt) => {
+    dotsHtml += `
+      <g class="chart-point-group" style="cursor: pointer;">
+        <circle cx="${pt.x}" cy="${pt.y}" r="4" fill="#000000" stroke="#ffffff" stroke-width="2" />
+        <rect x="${pt.x - 15}" y="${padT}" width="30" height="${innerH}" fill="transparent"
+          data-date="${escapeHTML(pt.data.date)}"
+          data-val="${escapeHTML(fmt(pt.val))}"
+          data-sub="${escapeHTML(isRevenue ? `${pt.data.count} location(s)` : `${fmt(pt.data.revenue)}`)}"
+        />
+      </g>
+    `;
+  });
+
+  const svgHtml = `
+    <svg class="saas-chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22" />
+          <stop offset="60%" stop-color="#ffffff" stop-opacity="0.04" />
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0" />
+        </linearGradient>
+      </defs>
+      ${yGridHtml}
+      <path d="${areaPath}" fill="url(#${gradId})" />
+      <path d="${linePath}" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      ${xLabelsHtml}
+      ${dotsHtml}
+    </svg>
+  `;
+
+  containerEl.innerHTML = svgHtml;
+
+  // Bind tooltip hover events
+  containerEl.querySelectorAll('.chart-point-group rect').forEach(r => {
+    r.addEventListener('mouseenter', (e: any) => {
+      const target = e.target as HTMLElement;
+      showChartTooltip(e, target.dataset.date || '', target.dataset.val || '', target.dataset.sub || '');
+    });
+    r.addEventListener('mousemove', (e: any) => {
+      const target = e.target as HTMLElement;
+      showChartTooltip(e, target.dataset.date || '', target.dataset.val || '', target.dataset.sub || '');
+    });
+    r.addEventListener('mouseleave', () => {
+      hideChartTooltip();
+    });
+  });
+}
+
+// Draw SaaS Donut Status Chart
+function drawDonutChart(containerEl: HTMLElement, confirmed: number, pending: number, cancelled: number) {
+  containerEl.innerHTML = "";
+  const total = confirmed + pending + cancelled;
+  const successRate = total > 0 ? Math.round((confirmed / total) * 100) : 0;
+  const pendingRate = total > 0 ? Math.round((pending / total) * 100) : 0;
+  const cancelledRate = total > 0 ? Math.round((cancelled / total) * 100) : 0;
+
+  const r = 44;
+  const circum = 2 * Math.PI * r;
+
+  const confLen = (confirmed / (total || 1)) * circum;
+  const pendLen = (pending / (total || 1)) * circum;
+  const cancLen = (cancelled / (total || 1)) * circum;
+
+  const confOffset = 0;
+  const pendOffset = -confLen;
+  const cancOffset = -(confLen + pendLen);
+
+  const svgHtml = `
+    <div style="position: relative; width: 110px; height: 110px; flex-shrink: 0;">
+      <svg width="110" height="110" viewBox="0 0 110 110" style="transform: rotate(-90deg);">
+        <!-- Background track -->
+        <circle cx="55" cy="55" r="${r}" fill="none" stroke="#18181b" stroke-width="12" />
+        <!-- Confirmed (White) -->
+        <circle cx="55" cy="55" r="${r}" fill="none" stroke="#ffffff" stroke-width="12"
+          stroke-dasharray="${confLen} ${circum - confLen}" stroke-dashoffset="${confOffset}" stroke-linecap="round" />
+        <!-- Pending (Zinc 500) -->
+        <circle cx="55" cy="55" r="${r}" fill="none" stroke="#71717a" stroke-width="12"
+          stroke-dasharray="${pendLen} ${circum - pendLen}" stroke-dashoffset="${pendOffset}" />
+        <!-- Cancelled (Zinc 800) -->
+        <circle cx="55" cy="55" r="${r}" fill="none" stroke="#27272a" stroke-width="12"
+          stroke-dasharray="${cancLen} ${circum - cancLen}" stroke-dashoffset="${cancOffset}" />
+      </svg>
+      <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <span style="font-size: 16px; font-weight: 800; color: #ffffff; font-family: monospace; line-height: 1;">${successRate}%</span>
+        <span style="font-size: 9.5px; color: #71717a; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.05em;">Succès</span>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="saas-donut-legend">
+      <div class="saas-donut-legend-item">
+        <span><span class="saas-donut-dot" style="background: #ffffff;"></span>Validés</span>
+        <strong style="color: #ffffff; font-family: monospace;">${confirmed} (${successRate}%)</strong>
+      </div>
+      <div class="saas-donut-legend-item">
+        <span><span class="saas-donut-dot" style="background: #71717a;"></span>En attente</span>
+        <strong style="color: #a1a1aa; font-family: monospace;">${pending} (${pendingRate}%)</strong>
+      </div>
+      <div class="saas-donut-legend-item">
+        <span><span class="saas-donut-dot" style="background: #27272a;"></span>Annulés</span>
+        <strong style="color: #52525b; font-family: monospace;">${cancelled} (${cancelledRate}%)</strong>
+      </div>
+    </div>
+  `;
+
+  containerEl.innerHTML = svgHtml;
+}
+
+// Draw SaaS Demand Histogram (Bar Chart)
+function drawDemandBarChart(containerEl: HTMLElement, topItems: { name: string; count: number; revenue: number }[]) {
+  containerEl.innerHTML = "";
+  if (topItems.length === 0) {
+    containerEl.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 12px;">Aucune donnée de comparaison.</div>`;
+    return;
+  }
+
+  const items = topItems.slice(0, 5);
+  const maxCount = Math.max(...items.map(i => i.count), 1);
+  const w = 380;
+  const h = 135;
+  const padT = 20;
+  const padB = 30;
+  const barW = 32;
+
+  const spacing = (w - 40) / items.length;
+  let barsHtml = '';
+
+  items.forEach((item, idx) => {
+    const x = 20 + idx * spacing + (spacing - barW) / 2;
+    const maxBarH = h - padT - padB;
+    const barH = Math.max(6, (item.count / maxCount) * maxBarH);
+    const y = padT + maxBarH - barH;
+
+    const shortName = item.name.length > 8 ? item.name.slice(0, 7) + '..' : item.name;
+
+    barsHtml += `
+      <g class="barchart-group" style="cursor: pointer;">
+        <!-- Track -->
+        <rect x="${x}" y="${padT}" width="${barW}" height="${maxBarH}" fill="#18181b" rx="4" ry="4" />
+        <!-- Value Bar -->
+        <rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="#ffffff" rx="4" ry="4"
+          data-date="${escapeHTML(item.name)}"
+          data-val="${item.count} réservation(s)"
+          data-sub="${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(item.revenue)}"
+        />
+        <!-- Count badge above bar -->
+        <text x="${x + barW / 2}" y="${y - 5}" fill="#ffffff" font-size="10" font-weight="700" font-family="monospace" text-anchor="middle">${item.count}</text>
+        <!-- Label below -->
+        <text x="${x + barW / 2}" y="${h - 10}" fill="#71717a" font-size="10" font-family="monospace" text-anchor="middle">${escapeHTML(shortName)}</text>
+      </g>
+    `;
+  });
+
+  const svgHtml = `
+    <svg class="saas-chart-svg" viewBox="0 0 ${w} ${h}">
+      ${barsHtml}
+    </svg>
+  `;
+
+  containerEl.innerHTML = svgHtml;
+
+  containerEl.querySelectorAll('.barchart-group rect[data-date]').forEach(r => {
+    r.addEventListener('mouseenter', (e: any) => {
+      const target = e.target as HTMLElement;
+      showChartTooltip(e, target.dataset.date || '', target.dataset.val || '', target.dataset.sub || '');
+    });
+    r.addEventListener('mousemove', (e: any) => {
+      const target = e.target as HTMLElement;
+      showChartTooltip(e, target.dataset.date || '', target.dataset.val || '', target.dataset.sub || '');
+    });
+    r.addEventListener('mouseleave', () => {
+      hideChartTooltip();
+    });
+  });
+}
+
 export function renderAnalyticsDashboards(allBookings: any[]) {
   const fmtEur = (val: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(val);
 
+  // Helper to filter by period
+  const filterByPeriod = (bookings: any[], period: string) => {
+    if (period === 'all') return bookings;
+    const now = new Date();
+    const days = period === '7d' ? 7 : 30;
+    const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    return bookings.filter(b => {
+      if (!b.created_at) return true;
+      return new Date(b.created_at) >= cutoff;
+    });
+  };
+
   // 1. CARS STATS
-  const carBookings = (allBookings || []).filter(b => b.type === 'vehicule' || !b.type);
+  const rawCarBookings = (allBookings || []).filter(b => b.type === 'vehicule' || !b.type);
+  const carBookings = filterByPeriod(rawCarBookings, currentStatsPeriod.cars || 'all');
   const carConfirmed = carBookings.filter(b => b.status === 'confirmed');
   const carPending = carBookings.filter(b => b.status === 'pending');
   const carCancelled = carBookings.filter(b => b.status === 'cancelled');
@@ -873,11 +1213,55 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   const cAvgEl = document.getElementById("stats-cars-avg-price");
 
   if (cRevEl) cRevEl.textContent = fmtEur(carRevenue);
-  if (cRevSub) cRevSub.textContent = `${carConfirmed.length} location(s) validée(s)`;
+  if (cRevSub) cRevSub.textContent = `${carConfirmed.length} validée(s)`;
   if (cTotEl) cTotEl.textContent = String(carTotal);
-  if (cTotSub) cTotSub.textContent = `${carPending.length} en attente • ${carCancelled.length} refusée(s)`;
+  if (cTotSub) cTotSub.textContent = `${carPending.length} en cours • ${carCancelled.length} annulée(s)`;
   if (cConvEl) cConvEl.textContent = `${carConversionRate}%`;
   if (cAvgEl) cAvgEl.textContent = fmtEur(carAvgPrice);
+
+  // Group Car Bookings by Day for Timeline Chart
+  const carDailyMap: Record<string, { label: string; date: string; revenue: number; count: number }> = {};
+  // Prepare last 7 or 14 slots
+  const daysCount = currentStatsPeriod.cars === '7d' ? 7 : (currentStatsPeriod.cars === '30d' ? 14 : 10);
+  const now = new Date();
+  for (let i = daysCount - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const key = d.toISOString().split('T')[0];
+    const label = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    carDailyMap[key] = { label, date: key, revenue: 0, count: 0 };
+  }
+
+  carBookings.forEach(b => {
+    const dStr = (b.created_at || new Date().toISOString()).split('T')[0];
+    if (!carDailyMap[dStr]) {
+      const dObj = new Date(dStr);
+      carDailyMap[dStr] = {
+        label: !isNaN(dObj.getTime()) ? dObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : dStr,
+        date: dStr,
+        revenue: 0,
+        count: 0
+      };
+    }
+    carDailyMap[dStr].count++;
+    if (b.status === 'confirmed') {
+      const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num)) carDailyMap[dStr].revenue += num;
+    }
+  });
+
+  const carTimelineData = Object.values(carDailyMap).sort((a, b) => a.date.localeCompare(b.date));
+
+  // Render Cars Timeline Area Chart
+  const carTimelineContainer = document.getElementById("stats-cars-timeline-chart");
+  if (carTimelineContainer) {
+    drawTimelineAreaChart(carTimelineContainer, carTimelineData, (currentStatsMetric.cars as any) || 'revenue');
+  }
+
+  // Render Cars Donut Chart
+  const carDonutContainer = document.getElementById("stats-cars-donut-chart");
+  if (carDonutContainer) {
+    drawDonutChart(carDonutContainer, carConfirmed.length, carPending.length, carCancelled.length);
+  }
 
   // Top Cars calculation
   const carCounts: Record<string, { count: number; revenue: number; name: string }> = {};
@@ -892,6 +1276,13 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   });
 
   const sortedCars = Object.values(carCounts).sort((a, b) => b.count - a.count || b.revenue - a.revenue);
+
+  // Render Cars Demand Bar Chart
+  const carBarChartContainer = document.getElementById("stats-cars-barchart");
+  if (carBarChartContainer) {
+    drawDemandBarChart(carBarChartContainer, sortedCars);
+  }
+
   const topCarsContainer = document.getElementById("stats-cars-top-vehicles-list");
   const carsUniqueCount = document.getElementById("stats-cars-unique-count");
   if (carsUniqueCount) carsUniqueCount.textContent = `${sortedCars.length} modèle(s)`;
@@ -899,14 +1290,13 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   if (topCarsContainer) {
     topCarsContainer.innerHTML = "";
     if (sortedCars.length === 0) {
-      topCarsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 13px;">Aucune donnée de location enregistrée.</div>`;
+      topCarsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune donnée de location enregistrée.</div>`;
     } else {
       const maxCount = sortedCars[0]?.count || 1;
-      sortedCars.slice(0, 7).forEach((car, index) => {
+      sortedCars.slice(0, 6).forEach((car, index) => {
         const rank = index + 1;
         const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
-        const medal = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `#${rank}`));
-        const pct = Math.max(12, Math.round((car.count / maxCount) * 100));
+        const pct = Math.max(10, Math.round((car.count / maxCount) * 100));
 
         const matchedVehicle = state.allVehicles.find(v => v.name && v.name.toLowerCase() === car.name.toLowerCase());
         const imgUrl = matchedVehicle ? (matchedVehicle.photo_main || (matchedVehicle.photos && matchedVehicle.photos[0]) || 'assets/logo.webp') : 'assets/logo.webp';
@@ -914,7 +1304,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
         const itemEl = document.createElement("div");
         itemEl.className = "stats-ranking-item";
         itemEl.innerHTML = `
-          <span class="stats-rank-num ${rankClass}">${medal}</span>
+          <span class="stats-rank-num ${rankClass}">${rank < 10 ? '0' + rank : rank}</span>
           <img src="${escapeHTML(imgUrl)}" alt="" class="stats-item-thumb" onerror="this.onerror=null; this.src='assets/logo.webp';" />
           <div class="stats-item-details">
             <div class="stats-item-name-row">
@@ -925,9 +1315,9 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
               <div class="stats-progress-fill" style="width: ${pct}%;"></div>
             </div>
             <div class="stats-item-meta">
-              <span><strong>${car.count}</strong> réservation(s)</span>
+              <span><strong>${car.count}</strong> location(s)</span>
               <span>&bull;</span>
-              <span>${Math.round((car.count / carTotal) * 100)}% de la demande</span>
+              <span>${carTotal > 0 ? Math.round((car.count / carTotal) * 100) : 0}% de la demande</span>
             </div>
           </div>
         `;
@@ -956,7 +1346,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   if (topCarClientsContainer) {
     topCarClientsContainer.innerHTML = "";
     if (sortedCarClients.length === 0) {
-      topCarClientsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 20px; font-size: 12.5px;">Aucun client enregistré.</div>`;
+      topCarClientsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 20px; font-size: 12px;">Aucun client enregistré.</div>`;
     } else {
       sortedCarClients.slice(0, 4).forEach((client, idx) => {
         const itemEl = document.createElement("div");
@@ -979,40 +1369,9 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
     }
   }
 
-  // Cars Status Breakdown
-  const carStatusContainer = document.getElementById("stats-cars-status-breakdown");
-  if (carStatusContainer) {
-    const confPct = carTotal > 0 ? Math.round((carConfirmed.length / carTotal) * 100) : 0;
-    const pendPct = carTotal > 0 ? Math.round((carPending.length / carTotal) * 100) : 0;
-    const cancPct = carTotal > 0 ? Math.round((carCancelled.length / carTotal) * 100) : 0;
-
-    carStatusContainer.innerHTML = `
-      <div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
-          <span style="color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Validées (${carConfirmed.length})</span>
-          <span style="color: #ffffff; font-weight: 700;">${confPct}%</span>
-        </div>
-        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${confPct}%; background: #10b981;"></div></div>
-      </div>
-      <div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
-          <span style="color: #fbbf24; font-weight: 600;"><i class="fa-solid fa-hourglass-half"></i> En attente (${carPending.length})</span>
-          <span style="color: #ffffff; font-weight: 700;">${pendPct}%</span>
-        </div>
-        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${pendPct}%; background: #f59e0b;"></div></div>
-      </div>
-      <div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
-          <span style="color: #f87171; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> Annulées / Refusées (${carCancelled.length})</span>
-          <span style="color: #ffffff; font-weight: 700;">${cancPct}%</span>
-        </div>
-        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${cancPct}%; background: #ef4444;"></div></div>
-      </div>
-    `;
-  }
-
   // 2. SUITES STATS
-  const suiteBookings = (allBookings || []).filter(b => b.type === 'suite');
+  const rawSuiteBookings = (allBookings || []).filter(b => b.type === 'suite');
+  const suiteBookings = filterByPeriod(rawSuiteBookings, currentStatsPeriod.suites || 'all');
   const suiteConfirmed = suiteBookings.filter(b => b.status === 'confirmed');
   const suitePending = suiteBookings.filter(b => b.status === 'pending');
   const suiteCancelled = suiteBookings.filter(b => b.status === 'cancelled');
@@ -1038,9 +1397,50 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   if (sRevEl) sRevEl.textContent = fmtEur(suiteRevenue);
   if (sRevSub) sRevSub.textContent = `${suiteConfirmed.length} séjour(s) validé(s)`;
   if (sTotEl) sTotEl.textContent = String(suiteTotal);
-  if (sTotSub) sTotSub.textContent = `${suitePending.length} en attente • ${suiteCancelled.length} annulé(s)`;
+  if (sTotSub) sTotSub.textContent = `${suitePending.length} en cours • ${suiteCancelled.length} annulé(s)`;
   if (sConvEl) sConvEl.textContent = `${suiteConversionRate}%`;
   if (sAvgEl) sAvgEl.textContent = fmtEur(suiteAvgPrice);
+
+  // Group Suite Bookings by Day for Timeline Chart
+  const suiteDailyMap: Record<string, { label: string; date: string; revenue: number; count: number }> = {};
+  for (let i = daysCount - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const key = d.toISOString().split('T')[0];
+    const label = d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    suiteDailyMap[key] = { label, date: key, revenue: 0, count: 0 };
+  }
+
+  suiteBookings.forEach(b => {
+    const dStr = (b.created_at || new Date().toISOString()).split('T')[0];
+    if (!suiteDailyMap[dStr]) {
+      const dObj = new Date(dStr);
+      suiteDailyMap[dStr] = {
+        label: !isNaN(dObj.getTime()) ? dObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : dStr,
+        date: dStr,
+        revenue: 0,
+        count: 0
+      };
+    }
+    suiteDailyMap[dStr].count++;
+    if (b.status === 'confirmed') {
+      const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(num)) suiteDailyMap[dStr].revenue += num;
+    }
+  });
+
+  const suiteTimelineData = Object.values(suiteDailyMap).sort((a, b) => a.date.localeCompare(b.date));
+
+  // Render Suites Timeline Area Chart
+  const suiteTimelineContainer = document.getElementById("stats-suites-timeline-chart");
+  if (suiteTimelineContainer) {
+    drawTimelineAreaChart(suiteTimelineContainer, suiteTimelineData, (currentStatsMetric.suites as any) || 'revenue');
+  }
+
+  // Render Suites Donut Chart
+  const suiteDonutContainer = document.getElementById("stats-suites-donut-chart");
+  if (suiteDonutContainer) {
+    drawDonutChart(suiteDonutContainer, suiteConfirmed.length, suitePending.length, suiteCancelled.length);
+  }
 
   // Top Suites calculation
   const suiteCounts: Record<string, { count: number; revenue: number; name: string }> = {};
@@ -1055,6 +1455,13 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   });
 
   const sortedSuites = Object.values(suiteCounts).sort((a, b) => b.count - a.count || b.revenue - a.revenue);
+
+  // Render Suites Demand Bar Chart
+  const suiteBarChartContainer = document.getElementById("stats-suites-barchart");
+  if (suiteBarChartContainer) {
+    drawDemandBarChart(suiteBarChartContainer, sortedSuites);
+  }
+
   const topSuitesContainer = document.getElementById("stats-suites-top-suites-list");
   const suitesUniqueCount = document.getElementById("stats-suites-unique-count");
   if (suitesUniqueCount) suitesUniqueCount.textContent = `${sortedSuites.length} suite(s)`;
@@ -1062,14 +1469,13 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   if (topSuitesContainer) {
     topSuitesContainer.innerHTML = "";
     if (sortedSuites.length === 0) {
-      topSuitesContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 13px;">Aucune donnée de réservation hôtelière disponible.</div>`;
+      topSuitesContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune donnée de réservation hôtelière disponible.</div>`;
     } else {
       const maxCount = sortedSuites[0]?.count || 1;
-      sortedSuites.slice(0, 7).forEach((suite, index) => {
+      sortedSuites.slice(0, 6).forEach((suite, index) => {
         const rank = index + 1;
         const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
-        const medal = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : `#${rank}`));
-        const pct = Math.max(12, Math.round((suite.count / maxCount) * 100));
+        const pct = Math.max(10, Math.round((suite.count / maxCount) * 100));
 
         const matchedSuite = state.allSuites.find(s => s.name && s.name.toLowerCase() === suite.name.toLowerCase());
         const imgUrl = matchedSuite ? (matchedSuite.photo_main || (matchedSuite.photos && matchedSuite.photos[0]) || 'assets/logo.webp') : 'assets/logo.webp';
@@ -1077,7 +1483,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
         const itemEl = document.createElement("div");
         itemEl.className = "stats-ranking-item";
         itemEl.innerHTML = `
-          <span class="stats-rank-num ${rankClass}">${medal}</span>
+          <span class="stats-rank-num ${rankClass}">${rank < 10 ? '0' + rank : rank}</span>
           <img src="${escapeHTML(imgUrl)}" alt="" class="stats-item-thumb" onerror="this.onerror=null; this.src='assets/logo.webp';" />
           <div class="stats-item-details">
             <div class="stats-item-name-row">
@@ -1085,12 +1491,12 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
               <span class="stats-item-amount">${fmtEur(suite.revenue)}</span>
             </div>
             <div class="stats-progress-track">
-              <div class="stats-progress-fill" style="width: ${pct}%; background: linear-gradient(90deg, #a855f7 0%, #c084fc 100%);"></div>
+              <div class="stats-progress-fill" style="width: ${pct}%;"></div>
             </div>
             <div class="stats-item-meta">
-              <span><strong>${suite.count}</strong> réservation(s)</span>
+              <span><strong>${suite.count}</strong> séjour(s)</span>
               <span>&bull;</span>
-              <span>${Math.round((suite.count / suiteTotal) * 100)}% des séjours</span>
+              <span>${suiteTotal > 0 ? Math.round((suite.count / suiteTotal) * 100) : 0}% des séjours</span>
             </div>
           </div>
         `;
@@ -1119,7 +1525,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   if (topSuiteClientsContainer) {
     topSuiteClientsContainer.innerHTML = "";
     if (sortedSuiteClients.length === 0) {
-      topSuiteClientsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 20px; font-size: 12.5px;">Aucun résident enregistré.</div>`;
+      topSuiteClientsContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 20px; font-size: 12px;">Aucun résident enregistré.</div>`;
     } else {
       sortedSuiteClients.slice(0, 4).forEach((client, idx) => {
         const itemEl = document.createElement("div");
@@ -1140,38 +1546,6 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
         topSuiteClientsContainer.appendChild(itemEl);
       });
     }
-  }
-
-  // Suites Status Breakdown
-  const suiteStatusContainer = document.getElementById("stats-suites-status-breakdown");
-  if (suiteStatusContainer) {
-    const confPct = suiteTotal > 0 ? Math.round((suiteConfirmed.length / suiteTotal) * 100) : 0;
-    const pendPct = suiteTotal > 0 ? Math.round((suitePending.length / suiteTotal) * 100) : 0;
-    const cancPct = suiteTotal > 0 ? Math.round((suiteCancelled.length / suiteTotal) * 100) : 0;
-
-    suiteStatusContainer.innerHTML = `
-      <div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
-          <span style="color: #34d399; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Validés (${suiteConfirmed.length})</span>
-          <span style="color: #ffffff; font-weight: 700;">${confPct}%</span>
-        </div>
-        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${confPct}%; background: #10b981;"></div></div>
-      </div>
-      <div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
-          <span style="color: #fbbf24; font-weight: 600;"><i class="fa-solid fa-hourglass-half"></i> En attente (${suitePending.length})</span>
-          <span style="color: #ffffff; font-weight: 700;">${pendPct}%</span>
-        </div>
-        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${pendPct}%; background: #f59e0b;"></div></div>
-      </div>
-      <div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
-          <span style="color: #f87171; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> Annulés / Refusés (${suiteCancelled.length})</span>
-          <span style="color: #ffffff; font-weight: 700;">${cancPct}%</span>
-        </div>
-        <div class="stats-progress-track"><div class="stats-progress-fill" style="width: ${cancPct}%; background: #ef4444;"></div></div>
-      </div>
-    `;
   }
 }
 

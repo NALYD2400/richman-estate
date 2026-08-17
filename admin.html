@@ -346,69 +346,104 @@
           </div>
         </section>
 
-        <!-- Tab 4a: Statistiques & Performance des Locations -->
+        <!-- Tab 4a: Statistiques & Performance des Locations (SaaS Analytics) -->
         <section class="admin-tab-content" id="tab-bookings-cars">
           <div class="admin-page-header">
             <div>
               <h1>Statistiques &amp; Performance des Locations</h1>
-              <p>Analyse détaillée des revenus, des supercars les plus sollicitées et des meilleurs clients.</p>
+              <p>Tableau de bord analytique SaaS — Revenus, dynamiques de réservation et rentabilité du parc.</p>
             </div>
-            <button class="admin-btn-secondary" onclick="window.loadBookings()"><i class="fa-solid fa-rotate-right"></i> Rafraîchir les Stats</button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <div class="saas-pills-group" id="cars-period-filter">
+                <button type="button" class="saas-pill-btn active" data-period="all" onclick="window.setStatsPeriod('cars', 'all')">Tout</button>
+                <button type="button" class="saas-pill-btn" data-period="30d" onclick="window.setStatsPeriod('cars', '30d')">30 jours</button>
+                <button type="button" class="saas-pill-btn" data-period="7d" onclick="window.setStatsPeriod('cars', '7d')">7 jours</button>
+              </div>
+              <button class="admin-btn-secondary" onclick="window.loadBookings()"><i class="fa-solid fa-rotate-right"></i> Actualiser</button>
+            </div>
           </div>
 
-          <!-- KPI Grid Stats Locations -->
+          <!-- KPI Cards Grid (Vercel Monochrome) -->
           <div class="kpi-grid">
             <div class="kpi-card">
-              <div class="kpi-icon" style="color: #c5a880; background: rgba(197, 168, 128, 0.1); border-color: rgba(197, 168, 128, 0.25);">
-                <i class="fa-solid fa-coins"></i>
-              </div>
+              <div class="kpi-icon"><i class="fa-solid fa-chart-line"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Revenu Total Locations</span>
+                <span class="kpi-label">Revenu Validé</span>
                 <span class="kpi-value" id="stats-cars-total-revenue">0 €</span>
-                <span class="kpi-trend positive" id="stats-cars-revenue-sub">0 locations validées</span>
+                <span class="kpi-trend positive" id="stats-cars-revenue-sub">0 location(s) validée(s)</span>
               </div>
             </div>
 
             <div class="kpi-card">
-              <div class="kpi-icon" style="color: #3b82f6; background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.25);">
-                <i class="fa-solid fa-car"></i>
-              </div>
+              <div class="kpi-icon"><i class="fa-solid fa-car"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Total Demandes Locations</span>
+                <span class="kpi-label">Demandes Globales</span>
                 <span class="kpi-value" id="stats-cars-total-bookings">0</span>
-                <span class="kpi-trend" id="stats-cars-bookings-sub">0 en attente</span>
+                <span class="kpi-trend" id="stats-cars-bookings-sub">0 en cours</span>
               </div>
             </div>
 
             <div class="kpi-card">
-              <div class="kpi-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.25);">
-                <i class="fa-solid fa-circle-check"></i>
-              </div>
+              <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Taux de Validation</span>
+                <span class="kpi-label">Taux d'Acceptation</span>
                 <span class="kpi-value" id="stats-cars-conversion-rate">0%</span>
-                <span class="kpi-trend positive" id="stats-cars-conversion-sub">Acceptation dossiers</span>
+                <span class="kpi-trend positive" id="stats-cars-conversion-sub">Dossiers validés</span>
               </div>
             </div>
 
             <div class="kpi-card">
-              <div class="kpi-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.25);">
-                <i class="fa-solid fa-receipt"></i>
-              </div>
+              <div class="kpi-icon"><i class="fa-solid fa-receipt"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Panier Moyen / Location</span>
+                <span class="kpi-label">Panier Moyen</span>
                 <span class="kpi-value" id="stats-cars-avg-price">0 €</span>
                 <span class="kpi-trend" id="stats-cars-avg-sub">Moyenne par contrat</span>
               </div>
             </div>
           </div>
 
-          <!-- Dashboard 2 Columns -->
+          <!-- Main SaaS Charts Row (Timeline Area Chart + Donut Distribution) -->
+          <div class="saas-charts-row">
+            <!-- Area Timeline Curve -->
+            <div class="saas-chart-card">
+              <div class="saas-chart-header">
+                <div class="saas-chart-title-wrap">
+                  <span class="saas-chart-title"><i class="fa-solid fa-chart-area"></i> Trajectoire des Revenus &amp; Locations</span>
+                  <span class="saas-chart-subtitle">Évolution journalière du volume financier généré par la flotte</span>
+                </div>
+                <div class="saas-pills-group" id="cars-chart-metric-toggle">
+                  <button type="button" class="saas-pill-btn active" data-metric="revenue" onclick="window.toggleStatsMetric('cars', 'revenue')">Revenu (€)</button>
+                  <button type="button" class="saas-pill-btn" data-metric="count" onclick="window.toggleStatsMetric('cars', 'count')">Volume</button>
+                </div>
+              </div>
+              <div class="saas-chart-svg-wrap" id="stats-cars-timeline-chart">
+                <!-- SVG dynamic line/area curve -->
+              </div>
+            </div>
+
+            <!-- Donut Status Breakdown -->
+            <div class="saas-chart-card">
+              <div class="saas-chart-header">
+                <div class="saas-chart-title-wrap">
+                  <span class="saas-chart-title"><i class="fa-solid fa-chart-pie"></i> Répartition des Statuts</span>
+                  <span class="saas-chart-subtitle">Validées vs En attente vs Annulées</span>
+                </div>
+              </div>
+              <div class="saas-donut-grid" id="stats-cars-donut-chart">
+                <!-- SVG donut + Legend -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SaaS Grid: Leaderboard Supercars & Demand Histogram / Top Loueurs -->
           <div class="dashboard-grid">
-            <!-- Left: Top Supercars les plus louées -->
-            <div class="stats-ranking-card">
-              <div class="stats-ranking-header">
-                <h3><i class="fa-solid fa-trophy" style="color: #eab308;"></i> Top Supercars les Plus Demandées</h3>
+            <!-- Left: Top Supercars Leaderboard -->
+            <div class="saas-chart-card">
+              <div class="saas-chart-header">
+                <div class="saas-chart-title-wrap">
+                  <span class="saas-chart-title"><i class="fa-solid fa-trophy"></i> Top Supercars les Plus Demandées</span>
+                  <span class="saas-chart-subtitle">Classement par volume de location et chiffre d'affaires</span>
+                </div>
                 <span style="font-size: 11.5px; color: #71717a;" id="stats-cars-unique-count">0 modèles</span>
               </div>
               <div class="stats-ranking-list" id="stats-cars-top-vehicles-list">
@@ -416,25 +451,31 @@
               </div>
             </div>
 
-            <!-- Right: Top Clients VIP & Répartition -->
+            <!-- Right Column: Histogram & Top Clients -->
             <div style="display: flex; flex-direction: column; gap: 16px;">
-              <!-- Top Clients -->
-              <div class="stats-ranking-card">
-                <div class="stats-ranking-header">
-                  <h3><i class="fa-solid fa-crown" style="color: var(--accent-gold, #c5a880);"></i> Top Loueurs VIP</h3>
-                  <span style="font-size: 11.5px; color: #71717a;" id="stats-cars-clients-count">0 loueur(s)</span>
+              <!-- Histogramme de demande -->
+              <div class="saas-chart-card">
+                <div class="saas-chart-header">
+                  <div class="saas-chart-title-wrap">
+                    <span class="saas-chart-title"><i class="fa-solid fa-chart-simple"></i> Histogramme de Demande</span>
+                    <span class="saas-chart-subtitle">Volume comparatif des véhicules leaders</span>
+                  </div>
                 </div>
-                <div class="stats-ranking-list" id="stats-cars-top-clients-list">
-                  <!-- Rendered dynamically -->
+                <div class="saas-chart-svg-wrap" id="stats-cars-barchart" style="min-height: 150px;">
+                  <!-- SVG dynamic bar chart -->
                 </div>
               </div>
 
-              <!-- Répartition Statuts -->
-              <div class="stats-ranking-card">
-                <div class="stats-ranking-header">
-                  <h3><i class="fa-solid fa-chart-pie" style="color: #3b82f6;"></i> État des Dossiers Véhicules</h3>
+              <!-- Top Loueurs VIP -->
+              <div class="saas-chart-card">
+                <div class="saas-chart-header">
+                  <div class="saas-chart-title-wrap">
+                    <span class="saas-chart-title"><i class="fa-solid fa-crown"></i> Top Loueurs VIP</span>
+                    <span class="saas-chart-subtitle">Clients ayant cumulé le plus de locations</span>
+                  </div>
+                  <span style="font-size: 11.5px; color: #71717a;" id="stats-cars-clients-count">0 loueur(s)</span>
                 </div>
-                <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;" id="stats-cars-status-breakdown">
+                <div class="stats-ranking-list" id="stats-cars-top-clients-list">
                   <!-- Rendered dynamically -->
                 </div>
               </div>
@@ -524,69 +565,104 @@
           </div>
         </section>
 
-        <!-- Tab 4b: Statistiques & Performance Hôtelière -->
+        <!-- Tab 4b: Statistiques & Performance Hôtelière (SaaS Analytics) -->
         <section class="admin-tab-content" id="tab-bookings-suites">
           <div class="admin-page-header">
             <div>
               <h1>Statistiques &amp; Performance Hôtelière</h1>
-              <p>Analyse détaillée des revenus générés par les suites, de l'occupation et des résidents VIP.</p>
+              <p>Tableau de bord analytique SaaS — Revenus d'hébergements, occupation et clientèle résidente.</p>
             </div>
-            <button class="admin-btn-secondary" onclick="window.loadBookings()"><i class="fa-solid fa-rotate-right"></i> Rafraîchir les Stats</button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <div class="saas-pills-group" id="suites-period-filter">
+                <button type="button" class="saas-pill-btn active" data-period="all" onclick="window.setStatsPeriod('suites', 'all')">Tout</button>
+                <button type="button" class="saas-pill-btn" data-period="30d" onclick="window.setStatsPeriod('suites', '30d')">30 jours</button>
+                <button type="button" class="saas-pill-btn" data-period="7d" onclick="window.setStatsPeriod('suites', '7d')">7 jours</button>
+              </div>
+              <button class="admin-btn-secondary" onclick="window.loadBookings()"><i class="fa-solid fa-rotate-right"></i> Actualiser</button>
+            </div>
           </div>
 
-          <!-- KPI Grid Stats Suites -->
+          <!-- KPI Cards Grid (Vercel Monochrome) -->
           <div class="kpi-grid">
             <div class="kpi-card">
-              <div class="kpi-icon" style="color: #c5a880; background: rgba(197, 168, 128, 0.1); border-color: rgba(197, 168, 128, 0.25);">
-                <i class="fa-solid fa-coins"></i>
-              </div>
+              <div class="kpi-icon"><i class="fa-solid fa-chart-line"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Revenu Total Hôtellerie</span>
+                <span class="kpi-label">Revenu Hôtelier</span>
                 <span class="kpi-value" id="stats-suites-total-revenue">0 €</span>
-                <span class="kpi-trend positive" id="stats-suites-revenue-sub">0 séjours validés</span>
+                <span class="kpi-trend positive" id="stats-suites-revenue-sub">0 séjour(s) validé(s)</span>
               </div>
             </div>
 
             <div class="kpi-card">
-              <div class="kpi-icon" style="color: #a855f7; background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.25);">
-                <i class="fa-solid fa-hotel"></i>
-              </div>
+              <div class="kpi-icon"><i class="fa-solid fa-hotel"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Total Demandes Séjours</span>
+                <span class="kpi-label">Demandes Globales</span>
                 <span class="kpi-value" id="stats-suites-total-bookings">0</span>
-                <span class="kpi-trend" id="stats-suites-bookings-sub">0 en attente</span>
+                <span class="kpi-trend" id="stats-suites-bookings-sub">0 en cours</span>
               </div>
             </div>
 
             <div class="kpi-card">
-              <div class="kpi-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.25);">
-                <i class="fa-solid fa-circle-check"></i>
-              </div>
+              <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Taux d'Acceptation</span>
+                <span class="kpi-label">Taux d'Occupation / Succès</span>
                 <span class="kpi-value" id="stats-suites-conversion-rate">0%</span>
-                <span class="kpi-trend positive" id="stats-suites-conversion-sub">Confirmation séjours</span>
+                <span class="kpi-trend positive" id="stats-suites-conversion-sub">Dossiers confirmés</span>
               </div>
             </div>
 
             <div class="kpi-card">
-              <div class="kpi-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.25);">
-                <i class="fa-solid fa-receipt"></i>
-              </div>
+              <div class="kpi-icon"><i class="fa-solid fa-receipt"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Panier Moyen / Séjour</span>
+                <span class="kpi-label">Panier Moyen</span>
                 <span class="kpi-value" id="stats-suites-avg-price">0 €</span>
-                <span class="kpi-trend" id="stats-suites-avg-sub">Moyenne par réservation</span>
+                <span class="kpi-trend" id="stats-suites-avg-sub">Moyenne par séjour</span>
               </div>
             </div>
           </div>
 
-          <!-- Dashboard 2 Columns -->
+          <!-- Main SaaS Charts Row (Timeline Area Chart + Donut Distribution) -->
+          <div class="saas-charts-row">
+            <!-- Area Timeline Curve -->
+            <div class="saas-chart-card">
+              <div class="saas-chart-header">
+                <div class="saas-chart-title-wrap">
+                  <span class="saas-chart-title"><i class="fa-solid fa-chart-area"></i> Trajectoire des Revenus Hôteliers</span>
+                  <span class="saas-chart-subtitle">Évolution journalière du volume financier généré par les suites</span>
+                </div>
+                <div class="saas-pills-group" id="suites-chart-metric-toggle">
+                  <button type="button" class="saas-pill-btn active" data-metric="revenue" onclick="window.toggleStatsMetric('suites', 'revenue')">Revenu (€)</button>
+                  <button type="button" class="saas-pill-btn" data-metric="count" onclick="window.toggleStatsMetric('suites', 'count')">Volume</button>
+                </div>
+              </div>
+              <div class="saas-chart-svg-wrap" id="stats-suites-timeline-chart">
+                <!-- SVG dynamic line/area curve -->
+              </div>
+            </div>
+
+            <!-- Donut Status Breakdown -->
+            <div class="saas-chart-card">
+              <div class="saas-chart-header">
+                <div class="saas-chart-title-wrap">
+                  <span class="saas-chart-title"><i class="fa-solid fa-chart-pie"></i> Répartition des Séjours</span>
+                  <span class="saas-chart-subtitle">Validés vs En attente vs Annulés</span>
+                </div>
+              </div>
+              <div class="saas-donut-grid" id="stats-suites-donut-chart">
+                <!-- SVG donut + Legend -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SaaS Grid: Leaderboard Suites & Demand Histogram / Top Résidents -->
           <div class="dashboard-grid">
-            <!-- Left: Top Suites les plus réservées -->
-            <div class="stats-ranking-card">
-              <div class="stats-ranking-header">
-                <h3><i class="fa-solid fa-trophy" style="color: #eab308;"></i> Top Suites &amp; Hébergements Prisés</h3>
+            <!-- Left: Top Suites Leaderboard -->
+            <div class="saas-chart-card">
+              <div class="saas-chart-header">
+                <div class="saas-chart-title-wrap">
+                  <span class="saas-chart-title"><i class="fa-solid fa-trophy"></i> Top Suites les Plus Prisées</span>
+                  <span class="saas-chart-subtitle">Classement par volume d'occupation et chiffre d'affaires</span>
+                </div>
                 <span style="font-size: 11.5px; color: #71717a;" id="stats-suites-unique-count">0 suites</span>
               </div>
               <div class="stats-ranking-list" id="stats-suites-top-suites-list">
@@ -594,25 +670,31 @@
               </div>
             </div>
 
-            <!-- Right: Top Clients VIP & Répartition -->
+            <!-- Right Column: Histogram & Top Clients -->
             <div style="display: flex; flex-direction: column; gap: 16px;">
-              <!-- Top Clients -->
-              <div class="stats-ranking-card">
-                <div class="stats-ranking-header">
-                  <h3><i class="fa-solid fa-crown" style="color: var(--accent-gold, #c5a880);"></i> Top Résidents VIP</h3>
-                  <span style="font-size: 11.5px; color: #71717a;" id="stats-suites-clients-count">0 résident(s)</span>
+              <!-- Histogramme de demande suites -->
+              <div class="saas-chart-card">
+                <div class="saas-chart-header">
+                  <div class="saas-chart-title-wrap">
+                    <span class="saas-chart-title"><i class="fa-solid fa-chart-simple"></i> Histogramme des Réservations</span>
+                    <span class="saas-chart-subtitle">Volume comparatif des suites leaders</span>
+                  </div>
                 </div>
-                <div class="stats-ranking-list" id="stats-suites-top-clients-list">
-                  <!-- Rendered dynamically -->
+                <div class="saas-chart-svg-wrap" id="stats-suites-barchart" style="min-height: 150px;">
+                  <!-- SVG dynamic bar chart -->
                 </div>
               </div>
 
-              <!-- Répartition Statuts -->
-              <div class="stats-ranking-card">
-                <div class="stats-ranking-header">
-                  <h3><i class="fa-solid fa-chart-pie" style="color: #a855f7;"></i> État des Dossiers Hébergements</h3>
+              <!-- Top Résidents VIP -->
+              <div class="saas-chart-card">
+                <div class="saas-chart-header">
+                  <div class="saas-chart-title-wrap">
+                    <span class="saas-chart-title"><i class="fa-solid fa-crown"></i> Top Résidents VIP</span>
+                    <span class="saas-chart-subtitle">Clients ayant cumulé le plus de séjours</span>
+                  </div>
+                  <span style="font-size: 11.5px; color: #71717a;" id="stats-suites-clients-count">0 résident(s)</span>
                 </div>
-                <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;" id="stats-suites-status-breakdown">
+                <div class="stats-ranking-list" id="stats-suites-top-clients-list">
                   <!-- Rendered dynamically -->
                 </div>
               </div>
