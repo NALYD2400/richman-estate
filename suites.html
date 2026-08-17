@@ -382,10 +382,10 @@
         </div>
 
         <!-- Auth / Role Verification Gate Banner -->
-        <div id="suite-res-auth-gate" style="display: none; margin-top: 14px; border-radius: 14px; font-size: 13px; line-height: 1.5;"></div>
+        <div id="suite-res-auth-gate" style="display: none; margin-top: 8px; border-radius: 10px; font-size: 12px; line-height: 1.4;"></div>
 
         <!-- Reservation Form -->
-        <form id="suite-reservation-form" style="display: flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+        <form id="suite-reservation-form" style="display: flex; flex-direction: column; gap: 9px; margin-top: 8px;">
           <!-- Hidden inputs for suite binding -->
           <input type="hidden" id="res-suite-id" />
           <input type="hidden" id="res-suite-name" />
@@ -413,16 +413,16 @@
           </div>
 
           <!-- Client RP Identity & Phone -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-              <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Nom &amp; Prénom RP</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 3px;">
+              <label style="font-size: 11.5px; font-weight: 600; color: #d4d4d8;">Nom &amp; Prénom RP</label>
               <div class="luxury-input-wrap">
                 <i class="fa-solid fa-user"></i>
                 <input type="text" id="res-suite-client-name" required placeholder="ex: George Pinty" />
               </div>
             </div>
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-              <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Numéro de Téléphone RP</label>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 3px;">
+              <label style="font-size: 11.5px; font-weight: 600; color: #d4d4d8;">Numéro de Téléphone RP</label>
               <div class="luxury-input-wrap">
                 <i class="fa-solid fa-phone"></i>
                 <input type="text" id="res-suite-client-phone" required placeholder="ex: 555-0192" />
@@ -431,16 +431,16 @@
           </div>
 
           <!-- Rental Duration & Dates -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-              <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Date d'Arrivée (Check-in)</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 3px;">
+              <label style="font-size: 11.5px; font-weight: 600; color: #d4d4d8;">Date d'Arrivée (Check-in)</label>
               <div class="luxury-input-wrap">
                 <i class="fa-solid fa-calendar-day"></i>
                 <input type="date" id="res-suite-start-date" required />
               </div>
             </div>
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-              <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Durée du Séjour</label>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 3px;">
+              <label style="font-size: 11.5px; font-weight: 600; color: #d4d4d8;">Durée du Séjour</label>
               <div class="luxury-input-wrap">
                 <i class="fa-solid fa-moon"></i>
                 <select id="res-suite-duration-select">
@@ -458,36 +458,36 @@
           <!-- Cost Breakdown Calculation -->
           <div class="res-cost-breakdown">
             <div>
-              <span style="font-size: 11px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; display: block;">Total Estimé du Séjour</span>
-              <span style="font-size: 12.5px; color: #d4d4d8; margin-top: 2px; display: block;" id="res-suite-cost-formula">1 nuit × Tarif de base</span>
+              <span style="font-size: 10px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; display: block;">Total Estimé du Séjour</span>
+              <span style="font-size: 11.5px; color: #d4d4d8; margin-top: 1px; display: block;" id="res-suite-cost-formula">1 nuit × Tarif de base</span>
             </div>
-            <div style="font-size: 22px; font-weight: 800; color: #c5a880; font-family: var(--font-sans); letter-spacing: -0.02em;" id="res-suite-cost-total">
+            <div style="font-size: 18px; font-weight: 800; color: #c5a880; font-family: var(--font-sans); letter-spacing: -0.02em;" id="res-suite-cost-total">
               0 €
             </div>
           </div>
 
           <!-- Special Requests / Notes -->
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-            <label style="font-size: 12.5px; font-weight: 600; color: #d4d4d8;">Services Conciergerie &amp; Demandes Particulières</label>
-            <div class="luxury-input-wrap" style="align-items: flex-start; padding: 12px 16px;">
-              <i class="fa-solid fa-bell-concierge" style="margin-top: 4px;"></i>
-              <textarea id="res-suite-notes" rows="2" placeholder="ex: Champagne millésimé à l'arrivée, transfert en hélicoptère, majordome dédié..." style="width: 100%; background: transparent; border: none; color: #fff; font-size: 13px; outline: none; font-family: var(--font-sans); resize: none;"></textarea>
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 3px;">
+            <label style="font-size: 11.5px; font-weight: 600; color: #d4d4d8;">Services Conciergerie &amp; Demandes Particulières</label>
+            <div class="luxury-input-wrap luxury-textarea-wrap">
+              <i class="fa-solid fa-bell-concierge" style="margin-top: 2px;"></i>
+              <textarea id="res-suite-notes" rows="2" placeholder="ex: Champagne millésimé à l'arrivée, transfert en hélicoptère, majordome dédié..."></textarea>
             </div>
           </div>
 
           <!-- Discord Ticket Notice -->
-          <div style="background: rgba(88, 101, 242, 0.08); border: 1px solid rgba(88, 101, 242, 0.25); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; font-size: 12px; color: #cbd5e1; line-height: 1.4;">
-            <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(88, 101, 242, 0.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #818cf8; font-size: 16px;">
+          <div style="background: rgba(88, 101, 242, 0.08); border: 1px solid rgba(88, 101, 242, 0.22); border-radius: 10px; padding: 7px 12px; display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: #cbd5e1; line-height: 1.35;">
+            <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(88, 101, 242, 0.18); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #818cf8; font-size: 14px;">
               <i class="fa-brands fa-discord"></i>
             </div>
             <div>
-              <span style="color: #fff; font-weight: 600; display: block; margin-bottom: 2px;">Création automatique d'un salon Ticket Discord</span>
-              <span style="color: #94a3b8; font-size: 11.5px;">Un salon dédié sera ouvert sur le serveur et le bot vous enverra un MP avec le lien direct d'accès.</span>
+              <span style="color: #fff; font-weight: 600; display: block; font-size: 11.5px; margin-bottom: 1px;">Création automatique d'un salon Ticket Discord</span>
+              <span style="color: #94a3b8; font-size: 10.5px;">Un salon dédié sera ouvert sur le serveur et le bot vous enverra un MP avec le lien direct d'accès.</span>
             </div>
           </div>
 
           <!-- Submit Button -->
-          <button type="submit" id="btn-submit-suite-reservation" class="luxury-submit-btn" style="margin-top: 4px;">
+          <button type="submit" id="btn-submit-suite-reservation" class="luxury-submit-btn">
             <i class="fa-solid fa-sparkles"></i>
             <span>Confirmer la Réservation du Séjour</span>
           </button>

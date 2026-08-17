@@ -536,34 +536,65 @@ export function appendMessageBubble(containerEl: any, msg: any) {
   const cleanContent = String(msg.content || '').trim();
   if (!cleanContent) return;
 
-  // Bulletproof Deduplication
+  const msgId = msg.id != null ? String(msg.id) : null;
+  const senderRole = msg.sender_role === 'staff' ? 'staff' : 'client';
+  const tempKey = msg.temp_key || msg.pending_key || null;
+  const msgTimestamp = msg.created_at ? new Date(msg.created_at).getTime() : Date.now();
+
+  // Bulletproof Deduplication & Optimistic Message Reconciliation
   const existingRows = containerEl.querySelectorAll(".chat-msg-row");
   for (const row of existingRows) {
     const rowId = row.getAttribute("data-msg-id");
     const rowPending = row.getAttribute("data-pending-key");
+    const rowRole = row.classList.contains("staff") ? "staff" : "client";
+    const rowContent = (row.querySelector(".chat-msg-bubble")?.textContent || "").trim();
 
-    if (msg.id && rowId === String(msg.id)) return;
-    if (msg.id && rowPending === `${msg.sender_role}_${cleanContent}`) {
-      row.setAttribute("data-msg-id", String(msg.id));
-      row.removeAttribute("data-pending-key");
-      return;
+    // 1. Message with real DB ID already rendered
+    if (msgId && rowId === msgId) return;
+
+    // 2. Incoming message with real DB ID matches a pending optimistic bubble -> upgrade in place
+    if (msgId) {
+      if (rowPending && (rowPending === tempKey || (rowRole === senderRole && rowContent === cleanContent))) {
+        row.setAttribute("data-msg-id", msgId);
+        row.removeAttribute("data-pending-key");
+        return;
+      }
+      // If there's an un-ID'd row with identical content and role created recently (< 10s), upgrade it
+      if (!rowId && rowRole === senderRole && rowContent === cleanContent) {
+        row.setAttribute("data-msg-id", msgId);
+        row.removeAttribute("data-pending-key");
+        return;
+      }
     }
-    if (!msg.id && rowPending === `${msg.sender_role}_${cleanContent}`) return;
+
+    // 3. Incoming optimistic message (no DB ID)
+    if (!msgId) {
+      if (tempKey && rowPending === tempKey) return;
+      // If a row with exact same content & role was rendered in the last 5 seconds (realtime or double call) -> skip
+      if (rowRole === senderRole && rowContent === cleanContent) {
+        const rowTimeAttr = row.getAttribute("data-timestamp");
+        const rowTime = rowTimeAttr ? parseInt(rowTimeAttr, 10) : 0;
+        if (!rowTime || (Date.now() - rowTime < 5000)) {
+          if (tempKey && !rowId) row.setAttribute("data-pending-key", tempKey);
+          return;
+        }
+      }
+    }
   }
 
   // SÉCURITÉ : le badge Staff repose UNIQUEMENT sur sender_role, verrouillé en base
   // (add_booking_message force 'client' pour les non-admins). Les sender_id / sender_name
   // sont contrôlables par l'expéditeur et ne doivent pas piloter l'affichage staff.
-  const isStaff = msg.sender_role === 'staff';
-
-  const timeStr = new Date(msg.created_at || Date.now()).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const isStaff = senderRole === 'staff';
+  const timeStr = new Date(msgTimestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
   const row = document.createElement("div");
   row.className = `chat-msg-row ${isStaff ? 'staff' : 'client'}`;
-  if (msg.id) {
-    row.setAttribute("data-msg-id", String(msg.id));
-  } else {
-    row.setAttribute("data-pending-key", `${msg.sender_role}_${cleanContent}`);
+  row.setAttribute("data-timestamp", String(msgTimestamp));
+  if (msgId) {
+    row.setAttribute("data-msg-id", msgId);
+  } else if (tempKey) {
+    row.setAttribute("data-pending-key", tempKey);
   }
 
   row.innerHTML = `
@@ -916,33 +947,63 @@ document.addEventListener("DOMContentLoaded", () => {
     const input = document.getElementById("chat-message-input") as HTMLInputElement | null;
     const sendBtn = document.getElementById("chat-send-btn") as HTMLButtonElement | null;
     const msgContainer = document.getElementById("dialog-messages-container");
-    if (!input || !(window as any).activeChatBookingId) return;
+    const bookingId = (window as any).activeChatBookingId;
+    if (!input || !bookingId) return;
 
     const content = input.value.trim();
     if (!content) return;
 
     const rawUser = localStorage.getItem("richman_user");
     const activeUser = rawUser ? JSON.parse(rawUser) : { name: "Citoyen" };
+    const pendingKey = `pending_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     input.value = "";
     input.disabled = true;
     if (sendBtn) sendBtn.disabled = true;
 
+    // 1. Instant optimistic bubble append
+    if (msgContainer) {
+      appendMessageBubble(msgContainer, {
+        temp_key: pendingKey,
+        sender_name: activeUser.name || "Citoyen",
+        sender_role: "client",
+        content: content,
+        created_at: new Date().toISOString()
+      });
+    }
+
     try {
+      let insertedMsg: any = null;
       if (supabaseClient) {
-        await supabaseClient.from("booking_messages").insert([{
-          booking_id: (window as any).activeChatBookingId,
-          sender_name: activeUser.name || "Citoyen",
-          sender_id: activeUser.discord_id || null,
-          sender_role: "client",
-          content: content
-        }]);
+        const { data, error } = await supabaseClient
+          .from("booking_messages")
+          .insert([{
+            booking_id: bookingId,
+            sender_name: activeUser.name || "Citoyen",
+            sender_id: activeUser.discord_id || null,
+            sender_role: "client",
+            content: content
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        insertedMsg = data;
+      }
+
+      // Upgrade pending row with real DB ID if insert succeeded
+      if (insertedMsg && insertedMsg.id && msgContainer) {
+        const pendingRow = msgContainer.querySelector(`[data-pending-key="${pendingKey}"]`);
+        if (pendingRow) {
+          pendingRow.setAttribute("data-msg-id", String(insertedMsg.id));
+          pendingRow.removeAttribute("data-pending-key");
+        }
       }
 
       botFetch('/api/sync-booking-message', {
         method: "POST",
         body: JSON.stringify({
-          booking_id: (window as any).activeChatBookingId,
+          booking_id: bookingId,
           discord_id: activeUser.discord_id || null,
           sender_name: activeUser.name || "Citoyen",
           sender_role: "client",
@@ -951,16 +1012,12 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       }).catch(err => console.warn("Sync booking message error:", err));
 
-      if (msgContainer) {
-        appendMessageBubble(msgContainer, {
-          sender_name: activeUser.name,
-          sender_role: "client",
-          content: content,
-          created_at: new Date().toISOString()
-        });
-      }
     } catch (err: any) {
       console.error(err);
+      if (msgContainer) {
+        const pendingRow = msgContainer.querySelector(`[data-pending-key="${pendingKey}"]`);
+        if (pendingRow) pendingRow.remove();
+      }
       showToast("Erreur envoi message : " + err.message, "danger");
     } finally {
       input.disabled = false;

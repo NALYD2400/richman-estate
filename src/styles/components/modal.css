@@ -23,15 +23,15 @@
 }
 
 .luxury-reservation-modal-container {
-  background: linear-gradient(180deg, rgba(22, 22, 28, 0.96) 0%, rgba(11, 11, 15, 0.99) 100%);
+  background: linear-gradient(180deg, rgba(22, 22, 28, 0.98) 0%, rgba(11, 11, 15, 0.99) 100%);
   border: 1px solid rgba(197, 168, 128, 0.28);
-  border-radius: 28px;
+  border-radius: 22px;
   width: 100%;
-  max-width: 580px;
-  max-height: 92vh;
+  max-width: 550px;
+  max-height: 94vh;
   overflow-y: auto;
   scrollbar-width: none;
-  padding: 32px;
+  padding: 20px 24px 22px 24px;
   position: relative;
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.85), 0 0 50px rgba(197, 168, 128, 0.12);
   transform: scale(0.95) translateY(14px);
@@ -48,17 +48,17 @@
 
 .luxury-modal-close-btn {
   position: absolute;
-  top: 22px;
-  right: 22px;
-  width: 36px;
-  height: 36px;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #a1a1aa;
   display: grid;
   place-items: center;
-  font-size: 15px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
   z-index: 5;
@@ -72,47 +72,47 @@
 }
 
 .luxury-modal-header {
-  margin-bottom: 20px;
-  padding-right: 36px;
+  margin-bottom: 8px;
+  padding-right: 32px;
 }
 
 .luxury-modal-badge {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   color: #c5a880;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 8px;
+  margin-bottom: 3px;
 }
 
 .luxury-modal-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 800;
   color: #ffffff;
-  margin: 0 0 6px 0;
+  margin: 0 0 2px 0;
   letter-spacing: -0.02em;
 }
 
 .luxury-modal-subtitle {
-  font-size: 13px;
+  font-size: 12px;
   color: #a1a1aa;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.35;
 }
 
 .luxury-modal-share-badge-btn {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 2px 9px;
+  padding: 2px 8px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 6px;
   color: #d4d4d8;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -129,19 +129,19 @@
 .luxury-car-showcase {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
   background: radial-gradient(ellipse at 30% 50%, rgba(197, 168, 128, 0.12) 0%, rgba(255, 255, 255, 0.03) 60%, rgba(15, 15, 20, 0.6) 100%);
   border: 1px solid rgba(197, 168, 128, 0.22);
-  border-radius: 18px;
-  padding: 16px 20px;
-  margin-top: 4px;
+  border-radius: 14px;
+  padding: 8px 12px;
+  margin-top: 2px;
 }
 
 .luxury-car-thumb {
-  width: 110px;
-  height: 72px;
+  width: 84px;
+  height: 54px;
   background: rgba(0, 0, 0, 0.4);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,11 +151,11 @@
 }
 
 .luxury-car-thumb img {
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 92%;
+  max-height: 92%;
   object-fit: contain;
-  transform: scale(1.35);
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6));
+  transform: scale(1.25);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
 }
 
 #suite-reservation-modal-overlay .luxury-car-thumb img,
@@ -176,41 +176,41 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .luxury-car-badges {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .luxury-cat-badge {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 2px 7px;
+  padding: 1px 6px;
   background: rgba(197, 168, 128, 0.15);
   border: 1px solid rgba(197, 168, 128, 0.35);
   color: #c5a880;
-  border-radius: 6px;
-  letter-spacing: 0.06em;
+  border-radius: 5px;
+  letter-spacing: 0.05em;
 }
 
 .luxury-plate-badge {
   font-family: monospace;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 7px;
+  padding: 1px 6px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #d4d4d8;
-  border-radius: 6px;
-  letter-spacing: 0.05em;
+  border-radius: 5px;
+  letter-spacing: 0.04em;
 }
 
 .luxury-car-name {
   margin: 0;
-  font-size: 17px;
+  font-size: 15px;
   color: #ffffff;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -220,14 +220,14 @@
 }
 
 .luxury-car-price {
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: #a1a1aa;
 }
 
 .luxury-car-price .price-val {
   color: #c5a880;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13.5px;
 }
 
 /* Luxury Input Wraps */
@@ -235,37 +235,77 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 11px 16px;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 10px;
+  padding: 0 12px;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .luxury-input-wrap:focus-within {
   border-color: #c5a880;
   background: rgba(255, 255, 255, 0.07);
-  box-shadow: 0 0 18px rgba(197, 168, 128, 0.22);
+  box-shadow: 0 0 14px rgba(197, 168, 128, 0.2);
 }
 
 .luxury-input-wrap i {
   color: #c5a880;
-  font-size: 13.5px;
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
 .luxury-input-wrap input,
 .luxury-input-wrap select {
   flex: 1;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   background: transparent;
   border: none;
   color: #ffffff;
-  font-size: 13.5px;
+  font-size: 13px;
   font-family: var(--font-sans);
   outline: none;
+  margin: 0;
+  padding: 0;
+  line-height: normal;
+}
+
+.luxury-input-wrap input[type="date"] {
+  color-scheme: dark;
+  line-height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.luxury-input-wrap input[type="date"]::-webkit-datetime-edit {
+  padding: 0;
+  margin: 0;
+}
+
+.luxury-input-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) brightness(1.2);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  padding: 0;
+  margin: 0;
+}
+
+.luxury-input-wrap input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 .luxury-input-wrap input::placeholder {
   color: #71717a;
+}
+
+.luxury-input-wrap select {
+  cursor: pointer;
 }
 
 .luxury-input-wrap select option {
@@ -273,22 +313,72 @@
   color: #ffffff;
 }
 
-.luxury-input-wrap.luxury-textarea-wrap {
+/* Dropdown inside luxury-input-wrap injected by custom selects */
+.luxury-input-wrap .custom-select-container {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.luxury-input-wrap .custom-select-trigger {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  font-size: 13px;
+  color: #ffffff;
+  gap: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.luxury-input-wrap .custom-select-trigger .trigger-icon {
+  color: #c5a880;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.luxury-input-wrap .custom-select-trigger .trigger-text {
+  flex: 1;
+  color: #ffffff;
+}
+
+.luxury-input-wrap .custom-select-trigger .trigger-arrow {
+  color: #a1a1aa;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.luxury-input-wrap.luxury-textarea-wrap,
+.luxury-input-wrap:has(textarea) {
+  height: auto;
+  min-height: 48px;
+  max-height: none;
   align-items: flex-start;
-  padding-top: 12px;
+  padding: 7px 12px;
 }
 
 .luxury-input-wrap textarea {
   flex: 1;
+  width: 100%;
   background: transparent;
   border: none;
   color: #ffffff;
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-family: var(--font-sans);
   outline: none;
-  resize: vertical;
-  min-height: 85px;
-  line-height: 1.5;
+  resize: none;
+  min-height: 34px;
+  height: 34px;
+  line-height: 1.35;
+  margin: 0;
+  padding: 0;
 }
 
 .luxury-input-wrap textarea::placeholder {
@@ -296,9 +386,9 @@
 }
 
 .luxury-cancel-btn {
-  height: 50px;
-  border-radius: 14px;
-  font-size: 14px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 13.5px;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -320,32 +410,32 @@
 .luxury-option-card {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 14px 18px;
+  border-radius: 14px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .option-icon-wrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background: rgba(197, 168, 128, 0.12);
   border: 1px solid rgba(197, 168, 128, 0.25);
   color: #c5a880;
   display: grid;
   place-items: center;
-  font-size: 16px;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
 .luxury-switch-label {
   position: relative;
   display: inline-block;
-  width: 46px;
-  height: 26px;
+  width: 42px;
+  height: 24px;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -360,12 +450,12 @@
 .res-cost-breakdown {
   background: rgba(197, 168, 128, 0.09);
   border: 1px solid rgba(197, 168, 128, 0.26);
-  border-radius: 16px;
-  padding: 14px 20px;
+  border-radius: 12px;
+  padding: 6px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 4px;
+  margin-top: 1px;
 }
 
 /* Switch Toggle Slider */
@@ -381,8 +471,8 @@
 .toggle-switch-slider:before {
   position: absolute;
   content: "";
-  height: 18px;
-  width: 18px;
+  height: 16px;
+  width: 16px;
   left: 4px;
   bottom: 4px;
   background-color: #ffffff;
@@ -396,32 +486,33 @@ input:checked + .toggle-switch-slider {
 }
 
 input:checked + .toggle-switch-slider:before {
-  transform: translateX(20px);
+  transform: translateX(18px);
 }
 
 /* Luxury Submit Button */
 .luxury-submit-btn {
-  margin-top: 8px;
-  height: 50px;
-  border-radius: 14px;
-  font-size: 14.5px;
+  margin-top: 2px;
+  height: 40px;
+  border-radius: 11px;
+  font-size: 13.5px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 8px;
   border: none;
   cursor: pointer;
   background: linear-gradient(135deg, #c5a880 0%, #dfcbaf 100%);
   color: #0b0b0e;
-  box-shadow: 0 8px 24px rgba(197, 168, 128, 0.35);
+  box-shadow: 0 6px 20px rgba(197, 168, 128, 0.3);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
 }
 
 .luxury-submit-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   background: linear-gradient(135deg, #d8bc93 0%, #f0dec5 100%);
-  box-shadow: 0 12px 32px rgba(197, 168, 128, 0.5);
+  box-shadow: 0 10px 26px rgba(197, 168, 128, 0.45);
 }
 
 /* Showroom Favorites Button */

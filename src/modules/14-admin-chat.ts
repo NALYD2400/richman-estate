@@ -104,19 +104,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const rawUser = localStorage.getItem("richman_user");
     const activeUser = rawUser ? JSON.parse(rawUser) : { name: "Staff Conciergerie" };
+    const pendingKey = `pending_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     input.value = "";
     input.disabled = true;
 
+    // Instant optimistic bubble append
+    if (container) {
+      appendMessageBubble(container, {
+        temp_key: pendingKey,
+        sender_name: activeUser.name || "Staff Richman",
+        sender_role: "staff",
+        content: content,
+        created_at: new Date().toISOString()
+      });
+    }
+
     try {
+      let insertedMsg: any = null;
       if (supabaseClient) {
-        await supabaseClient.from("booking_messages").insert([{
-          booking_id: bId,
-          sender_name: activeUser.name || "Staff Richman",
-          sender_id: activeUser.discord_id || null,
-          sender_role: "staff",
-          content: content
-        }]);
+        const { data, error } = await supabaseClient
+          .from("booking_messages")
+          .insert([{
+            booking_id: bId,
+            sender_name: activeUser.name || "Staff Richman",
+            sender_id: activeUser.discord_id || null,
+            sender_role: "staff",
+            content: content
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        insertedMsg = data;
+      }
+
+      if (insertedMsg && insertedMsg.id && container) {
+        const pendingRow = container.querySelector(`[data-pending-key="${pendingKey}"]`);
+        if (pendingRow) {
+          pendingRow.setAttribute("data-msg-id", String(insertedMsg.id));
+          pendingRow.removeAttribute("data-pending-key");
+        }
       }
 
       // Propagate via Bot API (Web -> Discord Ticket)
@@ -132,16 +160,13 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       }).catch(err => console.warn("Admin sync booking message error:", err));
 
-      appendMessageBubble(container, {
-        sender_name: activeUser.name,
-        sender_role: "staff",
-        content: content,
-        created_at: new Date().toISOString()
-      });
-
       showToast("Message envoyé au client (Site & Discord) !", "success");
     } catch (err: any) {
       console.error(err);
+      if (container) {
+        const pendingRow = container.querySelector(`[data-pending-key="${pendingKey}"]`);
+        if (pendingRow) pendingRow.remove();
+      }
       showToast("Erreur envoi message : " + err.message, "danger");
     } finally {
       input.disabled = false;
@@ -366,20 +391,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const rawUser = localStorage.getItem("richman_user");
     const activeUser = rawUser ? JSON.parse(rawUser) : { name: "Staff Conciergerie" };
+    const pendingKey = `pending_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     input.value = "";
     input.disabled = true;
     if (sendBtn) sendBtn.disabled = true;
 
+    // Instant optimistic bubble append
+    if (stream) {
+      appendMessageBubble(stream, {
+        temp_key: pendingKey,
+        sender_name: activeUser.name || "Staff Richman",
+        sender_role: "staff",
+        content: content,
+        created_at: new Date().toISOString()
+      });
+    }
+
     try {
+      let insertedMsg: any = null;
       if (supabaseClient) {
-        await supabaseClient.from("booking_messages").insert([{
-          booking_id: adminActiveTicket.id,
-          sender_name: activeUser.name || "Staff Richman",
-          sender_id: activeUser.discord_id || null,
-          sender_role: "staff",
-          content: content
-        }]);
+        const { data, error } = await supabaseClient
+          .from("booking_messages")
+          .insert([{
+            booking_id: adminActiveTicket.id,
+            sender_name: activeUser.name || "Staff Richman",
+            sender_id: activeUser.discord_id || null,
+            sender_role: "staff",
+            content: content
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        insertedMsg = data;
+      }
+
+      if (insertedMsg && insertedMsg.id && stream) {
+        const pendingRow = stream.querySelector(`[data-pending-key="${pendingKey}"]`);
+        if (pendingRow) {
+          pendingRow.setAttribute("data-msg-id", String(insertedMsg.id));
+          pendingRow.removeAttribute("data-pending-key");
+        }
       }
 
       // Propagate via Bot API (Web -> Discord Ticket)
@@ -395,18 +448,13 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       }).catch(err => console.warn("Admin sync booking message error:", err));
 
-      if (stream) {
-        appendMessageBubble(stream, {
-          sender_name: activeUser.name,
-          sender_role: "staff",
-          content: content,
-          created_at: new Date().toISOString()
-        });
-      }
-
       showToast("Réponse transmise au client (Web & Ticket Discord) !", "success");
     } catch (err: any) {
       console.error(err);
+      if (stream) {
+        const pendingRow = stream.querySelector(`[data-pending-key="${pendingKey}"]`);
+        if (pendingRow) pendingRow.remove();
+      }
       showToast("Erreur envoi réponse : " + err.message, "danger");
     } finally {
       input.disabled = false;

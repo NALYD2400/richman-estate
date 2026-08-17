@@ -5,36 +5,67 @@
 .luxury-input-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.05);
+  gap: 10px;
+  height: 38px;
+  min-height: 38px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 12px 16px;
+  border-radius: 10px;
+  padding: 0 12px;
   transition: all 0.2s ease;
 }
 
 .luxury-input-wrap:focus-within {
   border-color: rgba(197, 168, 128, 0.5);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 16px rgba(197, 168, 128, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 14px rgba(197, 168, 128, 0.2);
 }
 
 .luxury-input-wrap i {
   color: #c5a880;
-  font-size: 15px;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
 .luxury-input-wrap input,
-.luxury-input-wrap select,
+.luxury-input-wrap select {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-family: var(--font-sans, inherit);
+  outline: none;
+  margin: 0;
+  padding: 0;
+  line-height: normal;
+}
+
+.luxury-input-wrap.luxury-textarea-wrap,
+.luxury-input-wrap:has(textarea) {
+  height: auto;
+  min-height: 48px;
+  align-items: flex-start;
+  padding: 7px 12px;
+}
+
 .luxury-input-wrap textarea {
   width: 100%;
   background: transparent;
   border: none;
   color: #ffffff;
-  font-size: 14px;
+  font-size: 12.5px;
   font-family: var(--font-sans, inherit);
   outline: none;
+  resize: none;
+  min-height: 34px;
+  height: 34px;
+  line-height: 1.35;
+  margin: 0;
+  padding: 0;
 }
 
 .luxury-input-wrap input::placeholder,
