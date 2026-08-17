@@ -248,6 +248,18 @@
                   <option value="name-asc">Nom (A → Z)</option>
                 </select>
               </div>
+
+              <!-- Grid Layout Switcher -->
+              <div class="showroom-grid-control" id="showroom-grid-control" role="group" aria-label="Disposition de la grille">
+                <span class="grid-control-label" title="Affichage par ligne"><i class="fa-solid fa-table-cells-large"></i></span>
+                <div class="grid-switcher-divider"></div>
+                <div class="grid-switcher-btns">
+                  <button type="button" class="grid-switcher-btn" data-cols="2" onclick="window.setRichmanGridCols(2)" title="2 par ligne (Grand format)">2</button>
+                  <button type="button" class="grid-switcher-btn active" data-cols="3" onclick="window.setRichmanGridCols(3)" title="3 par ligne (Standard)">3</button>
+                  <button type="button" class="grid-switcher-btn" data-cols="4" onclick="window.setRichmanGridCols(4)" title="4 par ligne (Compact)">4</button>
+                  <button type="button" class="grid-switcher-btn" data-cols="5" onclick="window.setRichmanGridCols(5)" title="5 par ligne (Panoramique)">5</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

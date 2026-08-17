@@ -14,8 +14,11 @@ import { extractItemMediaArray } from "./08-media-carousel";
 import { applyPublicFleetFilters } from "./09-showroom-pagination";
 
 export function initRichmanGridSystem() {
-  const fleetGrid = document.getElementById("public-fleet-grid");
-  if (!fleetGrid) return;
+  const targetGrids = [
+    document.getElementById("public-fleet-grid"),
+    document.getElementById("public-suites-grid")
+  ].filter(Boolean);
+  if (targetGrids.length === 0) return;
   let savedCols = 3;
   try {
     const stored = localStorage.getItem("richman_fleet_grid_cols");
@@ -134,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initLuxuryCustomSelects();
 
   // ==========================================================================
-  // SHOWROOM DYNAMIC GRID CONTROLLER (2, 3, 4, 5 COLUMNS - VEHICULES ONLY)
+  // SHOWROOM DYNAMIC GRID CONTROLLER (2, 3, 4, 5 COLUMNS - VEHICULES & SUITES)
   // ==========================================================================
   (window as any).setRichmanGridCols = function (cols: number, save = true) {
     const validCols = [2, 3, 4, 5];
@@ -146,12 +149,16 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (e) { console.warn('[Richman]', e); }
     }
 
-    // Apply only to public fleet vehicle grid
-    const fleetGrid = document.getElementById("public-fleet-grid");
-    if (fleetGrid) {
-      validCols.forEach(c => fleetGrid.classList.remove(`grid-cols-${c}`));
-      fleetGrid.classList.add(`grid-cols-${targetCols}`);
-    }
+    // Apply to public fleet vehicle grid and suites grid
+    const targetGrids = [
+      document.getElementById("public-fleet-grid"),
+      document.getElementById("public-suites-grid")
+    ].filter(Boolean) as HTMLElement[];
+
+    targetGrids.forEach(grid => {
+      validCols.forEach(c => grid.classList.remove(`grid-cols-${c}`));
+      grid.classList.add(`grid-cols-${targetCols}`);
+    });
 
     // Update active class on switcher buttons
     const buttons = document.querySelectorAll(".grid-switcher-btn");
