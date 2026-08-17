@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!content) return;
 
     const rawUser = localStorage.getItem("richman_user");
-    const activeUser = rawUser ? JSON.parse(rawUser) : { name: "Staff Conciergerie" };
+    const activeUser = rawUser ? JSON.parse(rawUser) : { name: "Staff Richman" };
     const pendingKey = `pending_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     input.value = "";
@@ -390,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!content) return;
 
     const rawUser = localStorage.getItem("richman_user");
-    const activeUser = rawUser ? JSON.parse(rawUser) : { name: "Staff Conciergerie" };
+    const activeUser = rawUser ? JSON.parse(rawUser) : { name: "Staff Richman" };
     const pendingKey = `pending_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
     input.value = "";
