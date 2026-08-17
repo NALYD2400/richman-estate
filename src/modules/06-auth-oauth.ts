@@ -78,6 +78,42 @@ export function renderHeaderNavUserPill(displayName: any, avatarUrl: any, target
 }
 
 function applyRolePermissions(role: any) {
+  const rawUser = localStorage.getItem("richman_user");
+  const userData = rawUser ? JSON.parse(rawUser) : null;
+  const userRolesList = (userData && Array.isArray(userData.roles)) ? userData.roles : [];
+
+  const hasHotelRole = role === 'gerant_hotel' || userRolesList.some((r: any) => {
+    const n = (typeof r === 'string' ? r : r.name || '').toLowerCase();
+    return n.includes('hôtel') || n.includes('hotel');
+  });
+
+  const hasCarsRole = role === 'gerant_vehicules' || userRolesList.some((r: any) => {
+    const n = (typeof r === 'string' ? r : r.name || '').toLowerCase();
+    return n.includes('véhicule') || n.includes('vehicule') || n.includes('voiture');
+  });
+
+  if (hasHotelRole && hasCarsRole) {
+    // Dual Manager: has access to BOTH hotel and cars! Only hide users and logs if not owner/admin
+    if (role !== 'owner' && role !== 'admin') {
+      const forbiddenTabs = ['users', 'logs'];
+      forbiddenTabs.forEach(tabKey => {
+        const btn = document.querySelector(`.admin-nav-item[data-tab="${tabKey}"]`) as HTMLElement | null;
+        if (btn) btn.style.display = 'none';
+        const section = document.getElementById(`tab-${tabKey}`) as HTMLElement | null;
+        if (section) section.style.display = 'none';
+      });
+
+      const sectionTitles = document.querySelectorAll<HTMLElement>('.admin-nav-section-title');
+      sectionTitles.forEach(st => {
+        const txt = st.textContent ? st.textContent.trim() : '';
+        if (txt === 'Général') {
+          st.style.display = 'none';
+        }
+      });
+    }
+    return;
+  }
+
   if (role === 'gerant_hotel') {
     const forbiddenTabs = ['fleet', 'bookings-cars', 'tickets-cars', 'ctg-database', 'users', 'logs'];
     forbiddenTabs.forEach(tabKey => {
@@ -131,8 +167,33 @@ export function bindAdminUserCardDetails(displayName: any, avatarUrl: any, isOwn
 
   const effectiveRole = customRole || (isOwnerFlag ? "owner" : "admin");
   if (adminName) adminName.textContent = displayName || "NALYD";
+
+  const rawUser = localStorage.getItem("richman_user");
+  const userData = rawUser ? JSON.parse(rawUser) : null;
+  const userRolesList = (userData && Array.isArray(userData.roles)) ? userData.roles : [];
+
+  const hasHotelRole = effectiveRole === 'gerant_hotel' || userRolesList.some((r: any) => {
+    const n = (typeof r === 'string' ? r : r.name || '').toLowerCase();
+    return n.includes('hôtel') || n.includes('hotel');
+  });
+
+  const hasCarsRole = effectiveRole === 'gerant_vehicules' || userRolesList.some((r: any) => {
+    const n = (typeof r === 'string' ? r : r.name || '').toLowerCase();
+    return n.includes('véhicule') || n.includes('vehicule') || n.includes('voiture');
+  });
+
   if (adminRole) {
-    adminRole.textContent = effectiveRole === "owner" ? "Fondateur" : (effectiveRole === "gerant_hotel" ? "Gérant Hôtel" : (effectiveRole === "gerant_vehicules" ? "Gérant Véhicules" : "Administrateur"));
+    if (effectiveRole === "owner") {
+      adminRole.textContent = "Fondateur";
+    } else if (hasHotelRole && hasCarsRole) {
+      adminRole.textContent = "Gérant Hôtel & Flotte";
+    } else if (effectiveRole === "gerant_hotel" || hasHotelRole) {
+      adminRole.textContent = "Gérant Hôtel";
+    } else if (effectiveRole === "gerant_vehicules" || hasCarsRole) {
+      adminRole.textContent = "Gérant Véhicules";
+    } else {
+      adminRole.textContent = "Administrateur";
+    }
   }
 
   if (adminAvatar && avatarUrl && !avatarUrl.includes("logo.webp")) {
@@ -608,6 +669,7 @@ document.addEventListener("DOMContentLoaded", () => {
               localStorage.setItem("richman_user", JSON.stringify({
                 name: displayName,
                 role: userRole,
+                roles: res?.roles || [],
                 avatar: finalAvatar,
                 discord_id: discordUserId,
                 is_admin: isStaff || isOwner
