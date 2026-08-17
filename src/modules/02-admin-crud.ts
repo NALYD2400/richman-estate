@@ -803,6 +803,122 @@ export async function loadConciergeMessages() {
   });
 }
 
+export async function loadBookings() {
+  const carsContainer = document.getElementById("bookings-cars-table-body");
+  const suitesContainer = document.getElementById("bookings-suites-table-body");
+  if (!supabaseClient) return;
+  const { data, error } = await supabaseClient.from("bookings").select("*").order("created_at", { ascending: false });
+  if (error) return console.error("Error loading bookings:", error.message);
+  state.allBookingsList = data || [];
+  if (document.getElementById("fleet-admin-list") && state.allVehicles.length > 0) {
+    applyFleetFilters();
+  }
+
+  if (carsContainer) {
+    carsContainer.innerHTML = "";
+    const carBookings = data.filter(item => item.type === 'vehicule');
+    carBookings.forEach(item => {
+      const tr = document.createElement("tr");
+      const discordId = item.discord_id || '';
+      const encId = safeJsArg(item.id);
+      const encClient = safeJsArg(item.client_name);
+      const encItem = safeJsArg(item.item_name);
+      const encDiscord = safeJsArg(discordId);
+
+      const dmBtn = discordId ? `
+        <button class="table-act-btn icon-only" style="background: rgba(88, 101, 242, 0.15); border: 1px solid rgba(88, 101, 242, 0.35); color: #818cf8;" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="Envoyer un MP Discord au client">
+          <i class="fa-brands fa-discord"></i>
+        </button>
+      ` : '';
+      const chatBtn = `
+        <button class="table-act-btn icon-only" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880;" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Ouvrir la Discussion en Direct (Synchro 4-Voies)">
+          <i class="fa-solid fa-comments"></i>
+        </button>
+      `;
+      tr.innerHTML = `
+        <td>#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
+        <td>
+          <strong>${escapeHTML(item.client_name)}</strong>
+          ${discordId ? `<span style="display: block; font-size: 11px; color: #818cf8; margin-top: 2px;"><i class="fa-brands fa-discord"></i> <@${escapeHTML(discordId)}></span>` : ''}
+        </td>
+        <td>${escapeHTML(item.item_name)}</td>
+        <td>${escapeHTML(item.amount)}</td>
+        <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
+        <td>
+          <div class="table-actions-cell">
+            <button class="table-act-btn success icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check"></i></button>
+            <button class="table-act-btn danger icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Annuler"><i class="fa-solid fa-xmark"></i></button>
+            ${chatBtn}
+            ${dmBtn}
+          </div>
+        </td>
+      `;
+      carsContainer.appendChild(tr);
+    });
+  }
+
+  if (suitesContainer) {
+    suitesContainer.innerHTML = "";
+    const suiteBookings = data.filter(item => item.type !== 'vehicule');
+    suiteBookings.forEach(item => {
+      const tr = document.createElement("tr");
+      const discordId = item.discord_id || '';
+      const encId = safeJsArg(item.id);
+      const encClient = safeJsArg(item.client_name);
+      const encItem = safeJsArg(item.item_name);
+      const encDiscord = safeJsArg(discordId);
+
+      const dmBtn = discordId ? `
+        <button class="table-act-btn icon-only" style="background: rgba(88, 101, 242, 0.15); border: 1px solid rgba(88, 101, 242, 0.35); color: #818cf8;" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="Envoyer un MP Discord au client">
+          <i class="fa-brands fa-discord"></i>
+        </button>
+      ` : '';
+      const chatBtn = `
+        <button class="table-act-btn icon-only" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880;" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Ouvrir la Discussion en Direct (Synchro 4-Voies)">
+          <i class="fa-solid fa-comments"></i>
+        </button>
+      `;
+      tr.innerHTML = `
+        <td>#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
+        <td>
+          <strong>${escapeHTML(item.client_name)}</strong>
+          ${discordId ? `<span style="display: block; font-size: 11px; color: #818cf8; margin-top: 2px;"><i class="fa-brands fa-discord"></i> <@${escapeHTML(discordId)}></span>` : ''}
+        </td>
+        <td>${escapeHTML(item.item_name)}</td>
+        <td>${escapeHTML(item.amount)}</td>
+        <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
+        <td>
+          <div class="table-actions-cell">
+            <button class="table-act-btn success icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check"></i></button>
+            <button class="table-act-btn danger icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Annuler"><i class="fa-solid fa-xmark"></i></button>
+            ${chatBtn}
+            ${dmBtn}
+          </div>
+        </td>
+      `;
+      suitesContainer.appendChild(tr);
+    });
+  }
+
+  const overviewContainer = document.getElementById("overview-bookings-tbody");
+  if (overviewContainer) {
+    overviewContainer.innerHTML = "";
+    data.slice(0, 3).forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${escapeHTML(item.client_name)}</strong></td>
+        <td><span class="type-tag ${escapeHTML(item.type)}">${item.type === 'vehicule' ? 'Véhicule' : 'Suite'}</span></td>
+        <td>${escapeHTML(item.item_name)}</td>
+        <td>${escapeHTML(item.amount)}</td>
+        <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
+      `;
+      overviewContainer.appendChild(tr);
+    });
+  }
+
+  updateKPIs();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 // ==========================================================================
 // Admin Dashboard Tab Switcher & Modal CRUD & Live Search
@@ -1185,122 +1301,6 @@ if (clearBtn) {
   if (target) openSuiteModal(target);
 };
 
-async function loadBookings() {
-  const carsContainer = document.getElementById("bookings-cars-table-body");
-  const suitesContainer = document.getElementById("bookings-suites-table-body");
-  if (!supabaseClient) return;
-  const { data, error } = await supabaseClient.from("bookings").select("*").order("created_at", { ascending: false });
-  if (error) return console.error("Error loading bookings:", error.message);
-  state.allBookingsList = data || [];
-  if (document.getElementById("fleet-admin-list") && state.allVehicles.length > 0) {
-    applyFleetFilters();
-  }
-
-  if (carsContainer) {
-    carsContainer.innerHTML = "";
-    const carBookings = data.filter(item => item.type === 'vehicule');
-    carBookings.forEach(item => {
-      const tr = document.createElement("tr");
-      const discordId = item.discord_id || '';
-      const encId = safeJsArg(item.id);
-      const encClient = safeJsArg(item.client_name);
-      const encItem = safeJsArg(item.item_name);
-      const encDiscord = safeJsArg(discordId);
-
-      const dmBtn = discordId ? `
-        <button class="table-act-btn icon-only" style="background: rgba(88, 101, 242, 0.15); border: 1px solid rgba(88, 101, 242, 0.35); color: #818cf8;" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="Envoyer un MP Discord au client">
-          <i class="fa-brands fa-discord"></i>
-        </button>
-      ` : '';
-      const chatBtn = `
-        <button class="table-act-btn icon-only" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880;" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Ouvrir la Discussion en Direct (Synchro 4-Voies)">
-          <i class="fa-solid fa-comments"></i>
-        </button>
-      `;
-      tr.innerHTML = `
-        <td>#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
-        <td>
-          <strong>${escapeHTML(item.client_name)}</strong>
-          ${discordId ? `<span style="display: block; font-size: 11px; color: #818cf8; margin-top: 2px;"><i class="fa-brands fa-discord"></i> <@${escapeHTML(discordId)}></span>` : ''}
-        </td>
-        <td>${escapeHTML(item.item_name)}</td>
-        <td>${escapeHTML(item.amount)}</td>
-        <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
-        <td>
-          <div class="table-actions-cell">
-            <button class="table-act-btn success icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check"></i></button>
-            <button class="table-act-btn danger icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Annuler"><i class="fa-solid fa-xmark"></i></button>
-            ${chatBtn}
-            ${dmBtn}
-          </div>
-        </td>
-      `;
-      carsContainer.appendChild(tr);
-    });
-  }
-
-  if (suitesContainer) {
-    suitesContainer.innerHTML = "";
-    const suiteBookings = data.filter(item => item.type !== 'vehicule');
-    suiteBookings.forEach(item => {
-      const tr = document.createElement("tr");
-      const discordId = item.discord_id || '';
-      const encId = safeJsArg(item.id);
-      const encClient = safeJsArg(item.client_name);
-      const encItem = safeJsArg(item.item_name);
-      const encDiscord = safeJsArg(discordId);
-
-      const dmBtn = discordId ? `
-        <button class="table-act-btn icon-only" style="background: rgba(88, 101, 242, 0.15); border: 1px solid rgba(88, 101, 242, 0.35); color: #818cf8;" onclick="window.openBookingDMModal(decodeURIComponent('${encDiscord}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'))" title="Envoyer un MP Discord au client">
-          <i class="fa-brands fa-discord"></i>
-        </button>
-      ` : '';
-      const chatBtn = `
-        <button class="table-act-btn icon-only" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880;" onclick="window.openAdminChatModal(decodeURIComponent('${encId}'), decodeURIComponent('${encClient}'), decodeURIComponent('${encItem}'), decodeURIComponent('${encDiscord}'))" title="Ouvrir la Discussion en Direct (Synchro 4-Voies)">
-          <i class="fa-solid fa-comments"></i>
-        </button>
-      `;
-      tr.innerHTML = `
-        <td>#RES-${escapeHTML((item.id || '').slice(0,4).toUpperCase())}</td>
-        <td>
-          <strong>${escapeHTML(item.client_name)}</strong>
-          ${discordId ? `<span style="display: block; font-size: 11px; color: #818cf8; margin-top: 2px;"><i class="fa-brands fa-discord"></i> <@${escapeHTML(discordId)}></span>` : ''}
-        </td>
-        <td>${escapeHTML(item.item_name)}</td>
-        <td>${escapeHTML(item.amount)}</td>
-        <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
-        <td>
-          <div class="table-actions-cell">
-            <button class="table-act-btn success icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'confirmed')" title="Valider"><i class="fa-solid fa-check"></i></button>
-            <button class="table-act-btn danger icon-only" onclick="window.updateBookingStatus(decodeURIComponent('${encId}'), 'cancelled')" title="Annuler"><i class="fa-solid fa-xmark"></i></button>
-            ${chatBtn}
-            ${dmBtn}
-          </div>
-        </td>
-      `;
-      suitesContainer.appendChild(tr);
-    });
-  }
-
-  const overviewContainer = document.getElementById("overview-bookings-tbody");
-  if (overviewContainer) {
-    overviewContainer.innerHTML = "";
-    data.slice(0, 3).forEach(item => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><strong>${escapeHTML(item.client_name)}</strong></td>
-        <td><span class="type-tag ${escapeHTML(item.type)}">${item.type === 'vehicule' ? 'Véhicule' : 'Suite'}</span></td>
-        <td>${escapeHTML(item.item_name)}</td>
-        <td>${escapeHTML(item.amount)}</td>
-        <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
-      `;
-      overviewContainer.appendChild(tr);
-    });
-  }
-
-  updateKPIs();
-}
-
 (window as any).updateContactMessageStatus = async function(id, status) {
   if (!supabaseClient) return;
   const { error } = await supabaseClient.from("contact_messages").update({ status }).eq("id", id);
@@ -1344,6 +1344,7 @@ async function loadBookings() {
   (window as any).writeLog = writeLog;
   (window as any).loadVehicles = loadVehicles;
   (window as any).loadSuites = loadSuites;
+  (window as any).loadBookings = loadBookings;
   (window as any).loadLogs = loadLogs;
   (window as any).loadConciergeMessages = loadConciergeMessages;
 });

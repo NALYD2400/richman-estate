@@ -21,6 +21,7 @@ import {
   applyFleetFilters,
   closeModal,
   closeSuiteModal,
+  loadBookings,
   loadConciergeMessages,
   loadLogs,
   loadSuites,
@@ -231,7 +232,7 @@ function showConfirmDialog({
     }).catch(err => console.warn("Discord sync booking status error:", err));
   }
 
-  (window as any).loadBookings();
+  loadBookings();
   loadConciergeMessages();
   loadLogs();
 };
@@ -428,7 +429,7 @@ if (window.location.pathname.includes("admin") || document.getElementById("admin
   setTimeout(() => {
     loadVehicles();
     loadSuites();
-    (window as any).loadBookings();
+    loadBookings();
     loadLogs();
     loadConciergeMessages();
     loadUsers();

@@ -65,7 +65,16 @@ export async function loadCTGDatabase(page = 1) {
   if (!ctgVehiclesCache) {
     grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #8e8e8e; padding: 40px 0; font-family: var(--font-sans);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 8px;"></i><br>Chargement de la base locale (1159 véhicules)...</div>`;
     try {
-      const res = await fetch("ctg_vehicles.json");
+      let res = await fetch("/data/ctg_vehicles.json");
+      if (!res.ok) {
+        res = await fetch("data/ctg_vehicles.json");
+      }
+      if (!res.ok) {
+        res = await fetch("/ctg_vehicles.json");
+      }
+      if (!res.ok) {
+        res = await fetch("ctg_vehicles.json");
+      }
       if (!res.ok) throw new Error("Erreur de chargement de ctg_vehicles.json");
       ctgVehiclesCache = await res.json();
       applySavedCTGEdits();
