@@ -639,19 +639,29 @@ export function appendMessageBubble(containerEl: any, msg: any) {
     return;
   }
 
-  // 2. Intelligent Grouping for standard chat messages
+  // 2. Intelligent Grouping for standard chat messages (only if strictly the SAME user)
+  const currentSenderName = (msg.sender_name || (isStaff ? 'Staff Richman' : 'Membre VIP')).trim();
+  const currentSenderId = String(msg.sender_id || msg.discord_id || '').trim();
+
   const allRows = containerEl.querySelectorAll(".chat-msg-row");
   const lastRow = allRows.length > 0 ? allRows[allRows.length - 1] : null;
   let isGroupedContinuation = false;
 
   if (lastRow) {
     const lastRole = lastRow.classList.contains("staff") ? "staff" : "client";
+    const lastSenderName = (lastRow.getAttribute("data-sender-name") || "").trim();
+    const lastSenderId = (lastRow.getAttribute("data-sender-id") || "").trim();
     const lastTimeAttr = lastRow.getAttribute("data-timestamp");
     const lastTime = lastTimeAttr ? parseInt(lastTimeAttr, 10) : 0;
-    const sameSender = (lastRole === senderRole);
+
+    const isSamePerson = (lastRole === senderRole) && (
+      (currentSenderId && lastSenderId)
+        ? (currentSenderId === lastSenderId)
+        : (currentSenderName && lastSenderName ? currentSenderName.toLowerCase() === lastSenderName.toLowerCase() : true)
+    );
     const timeDiff = Math.abs(msgTimestamp - lastTime);
 
-    if (sameSender && timeDiff < 120000) {
+    if (isSamePerson && timeDiff < 120000) {
       isGroupedContinuation = true;
     }
   }
@@ -659,15 +669,18 @@ export function appendMessageBubble(containerEl: any, msg: any) {
   const row = document.createElement("div");
   row.className = `chat-msg-row ${isStaff ? 'staff' : 'client'} ${isGroupedContinuation ? 'grouped-continuation' : ''}`;
   row.setAttribute("data-timestamp", String(msgTimestamp));
+  row.setAttribute("data-sender-name", currentSenderName);
+  if (currentSenderId) row.setAttribute("data-sender-id", currentSenderId);
   if (msgId) {
     row.setAttribute("data-msg-id", msgId);
   } else if (tempKey) {
     row.setAttribute("data-pending-key", tempKey);
   }
 
+  const isAdminView = window.location.pathname.includes('admin') || (containerEl.id && containerEl.id.includes('admin'));
   const senderDisplayName = isStaff
-    ? (msg.sender_name || 'Staff Richman')
-    : 'Vous';
+    ? currentSenderName
+    : (isAdminView ? currentSenderName : 'Vous');
 
   const roleBadgeHtml = isStaff
     ? `<span class="chat-msg-role-chip staff"><i class="fa-solid fa-shield-halved"></i> Staff Richman</span>`
