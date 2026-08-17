@@ -29,16 +29,18 @@
 --      « Citoyen »).
 --
 -- PRINCIPE DU CORRECTIF :
---   * Le statut « fondateur » n'est reconnu QUE pour un compte créé par OAuth
---     Discord (app_metadata.provider='discord', contrôlé par le serveur),
---     jamais depuis des métadonnées d'un compte email.
+--   * Le statut « fondateur » n'est reconnu QUE via la table auth.identities
+--     (provider='discord'), écrite par GoTrue au flux OAuth et NON modifiable par
+--     l'utilisateur — jamais depuis user_metadata (forgeable, y compris par
+--     supabase.auth.updateUser pour un compte Discord déjà existant).
 --   * La liste des fondateurs est déplacée dans une table trusted_founders
 --     fermée (aucune policy pour anon/authenticated), pilotée par service_role.
 --   * La gestion des rôles passe par une RPC dédiée admin_set_role()
 --     (SECURITY DEFINER) : seuls owner/admin y ont droit, et seul un owner
 --     (ou le service_role) peut créer/rétrograder un owner.
 --   * Les colonnes sensibles (role, discord_roles, id) ne sont plus modifiables
---     en direct par authenticated ; le trigger verrouille aussi discord_id.
+--     en direct par authenticated ; le trigger verrouille aussi discord_id
+--     (uniquement modifiable vers SON PROPRE identifiant Discord vérifié).
 --   * Le matching par nom complet est supprimé des policies bookings/chat.
 -- ============================================================================
 
@@ -63,36 +65,26 @@ INSERT INTO public.trusted_founders (discord_id, added_by) VALUES
 ON CONFLICT (discord_id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
--- ÉTAPE 2 — Helpers de hiérarchie stricte
+-- ÉTAPE 2 — Helper de confiance : discord_id issu UNIQUEMENT de auth.identities
 -- ---------------------------------------------------------------------------
 
--- L'appelant est-il un utilisateur créé par OAuth Discord ?
--- (app_metadata est écrit par GoTrue/Supabase, PAS par le client)
-CREATE OR REPLACE FUNCTION public.is_discord_oauth(v_jwt JSONB)
-RETURNS BOOLEAN
-LANGUAGE plpgsql STABLE
-AS $$
-BEGIN
-  RETURN COALESCE(v_jwt -> 'app_metadata' ->> 'provider', '') = 'discord'
-      OR COALESCE(v_jwt -> 'app_metadata' ->> 'providers', '[]')::text LIKE '%"discord"%';
-END;
-$$;
-
--- discord_id de confiance : uniquement si OAuth Discord (sinon NULL)
-CREATE OR REPLACE FUNCTION public.trusted_discord_id(v_jwt JSONB)
+-- discord_id de confiance : lu dans la table auth.identities (provider='discord').
+-- Cette table est écrite par GoTrue lors du flux OAuth — l'utilisateur ne peut
+-- PAS la modifier (contrairement à user_metadata, forgeable via
+-- supabase.auth.updateUser({ data: { provider_id: ... } }) même pour un compte
+-- Discord déjà existant).
+-- NB : pour une identité Discord, provider_id = l'ID Discord (snowflake).
+CREATE OR REPLACE FUNCTION public.trusted_discord_id(v_uid UUID)
 RETURNS TEXT
 LANGUAGE plpgsql STABLE
 AS $$
 DECLARE v_id TEXT;
 BEGIN
-  IF NOT public.is_discord_oauth(v_jwt) THEN
-    RETURN NULL;
-  END IF;
-  RETURN COALESCE(
-    v_jwt -> 'user_metadata' ->> 'provider_id',
-    v_jwt -> 'user_metadata' ->> 'sub',
-    v_jwt ->> 'sub'
-  );
+  SELECT provider_id INTO v_id
+  FROM auth.identities
+  WHERE user_id = v_uid AND provider = 'discord'
+  LIMIT 1;
+  RETURN v_id;
 END;
 $$;
 
@@ -138,10 +130,15 @@ BEGIN
   v_is_discord := COALESCE(NEW.raw_app_meta_data->>'provider', '') = 'discord'
                   OR COALESCE(NEW.raw_app_meta_data->>'providers', '[]')::text LIKE '%"discord"%';
 
-  -- discord_id N'EST JAMAIS lu dans les métadonnées d'un compte non-Discord
-  v_discord_id := CASE WHEN v_is_discord THEN
+  -- discord_id de confiance : d'abord auth.identities (fiable), puis les
+  -- métadonnées UNIQUEMENT si le compte a été créé par OAuth Discord
+  -- (app_metadata écrit par GoTrue au moment de la création — pas forgeable ici).
+  v_discord_id := COALESCE(
+    public.trusted_discord_id(NEW.id),
+    CASE WHEN v_is_discord THEN
       COALESCE(NEW.raw_user_meta_data->>'provider_id', NEW.raw_user_meta_data->>'sub')
-    ELSE NULL END;
+    ELSE NULL END
+  );
 
   IF v_discord_id IS NOT NULL
      AND EXISTS (SELECT 1 FROM public.trusted_founders f WHERE f.discord_id = v_discord_id) THEN
@@ -222,25 +219,36 @@ DECLARE
   v_discord_id TEXT;
 BEGIN
   v_jwt := auth.jwt();
-  -- NULL si l'appelant n'est PAS un compte OAuth Discord (email, etc.)
-  v_discord_id := public.trusted_discord_id(v_jwt);
+  -- NULL si l'appelant n'a pas d'identité Discord vérifiée dans auth.identities
+  -- (email, compte forgé, updateUser avec metadata falsifiée : tout est ignoré)
+  v_discord_id := public.trusted_discord_id(auth.uid());
 
   IF TG_OP = 'INSERT' THEN
+    -- Contexte interne (trigger GoTrue handle_new_user) : PAS de JWT de requête.
+    -- On laisse handle_new_user décider (fondateur déjà promu à la création,
+    -- discord_id déjà résolu depuis auth.identities). Ne rien écraser.
+    IF auth.uid() IS NULL AND v_jwt IS NULL THEN
+      NULL;
     -- Auto-promotion fondateur : uniquement pour SA PROPRE ligne et si le
-    -- discord_id provient d'un OAuth Discord vérifié présent dans la whitelist
-    IF NEW.id = auth.uid()
-       AND v_discord_id IS NOT NULL
-       AND EXISTS (SELECT 1 FROM public.trusted_founders f WHERE f.discord_id = v_discord_id)
+    -- discord_id provient d'une identité Discord vérifiée présente dans la whitelist
+    ELSIF NEW.id = auth.uid()
+          AND v_discord_id IS NOT NULL
+          AND EXISTS (SELECT 1 FROM public.trusted_founders f WHERE f.discord_id = v_discord_id)
     THEN
       NEW.role := 'owner'::user_role;
+      NEW.discord_id := v_discord_id;
+    -- Anti-escalade : seul un owner (ou le bot/service) peut créer un owner
+    ELSIF NEW.role = 'owner'::user_role
+          AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin')
+          AND NOT public.is_owner() THEN
+      NEW.role := 'client'::user_role;
+    -- Verrouillage : un client non-admin ne peut insérer QUE role='client',
+    -- discord_id = SON identité vérifiée (ou NULL), discord_roles vide
     ELSIF NOT public.is_strict_admin()
           AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin') THEN
       NEW.role := 'client'::user_role;
       NEW.discord_roles := '[]'::jsonb;
-      -- Jamais de discord_id fourni par un client non-Discord
-      IF v_discord_id IS NULL THEN
-        NEW.discord_id := NULL;
-      END IF;
+      NEW.discord_id := v_discord_id;
     END IF;
   ELSIF TG_OP = 'UPDATE' THEN
     -- Changement de rôle / discord_roles / clé primaire ?
@@ -262,13 +270,15 @@ BEGIN
       END IF;
     END IF;
 
-    -- 4c. Verrouillage du discord_id : un client non-OAuth ne peut pas se
-    --     forger un discord_id (ex. l'ID d'un fondateur) via l'upsert du front
-    IF v_discord_id IS NULL
-       AND NEW.discord_id IS DISTINCT FROM OLD.discord_id
+    -- 4c. Verrouillage du discord_id : un client ne peut le positionner QUE sur
+    --     SON PROPRE identifiant Discord vérifié (auth.identities). Impossible
+    --     d'usurper le discord_id d'un fondateur (via upsert ou metadata forgée).
+    IF NEW.discord_id IS DISTINCT FROM OLD.discord_id
        AND NOT public.is_strict_admin()
        AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin') THEN
-      NEW.discord_id := OLD.discord_id;
+      IF NOT (NEW.id = auth.uid() AND v_discord_id IS NOT NULL AND NEW.discord_id = v_discord_id) THEN
+        NEW.discord_id := OLD.discord_id;
+      END IF;
     END IF;
   END IF;
 
@@ -286,8 +296,11 @@ CREATE TRIGGER protect_role_change
 --           modifiables en direct par authenticated (même un admin).
 --           Le changement de rôle passe obligatoirement par la RPC
 --           admin_set_role() ci-dessous (ou par le service_role du bot).
+--           NB : `id` n'est PAS révoqué — l'upsert du frontend (ON CONFLICT DO
+--           UPDATE SET id=...) l'exige ; la modification de la clé primaire est
+--           de toute façon verrouillée par le trigger (branche 4a).
 -- ---------------------------------------------------------------------------
-REVOKE UPDATE (role, discord_roles, id) ON public.profiles FROM authenticated;
+REVOKE UPDATE (role, discord_roles) ON public.profiles FROM authenticated;
 
 -- ---------------------------------------------------------------------------
 -- ÉTAPE 6 — RPC admin_set_role : unique porte d'entrée du changement de rôle
@@ -413,6 +426,264 @@ CREATE POLICY "booking_messages_select_member_or_admin" ON public.booking_messag
     );
 
 -- ---------------------------------------------------------------------------
+-- ÉTAPE 9 — Rôle 'vip' : l'UI admin le propose mais il n'existe pas dans l'enum
+--           user_role -> toute tentative d'attribution échouait en erreur SQL.
+-- ---------------------------------------------------------------------------
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_enum e
+    JOIN pg_type t ON e.enumtypid = t.oid
+    WHERE t.typname = 'user_role' AND e.enumlabel = 'vip'
+  ) THEN
+    ALTER TYPE public.user_role ADD VALUE 'vip';
+  END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
+-- ÉTAPE 10 — Insertion bookings : le discord_id fourni par le client doit être
+--            LE SIEN (celui de son profil) ou NULL. Empêche d'usurper le
+--            discord_id d'un autre (ex. fondateur) sur son propre dossier pour
+--            des badges/liens frauduleux, et empêche d'écraser des champs.
+-- ---------------------------------------------------------------------------
+DROP POLICY IF EXISTS "bookings_insert_pending" ON public.bookings;
+CREATE POLICY "bookings_insert_pending" ON public.bookings
+    FOR INSERT WITH CHECK (
+        (status = 'pending'
+         AND length(trim(client_name)) > 0
+         AND length(trim(item_name)) > 0
+         AND (
+             discord_id IS NULL
+             OR discord_id IN (
+                 SELECT p.discord_id FROM public.profiles p
+                 WHERE p.id = auth.uid() AND p.discord_id IS NOT NULL
+             )
+         ))
+        OR public.is_admin()
+    );
+
+-- ---------------------------------------------------------------------------
+-- ÉTAPE 11 — Détection & nettoyage des comptes fondateur déjà compromis
+--            (les profils owner créés AVANT ce patch via un provider_id forgé
+--            restent owner après le patch — à traiter manuellement).
+-- ---------------------------------------------------------------------------
+-- 11a. Inventaire : lister TOUS les profils owner avec leur discord_id.
+--      Un fondateur légitime a toujours un discord_id présent dans trusted_founders.
+SELECT id, discord_id, full_name, email, created_at
+FROM public.profiles
+WHERE role = 'owner'
+ORDER BY created_at ASC;
+
+-- 11b. À exécuter SEULEMENT après revue de la liste ci-dessus (SQL editor / service_role) :
+--      rétrograde les profils owner qui ne correspondent à AUCUN fondateur légitime.
+-- UPDATE public.profiles
+-- SET role = 'client'
+-- WHERE role = 'owner'
+--   AND (discord_id IS NULL OR discord_id NOT IN (SELECT discord_id FROM public.trusted_founders));
+
+-- ---------------------------------------------------------------------------
+-- ÉTAPE 12 — Résidus gérants & RPC : le read PII et la gestion des rôles sont
+--            réservés aux admins stricts ; create_booking ne fait plus confiance
+--            au discord_id du client ; user_id verrouillé sur l'appelant.
+-- ---------------------------------------------------------------------------
+
+-- 12a. is_admin() : révoquer aussi PUBLIC (hygiène des grants)
+REVOKE EXECUTE ON FUNCTION public.is_admin() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+
+-- 12b. profiles : lecture/écriture PII des autres comptes = admins stricts
+--      (les gérants gardent l'accès à leurs tables métier, plus aux profils/logs)
+DROP POLICY IF EXISTS "profiles_select_owner_or_admin" ON public.profiles;
+CREATE POLICY "profiles_select_owner_or_admin" ON public.profiles
+    FOR SELECT USING (id = auth.uid() OR public.is_strict_admin());
+
+DROP POLICY IF EXISTS "profiles_insert_user" ON public.profiles;
+CREATE POLICY "profiles_insert_user" ON public.profiles
+    FOR INSERT WITH CHECK (id = auth.uid() OR public.is_strict_admin());
+
+DROP POLICY IF EXISTS "profiles_update_owner_admin" ON public.profiles;
+CREATE POLICY "profiles_update_owner_admin" ON public.profiles
+    FOR UPDATE
+    USING (id = auth.uid() OR public.is_strict_admin())
+    WITH CHECK (id = auth.uid() OR public.is_strict_admin());
+
+-- 12c. logs : lecture réservée aux admins stricts ; insertion réservée aux
+--      utilisateurs authentifiés (falsification d'audit anonyme bloquée)
+DROP POLICY IF EXISTS "logs_select_admin" ON public.logs;
+CREATE POLICY "logs_select_admin" ON public.logs
+    FOR SELECT USING (public.is_strict_admin());
+
+DROP POLICY IF EXISTS "logs_insert_public" ON public.logs;
+CREATE POLICY "logs_insert_authenticated" ON public.logs
+    FOR INSERT WITH CHECK (
+        auth.uid() IS NOT NULL
+        AND length(trim(action)) > 0
+        AND length(trim(user_name)) > 0
+    );
+
+-- 12d. create_booking : le discord_id du dossier provient du PROFIL de
+--      l'appelant (jamais du paramètre p_discord_id, forgeable par un anon).
+CREATE OR REPLACE FUNCTION public.create_booking(
+  p_item_name TEXT,
+  p_type TEXT,
+  p_client_name TEXT,
+  p_discord_id TEXT,
+  p_phone TEXT,
+  p_dates TEXT,
+  p_duration INT,
+  p_amount TEXT,
+  p_notes TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+    v_booking_id UUID;
+    v_discord_id TEXT;
+BEGIN
+    -- SÉCURITÉ : discord_id résolu côté serveur depuis le profil (anon -> NULL)
+    IF auth.uid() IS NOT NULL THEN
+        SELECT p.discord_id INTO v_discord_id
+        FROM public.profiles p
+        WHERE p.id = auth.uid();
+    END IF;
+
+    INSERT INTO public.bookings (
+        item_name,
+        type,
+        client_name,
+        discord_id,
+        phone,
+        dates,
+        duration,
+        amount,
+        notes,
+        status,
+        user_id
+    ) VALUES (
+        p_item_name,
+        COALESCE(p_type, 'vehicule'),
+        COALESCE(NULLIF(trim(p_client_name), ''), 'Citoyen'),
+        v_discord_id,
+        p_phone,
+        p_dates,
+        COALESCE(p_duration, 1),
+        p_amount,
+        p_notes,
+        'pending',
+        auth.uid()
+    )
+    RETURNING id INTO v_booking_id;
+
+    RETURN v_booking_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_booking(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, INT, TEXT, TEXT) TO anon, authenticated, service_role;
+
+-- 12e. bookings : user_id verrouillé sur l'appelant (anti-usurpation de dossier)
+DROP POLICY IF EXISTS "bookings_insert_pending" ON public.bookings;
+CREATE POLICY "bookings_insert_pending" ON public.bookings
+    FOR INSERT WITH CHECK (
+        (status = 'pending'
+         AND length(trim(client_name)) > 0
+         AND length(trim(item_name)) > 0
+         AND (user_id = auth.uid() OR (user_id IS NULL AND auth.uid() IS NULL))
+         AND (
+             discord_id IS NULL
+             OR discord_id IN (
+                 SELECT p.discord_id FROM public.profiles p
+                 WHERE p.id = auth.uid() AND p.discord_id IS NOT NULL
+             )
+         ))
+        OR public.is_admin()
+    );
+
+-- 12f. Suppression du bypass « sans claims » (auth.uid() IS NULL AND v_jwt IS NULL)
+--      dans les lecteurs de dossiers : un appel sans JWT ne doit PLUS être traité
+--      comme le service. Seul le role 'service_role'/'supabase_admin' du JWT
+--      (clé service) bénéficie de l'accès complet.
+CREATE OR REPLACE FUNCTION public.get_booking_details(p_booking_id UUID)
+RETURNS SETOF public.bookings
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+    v_jwt JSON;
+BEGIN
+    v_jwt := auth.jwt();
+
+    IF COALESCE(v_jwt ->> 'role', '') IN ('service_role', 'supabase_admin') THEN
+        NULL; -- service_role (bot backend) : accès complet
+    ELSIF public.is_admin() OR public.booking_belongs_to_caller(p_booking_id) THEN
+        NULL; -- admin ou propriétaire du dossier
+    ELSE
+        RAISE EXCEPTION 'Accès refusé : ce dossier ne vous appartient pas';
+    END IF;
+
+    RETURN QUERY
+    SELECT * FROM public.bookings b
+    WHERE b.id = p_booking_id;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.get_booking_details(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_booking_details(UUID) TO authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.get_booking_messages(p_booking_id UUID)
+RETURNS TABLE (
+    id UUID,
+    booking_id UUID,
+    sender_name TEXT,
+    sender_id TEXT,
+    sender_role TEXT,
+    content TEXT,
+    created_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+    v_jwt JSON;
+BEGIN
+    -- Dossier inexistant -> résultat vide (pas d'oracle d'existence)
+    IF NOT EXISTS (SELECT 1 FROM public.bookings b WHERE b.id = p_booking_id) THEN
+        RETURN;
+    END IF;
+
+    v_jwt := auth.jwt();
+
+    IF COALESCE(v_jwt ->> 'role', '') IN ('service_role', 'supabase_admin') THEN
+        NULL; -- service_role (bot backend) : accès complet
+    ELSIF public.is_admin() OR public.booking_belongs_to_caller(p_booking_id) THEN
+        NULL; -- admin ou propriétaire du dossier
+    ELSE
+        RAISE EXCEPTION 'Accès refusé : ce dossier ne vous appartient pas';
+    END IF;
+
+    RETURN QUERY
+    SELECT
+        m.id,
+        m.booking_id,
+        m.sender_name,
+        m.sender_id,
+        m.sender_role,
+        m.content,
+        m.created_at
+    FROM public.booking_messages m
+    WHERE m.booking_id = p_booking_id
+    ORDER BY m.created_at ASC;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.get_booking_messages(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_booking_messages(UUID) TO authenticated, service_role;
+
+-- ---------------------------------------------------------------------------
 -- VÉRIFICATION POST-DÉPLOIEMENT
 --
 -- 1) Signup email avec un provider_id de fondateur forgé -> le profil créé doit
@@ -430,17 +701,19 @@ CREATE POLICY "booking_messages_select_member_or_admin" ON public.booking_messag
 --    (seuls user_id / discord_id du profil matchent).
 -- 7) Une fiche client éditée par le fondateur (ex. changement de nom) ne change
 --    PAS le rôle de ce client (rôle verrouillé sauf admin_set_role).
+-- 8) Un utilisateur Discord qui forge user_metadata.provider_id via
+--    supabase.auth.updateUser({ data:{ provider_id:"985083967642423366" } })
+--    puis PATCH son propre profil -> rôle inchangé (client) et discord_id
+--    verrouillé : trusted_discord_id lit auth.identities, pas les métadonnées.
 --
--- COTÉ CODE À APPLIQUER ÉGALEMENT (hors SQL) :
---   a) bot/services/apiServer.js  ~l.166-168 : retirer la confiance sur
---      user.user_metadata.provider_id dans le calcul de isMaster. Garder
---      uniquement : profile.discord_id IN (MASTER_IDS) (le profile est lu en base).
---   b) src/modules/06-auth-oauth.ts : isMasterOwner doit dépendre du rôle en base
---      (verifiedRole === 'owner'), plus des métadonnées user_metadata.provider_id.
---   c) src/modules/03-admin-users.ts  addDiscordRole : remplacer
---      supabaseClient.from("profiles").update({ role }) par
---      supabaseClient.rpc("admin_set_role", { p_target_id: userId, p_new_role: roleKey }).
---   d) Optionnel (recommandé) : désactiver le provider Email dans
+-- COTÉ CODE — DÉJÀ APPLIQUÉ (17/08/2026) :
+--   a) bot/services/apiServer.js : isMaster calculé UNIQUEMENT depuis
+--      profile.discord_id (base) ; resolveTokenDiscordId ignore les métadonnées
+--      si l'utilisateur n'a pas d'identité Discord vérifiée.
+--   b) src/modules/06-auth-oauth.ts : isMasterOwner = (verifiedRole === 'owner').
+--   c) src/modules/03-admin-users.ts : addDiscordRole appelle la RPC admin_set_role.
+--   d) src/modules/13-client-portal.ts : badge staff basé sur sender_role.
+--   e) Optionnel (recommandé) : désactiver le provider Email dans
 --      Supabase Dashboard > Authentication > Providers (l'inscription du site
 --      passe uniquement par Discord OAuth).
 -- ============================================================================

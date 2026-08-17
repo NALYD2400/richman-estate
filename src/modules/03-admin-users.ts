@@ -364,7 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(botData => {
         let finalRoles = (botData && botData.roles) ? botData.roles : [];
 
-        if (currentRole === 'owner' || discordId === '1015310406169923665' || discordId === '985083967642423366') {
+        if (currentRole === 'owner') {
           if (!finalRoles.some(r => r.name.toLowerCase().includes('fondateur') || r.name.toLowerCase().includes('owner'))) {
             finalRoles.unshift({ id: '1537194550852980757', name: '👑 Owner / Fondateur', color: '#ffffff', position: 999 });
           }
@@ -437,7 +437,14 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (roleKey === 'gerant_vehicules') dbRole = 'gerant_vehicules';
     else if (roleKey === 'vip') dbRole = 'vip';
 
-    const { error } = await supabaseClient.from("profiles").update({ role: dbRole }).eq("id", userId);
+    // SÉCURITÉ : le changement de rôle passe par la RPC admin_set_role (SECURITY DEFINER)
+    // qui vérifie en base les droits de l'appelant (admin strict, et seul un owner peut
+    // créer/rétrograder un owner). Le PATCH direct sur la colonne role est révoqué pour
+    // authenticated par le patch SQL 2026-08-17.
+    const { error } = await supabaseClient.rpc("admin_set_role", {
+      p_target_id: userId,
+      p_new_role: dbRole
+    });
     if (error) {
       showToast("Erreur mise à jour permissions : " + error.message, "danger");
       return;

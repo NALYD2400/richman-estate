@@ -406,11 +406,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const user = session.user;
         const rawName = user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.custom_claims?.global_name || user.email?.split("@")[0] || "Citoyen";
 
-        const MASTER_OWNER_ID = "985083967642423366";
-        const ROLE_OWNER_ID = "1537194550852980757";
-        const ROLE_ADMIN_ID = "1537194551813603338";
-        const ROLE_GERANT_HOTEL_ID = "1537194801512980560";
-
         const discordUserId = user.user_metadata?.provider_id ||
                               user.user_metadata?.sub ||
                               (user.identities && user.identities[0]?.id) ||
@@ -433,11 +428,15 @@ document.addEventListener("DOMContentLoaded", () => {
           console.warn("Erreur lecture profil sécurisé:", e.message);
         }
 
-        const isMasterOwner = discordUserId === MASTER_OWNER_ID || discordUserId === "1015310406169923665";
-        const isOwner = isMasterOwner || verifiedRole === 'owner';
+        // SÉCURITÉ : le statut fondateur dépend EXCLUSIVEMENT du rôle en base
+        // (protégé par les triggers SQL). Les métadonnées user_metadata.provider_id
+        // sont forgeables par un compte email — on ne leur fait plus confiance.
+        const isMasterOwner = verifiedRole === 'owner';
+        const isOwner = isMasterOwner;
         const isHotelManager = verifiedRole === 'gerant_hotel';
-        const isAdmin = isOwner || verifiedRole === 'admin' || isHotelManager;
-        let userRole = isOwner ? "owner" : (isHotelManager ? "gerant_hotel" : (isAdmin ? "admin" : "client"));
+        const isCarManager = verifiedRole === 'gerant_vehicules';
+        const isAdmin = isOwner || verifiedRole === 'admin' || isHotelManager || isCarManager;
+        let userRole = isOwner ? "owner" : (isHotelManager ? "gerant_hotel" : (isCarManager ? "gerant_vehicules" : (isAdmin ? "admin" : "client")));
 
         localStorage.setItem("richman_role", userRole);
         if (isOwner) {

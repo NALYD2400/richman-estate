@@ -211,7 +211,7 @@ async function runAudit() {
     duration: 3,
     phone: "555-0812",
     notes: "Audit Test Véhicule"
-  });
+  }, BOT_AUTH_HEADERS);
   assert(botTicketRes.status === 200 && botTicketRes.data?.success === true, "Ticket de location créé avec succès sur Discord");
 
   // --------------------------------------------------------------------------
@@ -243,7 +243,7 @@ async function runAudit() {
     dates: "2026-08-16",
     duration: 2,
     phone: "555-0812"
-  });
+  }, BOT_AUTH_HEADERS);
   assert(botSuiteTicketRes.status === 200 && botSuiteTicketRes.data?.success === true, "Ticket suite créé avec succès sur Discord");
 
   // --------------------------------------------------------------------------
@@ -293,14 +293,14 @@ async function runAudit() {
     subject: "Demande héliport VIP",
     message: "Réservation de l'héliport pour 18h.",
     discordId: "1015310406169923665"
-  });
+  }, BOT_AUTH_HEADERS);
   assert(contactRes.status === 200 && contactRes.data?.success === true, "Demande contact & ticket conciergerie créés");
 
   // --------------------------------------------------------------------------
   // 8. ACTIONS DE STATUT & DÉCISIONS
   // --------------------------------------------------------------------------
   console.log("\n⚡ [8/10] Validation & Clôture de Dossier");
-  const authHeader = { 'Authorization': 'Bearer richman_estate_secret_bot_api_key_2026_secure' };
+  const authHeader = BOT_AUTH_HEADERS;
 
   const statusActionRes = await httpRequest(`${BOT_API_URL}/api/sync-booking-status-action`, 'POST', {
     booking_id: vehicleBookingId,

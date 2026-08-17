@@ -524,15 +524,15 @@ export function applyFleetFilters() {
         <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span class="status-pill ${item.status}">${item.status === 'confirmed' ? 'Disponible' : item.status === 'rented' ? 'Occupé' : 'En attente'}</span>
-            <span class="type-tag" style="background: ${classStyle.bg}; border: ${classStyle.border}; color: ${classStyle.color}; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 10px; border-radius: 20px; box-shadow: ${classStyle.shadow};">${displayClass}</span>
+            <span class="type-tag" style="background: ${classStyle.bg}; border: ${classStyle.border}; color: ${classStyle.color}; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 10px; border-radius: 20px; box-shadow: ${classStyle.shadow};">${escapeHTML(displayClass)}</span>
           </div>
           <span class="card-price">${escapeHTML(item.price)}</span>
         </div>
         <h3 style="margin-top: 6px; margin-bottom: 4px; font-size: 16px; font-weight: 700; color: #ffffff;">${escapeHTML(item.name)}</h3>
         <div style="display: flex; align-items: center; margin-bottom: 10px;">
-          <span style="font-size: 12px; color: #a1a1aa;">Plaque : <strong style="font-size: 12.5px; font-family: monospace; font-weight: 700; color: #ffffff; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.14); letter-spacing: 0.04em;">${displayPlate}</strong></span>
+          <span style="font-size: 12px; color: #a1a1aa;">Plaque : <strong style="font-size: 12.5px; font-family: monospace; font-weight: 700; color: #ffffff; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.14); letter-spacing: 0.04em;">${escapeHTML(displayPlate)}</strong></span>
         </div>
-        <p class="card-sub" style="margin-bottom: 12px; min-height: 18px;">${displaySpecs}</p>
+        <p class="card-sub" style="margin-bottom: 12px; min-height: 18px;">${escapeHTML(displaySpecs)}</p>
         ${renterInfoHtml}
         <div class="admin-card-actions">
           ${toggleButton}
@@ -580,8 +580,8 @@ export async function loadVehicles() {
 
       div.innerHTML = `
         <div class="fleet-item-info">
-          <span class="fleet-name">${item.name}</span>
-          <span class="fleet-plate">${displayPlate}</span>
+          <span class="fleet-name">${escapeHTML(item.name)}</span>
+          <span class="fleet-plate">${escapeHTML(displayPlate)}</span>
         </div>
         <span class="status-badge ${statusClass}">${statusText}</span>
       `;

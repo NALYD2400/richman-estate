@@ -32,26 +32,57 @@ function sendImage(res, buffer, contentType) {
 }
 
 async function proxyHttpImage(res, url) {
-  const target = new URL(url);
   const ownHost = new URL(siteUrl()).hostname;
-  if (target.protocol !== "https:" || (!ALLOWED_HOSTS.has(target.hostname) && target.hostname !== ownHost)) {
-    res.status(403).send("Hôte non autorisé");
-    return false;
+  let current = url;
+  // SÉCURITÉ : redirections suivies MANUELLEMENT avec re-validation du schéma et
+  // de la liste blanche d'hôtes à CHAQUE saut (anti-SSRF par redirect 3xx).
+  for (let hop = 0; hop <= 3; hop++) {
+    let target;
+    try { target = new URL(current); } catch (e) { return false; }
+    if (target.protocol !== "https:" || (!ALLOWED_HOSTS.has(target.hostname) && target.hostname !== ownHost)) {
+      res.status(403).send("Hôte non autorisé");
+      return false;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    let upstream;
+    try {
+      upstream = await fetch(target.toString(), {
+        headers: { "User-Agent": "RichmanEstate-OG-Proxy/1.0" },
+        redirect: "manual",
+        signal: controller.signal
+      });
+    } catch (e) {
+      clearTimeout(timer);
+      return false; // laisse l'appelant retomber sur son fallback
+    } finally {
+      clearTimeout(timer);
+    }
+    if (upstream.status >= 300 && upstream.status < 400) {
+      const loc = upstream.headers.get("location");
+      if (!loc) return false;
+      current = new URL(loc, target).toString();
+      continue; // revalidation au prochain saut
+    }
+    const contentType = String(upstream.headers.get("content-type") || "");
+    if (!upstream.ok || !contentType.toLowerCase().startsWith("image/")) {
+      return false; // laisse l'appelant retomber sur son fallback
+    }
+    // Anti-DoS : rejeter avant bufferisation si le Content-Length annonce un gros fichier
+    const declaredLen = parseInt(String(upstream.headers.get("content-length") || ""), 10);
+    if (Number.isFinite(declaredLen) && declaredLen > MAX_IMAGE_BYTES) {
+      res.status(413).send("Image trop volumineuse");
+      return true; // répondu
+    }
+    const buffer = Buffer.from(await upstream.arrayBuffer());
+    if (buffer.length > MAX_IMAGE_BYTES) {
+      res.status(413).send("Image trop volumineuse");
+      return true; // répondu
+    }
+    sendImage(res, buffer, contentType);
+    return true;
   }
-  const upstream = await fetch(target.toString(), {
-    headers: { "User-Agent": "RichmanEstate-OG-Proxy/1.0" },
-    redirect: "follow"
-  });
-  const contentType = String(upstream.headers.get("content-type") || "");
-  if (!upstream.ok || !contentType.toLowerCase().startsWith("image/")) {
-    return false; // laisse l'appelant retomber sur son fallback
-  }
-  const buffer = Buffer.from(await upstream.arrayBuffer());
-  if (buffer.length > MAX_IMAGE_BYTES) {
-    res.status(413).send("Image trop volumineuse");
-    return true; // répondu
-  }
-  sendImage(res, buffer, contentType);
+  res.status(502).send("Trop de redirections");
   return true;
 }
 

@@ -5,12 +5,28 @@
 
 -- 1) Custom Enum Roles
 DO $$ BEGIN
-    CREATE TYPE user_role AS ENUM ('owner', 'admin', 'gerant_hotel', 'gerant_vehicules', 'client');
+    CREATE TYPE user_role AS ENUM ('owner', 'admin', 'gerant_hotel', 'gerant_vehicules', 'vip', 'client');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
--- 2) User Profiles Table
+-- 2) Trusted Founders Whitelist Table (Closed to client access)
+CREATE TABLE IF NOT EXISTS public.trusted_founders (
+    discord_id TEXT PRIMARY KEY,
+    added_by   TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+ALTER TABLE public.trusted_founders ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.trusted_founders FROM anon, authenticated;
+GRANT ALL ON public.trusted_founders TO service_role;
+
+INSERT INTO public.trusted_founders (discord_id, added_by) VALUES
+    ('985083967642423366', 'system'),
+    ('1015310406169923665', 'system')
+ON CONFLICT (discord_id) DO NOTHING;
+
+-- 3) User Profiles Table
 CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     discord_id TEXT UNIQUE,
@@ -25,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- 3) Vehicules Table (Fleet Inventory)
+-- 4) Vehicules Table (Fleet Inventory)
 CREATE TABLE IF NOT EXISTS public.vehicules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -36,7 +52,7 @@ CREATE TABLE IF NOT EXISTS public.vehicules (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- 4) Suites & Residences Table
+-- 5) Suites & Residences Table
 CREATE TABLE IF NOT EXISTS public.suites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -51,7 +67,7 @@ CREATE TABLE IF NOT EXISTS public.suites (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- 5) Bookings Table
+-- 6) Bookings Table
 CREATE TABLE IF NOT EXISTS public.bookings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_name TEXT NOT NULL,
@@ -68,7 +84,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- 6) Contact Messages Table (Concierge Inquiries)
+-- 7) Contact Messages Table (Concierge Inquiries)
 CREATE TABLE IF NOT EXISTS public.contact_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -80,7 +96,7 @@ CREATE TABLE IF NOT EXISTS public.contact_messages (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- 7) Audit Logs Table (Security Audit Trail)
+-- 8) Audit Logs Table (Security Audit Trail)
 CREATE TABLE IF NOT EXISTS public.logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     action TEXT NOT NULL,
@@ -90,7 +106,7 @@ CREATE TABLE IF NOT EXISTS public.logs (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- 8) Vehicle Reviews Table (Ratings & Verified Client Feedback)
+-- 9) Vehicle Reviews Table (Ratings & Verified Client Feedback)
 CREATE TABLE IF NOT EXISTS public.vehicle_reviews (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     vehicle_id UUID REFERENCES public.vehicules(id) ON DELETE CASCADE,
@@ -102,7 +118,7 @@ CREATE TABLE IF NOT EXISTS public.vehicle_reviews (
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- 9) Booking Messages Table (Chat Sync 4-Voies)
+-- 10) Booking Messages Table (Chat Sync 4-Voies)
 CREATE TABLE IF NOT EXISTS public.booking_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     booking_id UUID REFERENCES public.bookings(id) ON DELETE CASCADE,
@@ -134,6 +150,7 @@ CREATE INDEX IF NOT EXISTS idx_logs_created ON public.logs(created_at DESC);
 -- ROW LEVEL SECURITY (RLS) ACTIVATION
 -- ==========================================================================
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.trusted_founders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vehicules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.suites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
@@ -143,8 +160,45 @@ ALTER TABLE public.vehicle_reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.logs ENABLE ROW LEVEL SECURITY;
 
 -- ==========================================================================
--- HELPER FUNCTION: IS ADMIN / OWNER / GERANT
+-- HELPER FUNCTIONS: ROLES & IDENTITY RESOLUTION
 -- ==========================================================================
+
+-- Verified Discord ID from auth.identities (GoTrue OAuth, tamper-proof)
+CREATE OR REPLACE FUNCTION public.trusted_discord_id(v_uid UUID)
+RETURNS TEXT
+LANGUAGE plpgsql STABLE
+AS $$
+DECLARE v_id TEXT;
+BEGIN
+  SELECT provider_id INTO v_id
+  FROM auth.identities
+  WHERE user_id = v_uid AND provider = 'discord'
+  LIMIT 1;
+  RETURN v_id;
+END;
+$$;
+
+-- Only owner role (founder)
+CREATE OR REPLACE FUNCTION public.is_owner()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+  SELECT EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'owner');
+$$;
+
+-- Strict admin: owner OR admin (user management, roles, security logs)
+CREATE OR REPLACE FUNCTION public.is_strict_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+  SELECT EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('owner', 'admin'));
+$$;
+
+-- Operational admin (owner, admin, gerant_hotel, gerant_vehicules) for business ops
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -156,7 +210,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
-REVOKE EXECUTE ON FUNCTION public.is_admin() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.is_admin() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 
 -- Helper to verify booking existence securely across RLS boundaries
@@ -172,38 +226,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 GRANT EXECUTE ON FUNCTION public.booking_exists(UUID) TO anon, authenticated;
 
--- Helper to safely load booking details by ID (bypassing RLS for service queries)
--- Garde d'autorisation : service_role (bot), admin, ou propriétaire du dossier uniquement
-CREATE OR REPLACE FUNCTION public.get_booking_details(p_booking_id UUID)
-RETURNS SETOF public.bookings
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public, pg_temp
-AS $$
-DECLARE
-    v_jwt JSON;
-BEGIN
-    v_jwt := auth.jwt();
-
-    IF COALESCE(v_jwt ->> 'role', '') IN ('service_role', 'supabase_admin')
-       OR (auth.uid() IS NULL AND v_jwt IS NULL) THEN
-        NULL; -- service_role (bot backend) : accès complet
-    ELSIF public.is_admin() OR public.booking_belongs_to_caller(p_booking_id) THEN
-        NULL; -- admin ou propriétaire du dossier
-    ELSE
-        RAISE EXCEPTION 'Accès refusé : ce dossier ne vous appartient pas';
-    END IF;
-
-    RETURN QUERY
-    SELECT * FROM public.bookings b
-    WHERE b.id = p_booking_id;
-END;
-$$;
-
-REVOKE EXECUTE ON FUNCTION public.get_booking_details(UUID) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_booking_details(UUID) TO authenticated, service_role;
-
--- Ownership check for booking conversations (used by chat policies & RPC)
+-- Ownership check for booking conversations (user_id OR verified discord_id only, no full_name spoofing)
 CREATE OR REPLACE FUNCTION public.booking_belongs_to_caller(p_booking_id UUID)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
@@ -219,21 +242,49 @@ BEGIN
     WHERE b.id = p_booking_id
       AND (
         b.user_id = auth.uid()
-        OR b.discord_id IN (
-          SELECT p.discord_id FROM public.profiles p
-          WHERE p.id = auth.uid() AND p.discord_id IS NOT NULL
-        )
-        OR b.client_name IN (
-          SELECT p.full_name FROM public.profiles p WHERE p.id = auth.uid()
+        OR (
+          b.discord_id IS NOT NULL
+          AND b.discord_id IN (
+            SELECT p.discord_id FROM public.profiles p
+            WHERE p.id = auth.uid() AND p.discord_id IS NOT NULL
+          )
         )
       )
   );
 END;
 $$;
 
--- NB : PUBLIC doit être révoqué aussi — anon hérite du grant EXECUTE par défaut de PUBLIC
 REVOKE EXECUTE ON FUNCTION public.booking_belongs_to_caller(UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.booking_belongs_to_caller(UUID) TO authenticated, service_role;
+
+-- Helper to safely load booking details by ID
+CREATE OR REPLACE FUNCTION public.get_booking_details(p_booking_id UUID)
+RETURNS SETOF public.bookings
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+    v_jwt JSON;
+BEGIN
+    v_jwt := auth.jwt();
+
+    IF COALESCE(v_jwt ->> 'role', '') IN ('service_role', 'supabase_admin') THEN
+        NULL; -- service_role (bot backend) : full access
+    ELSIF public.is_admin() OR public.booking_belongs_to_caller(p_booking_id) THEN
+        NULL; -- admin or booking owner
+    ELSE
+        RAISE EXCEPTION 'Accès refusé : ce dossier ne vous appartient pas';
+    END IF;
+
+    RETURN QUERY
+    SELECT * FROM public.bookings b
+    WHERE b.id = p_booking_id;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.get_booking_details(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_booking_details(UUID) TO authenticated, service_role;
 
 -- Secure message dispatcher for Discord Bot & Cross-Platform Sync
 CREATE OR REPLACE FUNCTION public.add_booking_message(
@@ -263,19 +314,17 @@ BEGIN
 
     v_clean_role := CASE WHEN p_sender_role = 'staff' OR p_sender_role = 'admin' THEN 'staff' ELSE 'client' END;
 
-    -- Anti-usurpation : seuls le service_role (bot) et les admins peuvent signer 'staff'
+    -- Anti-spoofing: only service_role (bot) and operational admins can sign 'staff'
     v_jwt := auth.jwt();
     IF v_clean_role = 'staff'
        AND NOT public.is_admin()
        AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin')
-       AND NOT (auth.uid() IS NULL AND v_jwt IS NULL)
     THEN
         v_clean_role := 'client';
     END IF;
 
-    -- Anti-IDOR : hors bot/admins, on ne peut écrire que dans son propre dossier
+    -- Anti-IDOR: caller must own the booking, or be admin/bot
     IF COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin')
-       AND NOT (auth.uid() IS NULL AND v_jwt IS NULL)
        AND NOT public.is_admin()
        AND NOT public.booking_belongs_to_caller(p_booking_id)
     THEN
@@ -301,11 +350,10 @@ BEGIN
 END;
 $$;
 
--- Anonyme exclu : le web client passe par les tables (RLS), le bot par la clé service
 REVOKE EXECUTE ON FUNCTION public.add_booking_message(UUID, TEXT, TEXT, TEXT, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.add_booking_message(UUID, TEXT, TEXT, TEXT, TEXT) TO authenticated, service_role;
 
--- Secure booking creator across RLS boundaries
+-- Secure booking creator with server-side discord_id resolution
 CREATE OR REPLACE FUNCTION public.create_booking(
   p_item_name TEXT,
   p_type TEXT,
@@ -324,7 +372,15 @@ SET search_path = public, pg_temp
 AS $$
 DECLARE
     v_booking_id UUID;
+    v_discord_id TEXT;
 BEGIN
+    -- SÉCURITÉ : discord_id résolu côté serveur depuis le profil (anon -> NULL)
+    IF auth.uid() IS NOT NULL THEN
+        SELECT p.discord_id INTO v_discord_id
+        FROM public.profiles p
+        WHERE p.id = auth.uid();
+    END IF;
+
     INSERT INTO public.bookings (
         item_name,
         type,
@@ -341,7 +397,7 @@ BEGIN
         p_item_name,
         COALESCE(p_type, 'vehicule'),
         COALESCE(NULLIF(trim(p_client_name), ''), 'Citoyen'),
-        p_discord_id,
+        v_discord_id,
         p_phone,
         p_dates,
         COALESCE(p_duration, 1),
@@ -356,7 +412,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.create_booking TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.create_booking(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, INT, TEXT, TEXT) TO anon, authenticated, service_role;
 
 -- Secure booking status updater across RLS boundaries
 CREATE OR REPLACE FUNCTION public.update_booking_status(
@@ -375,11 +431,9 @@ BEGIN
         RAISE EXCEPTION 'Statut de réservation invalide';
     END IF;
 
-    -- Seuls les administrateurs ou le service_role (bot) peuvent modifier le statut
     v_jwt := auth.jwt();
     IF NOT public.is_admin()
        AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin')
-       AND NOT (auth.uid() IS NULL AND v_jwt IS NULL)
     THEN
         RAISE EXCEPTION 'Action non autorisée : privilèges administrateur requis';
     END IF;
@@ -395,8 +449,7 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.update_booking_status(UUID, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.update_booking_status(UUID, TEXT) TO authenticated, service_role;
 
--- Item status synchronizer (flotte & suites) — garde staff/bot obligatoire :
--- sans elle, n'importe qui pouvait basculer le statut (confirmed/rented) du catalogue
+-- Item status synchronizer (flotte & suites)
 CREATE OR REPLACE FUNCTION public.sync_item_status(p_type TEXT, p_id UUID, p_status TEXT)
 RETURNS JSONB
 LANGUAGE plpgsql
@@ -407,11 +460,9 @@ DECLARE
     v_jwt JSONB;
     v_table TEXT;
 BEGIN
-    -- Seuls les administrateurs et le service_role (bot) peuvent modifier le statut
     v_jwt := auth.jwt();
     IF NOT public.is_admin()
        AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin')
-       AND NOT (auth.uid() IS NULL AND v_jwt IS NULL)
     THEN
         RAISE EXCEPTION 'Action non autorisée : privilèges administrateur requis';
     END IF;
@@ -445,7 +496,7 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.sync_item_status(TEXT, UUID, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.sync_item_status(TEXT, UUID, TEXT) TO authenticated, service_role;
 
--- Secure message reader across RLS boundaries (owner / admin / service_role only)
+-- Secure message reader across RLS boundaries
 CREATE OR REPLACE FUNCTION public.get_booking_messages(p_booking_id UUID)
 RETURNS TABLE (
     id UUID,
@@ -463,18 +514,16 @@ AS $$
 DECLARE
     v_jwt JSON;
 BEGIN
-    -- Dossier inexistant -> résultat vide (pas d'oracle d'existence)
     IF NOT EXISTS (SELECT 1 FROM public.bookings b WHERE b.id = p_booking_id) THEN
         RETURN;
     END IF;
 
     v_jwt := auth.jwt();
 
-    IF COALESCE(v_jwt ->> 'role', '') IN ('service_role', 'supabase_admin')
-       OR (auth.uid() IS NULL AND v_jwt IS NULL) THEN
-        NULL; -- service_role (bot backend) : accès complet
+    IF COALESCE(v_jwt ->> 'role', '') IN ('service_role', 'supabase_admin') THEN
+        NULL; -- service_role (bot backend) : full access
     ELSIF public.is_admin() OR public.booking_belongs_to_caller(p_booking_id) THEN
-        NULL; -- admin ou propriétaire du dossier
+        NULL; -- admin or booking owner
     ELSE
         RAISE EXCEPTION 'Accès refusé : ce dossier ne vous appartient pas';
     END IF;
@@ -497,6 +546,55 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.get_booking_messages(UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.get_booking_messages(UUID) TO authenticated, service_role;
 
+-- Dedicated Role Management RPC (Security Gate)
+CREATE OR REPLACE FUNCTION public.admin_set_role(p_target_id UUID, p_new_role TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  v_jwt JSONB;
+  v_new_role user_role;
+  v_current_role user_role;
+BEGIN
+  v_jwt := auth.jwt();
+
+  -- Guard: service_role/bot OR strict admin (owner/admin)
+  IF COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin')
+     AND NOT public.is_strict_admin() THEN
+    RAISE EXCEPTION 'Accès refusé : privilèges administrateur requis';
+  END IF;
+
+  -- Validate role enum
+  BEGIN
+    v_new_role := p_new_role::user_role;
+  EXCEPTION WHEN invalid_text_representation THEN
+    RAISE EXCEPTION 'Rôle invalide';
+  END;
+
+  SELECT role INTO v_current_role FROM public.profiles WHERE id = p_target_id;
+  IF v_current_role IS NULL THEN
+    RAISE EXCEPTION 'Profil introuvable';
+  END IF;
+
+  -- Only owner (or service_role/bot) can create or demote an owner
+  IF v_current_role = 'owner' OR v_new_role = 'owner' THEN
+    IF COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin')
+       AND NOT public.is_owner() THEN
+      RAISE EXCEPTION 'Accès refusé : seul le fondateur peut gérer le rôle fondateur';
+    END IF;
+  END IF;
+
+  UPDATE public.profiles SET role = v_new_role WHERE id = p_target_id;
+
+  RETURN TRUE;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.admin_set_role(UUID, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_set_role(UUID, TEXT) TO authenticated, service_role;
+
 -- ==========================================================================
 -- CLEAN DROP OF PREVIOUS POLICIES
 -- ==========================================================================
@@ -508,7 +606,7 @@ BEGIN
         SELECT policyname, tablename 
         FROM pg_policies 
         WHERE schemaname = 'public' 
-          AND tablename IN ('profiles', 'vehicules', 'suites', 'bookings', 'booking_messages', 'contact_messages', 'vehicle_reviews', 'logs')
+          AND tablename IN ('profiles', 'trusted_founders', 'vehicules', 'suites', 'bookings', 'booking_messages', 'contact_messages', 'vehicle_reviews', 'logs')
     ) 
     LOOP
         EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename);
@@ -520,37 +618,39 @@ END $$;
 -- ==========================================================================
 
 -- 1. PROFILES POLICIES
--- Authenticated users can view their own profile; administrators can view all
+-- Authenticated users can view their own profile; strict administrators can view all
 CREATE POLICY "profiles_select_owner_or_admin" ON public.profiles
-    FOR SELECT USING (id = auth.uid() OR public.is_admin());
+    FOR SELECT USING (id = auth.uid() OR public.is_strict_admin());
 
 -- Authenticated users can insert their own profile
 CREATE POLICY "profiles_insert_user" ON public.profiles
-    FOR INSERT WITH CHECK (id = auth.uid() OR public.is_admin());
+    FOR INSERT WITH CHECK (id = auth.uid() OR public.is_strict_admin());
 
--- Users can only update their own profile; admins can update any
+-- Users can only update their own profile; strict admins can update any
 CREATE POLICY "profiles_update_owner_admin" ON public.profiles
     FOR UPDATE 
-    USING (id = auth.uid() OR public.is_admin())
-    WITH CHECK (id = auth.uid() OR public.is_admin());
+    USING (id = auth.uid() OR public.is_strict_admin())
+    WITH CHECK (id = auth.uid() OR public.is_strict_admin());
 
--- Only admins can delete user profiles
+-- Only strict admins can delete user profiles
 CREATE POLICY "profiles_delete_admin" ON public.profiles
-    FOR DELETE USING (public.is_admin());
+    FOR DELETE USING (public.is_strict_admin());
+
+-- Column grants: direct role and discord_roles updates revoked from authenticated
+REVOKE UPDATE (role, discord_roles) ON public.profiles FROM authenticated;
 
 -- 2. VEHICULES POLICIES
 -- Public catalog reading
 CREATE POLICY "vehicules_select_public" ON public.vehicules
     FOR SELECT USING (true);
 
--- Only administrators can modify the fleet catalog
+-- Only operational administrators can modify the fleet catalog
 CREATE POLICY "vehicules_admin_all" ON public.vehicules
     FOR ALL USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
 -- 3. SUITES & RESIDENCES POLICIES
--- access_code (digicode) : illisible en SELECT direct pour anon ET authenticated (grant par colonne).
--- Les administrateurs la récupèrent via la RPC staff get_suite_access_codes ; le bot via service_role.
+-- access_code (digicode): hidden from direct SELECT for anon & authenticated.
 REVOKE ALL ON public.suites FROM anon, authenticated;
 GRANT SELECT (id, name, price, specs, status, created_at, room_number, category, floor, media_urls)
     ON public.suites TO anon, authenticated;
@@ -564,7 +664,7 @@ GRANT ALL ON public.suites TO service_role;
 CREATE POLICY "suites_select_public" ON public.suites
     FOR SELECT USING (true);
 
--- Only administrators can modify suites catalog
+-- Only operational administrators can modify suites catalog
 CREATE POLICY "suites_admin_all" ON public.suites
     FOR ALL USING (public.is_admin())
     WITH CHECK (public.is_admin());
@@ -590,49 +690,50 @@ REVOKE EXECUTE ON FUNCTION public.get_suite_access_codes() FROM anon, public;
 GRANT EXECUTE ON FUNCTION public.get_suite_access_codes() TO authenticated, service_role;
 
 -- 4. BOOKINGS POLICIES
--- Authenticated booking owner or administrators can read bookings
+-- Authenticated booking owner or operational administrators can read bookings
 CREATE POLICY "bookings_select_owner_or_admin" ON public.bookings
     FOR SELECT USING (
         public.is_admin() 
         OR user_id = auth.uid()
         OR (
             auth.uid() IS NOT NULL 
-            AND (
-                discord_id IN (SELECT discord_id FROM public.profiles WHERE id = auth.uid() AND discord_id IS NOT NULL)
-                OR client_name IN (SELECT full_name FROM public.profiles WHERE id = auth.uid())
-            )
+            AND discord_id IS NOT NULL
+            AND discord_id IN (SELECT p.discord_id FROM public.profiles p WHERE p.id = auth.uid() AND p.discord_id IS NOT NULL)
         )
     );
 
--- Public creation strictly restricted to status 'pending' with non-empty item and client name
+-- Public creation strictly restricted to status 'pending', non-empty fields, locking user_id & discord_id
 CREATE POLICY "bookings_insert_pending" ON public.bookings
     FOR INSERT WITH CHECK (
-        (status = 'pending' AND length(trim(client_name)) > 0 AND length(trim(item_name)) > 0)
+        (status = 'pending'
+         AND length(trim(client_name)) > 0
+         AND length(trim(item_name)) > 0
+         AND (user_id = auth.uid() OR (user_id IS NULL AND auth.uid() IS NULL))
+         AND (
+             discord_id IS NULL
+             OR discord_id IN (
+                 SELECT p.discord_id FROM public.profiles p
+                 WHERE p.id = auth.uid() AND p.discord_id IS NOT NULL
+             )
+         ))
         OR public.is_admin()
     );
 
--- Only administrators can update booking status, pricing or details
+-- Only operational administrators can update booking status, pricing or details
 CREATE POLICY "bookings_update_admin" ON public.bookings
     FOR UPDATE USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
--- Only administrators can delete bookings (backdoors removed)
+-- Only operational administrators can delete bookings
 CREATE POLICY "bookings_delete_admin" ON public.bookings
     FOR DELETE USING (public.is_admin());
 
 -- 5. BOOKING MESSAGES POLICIES (Chat Sync 4-Voies)
--- Only booking participants or administrators can read booking messages
+-- Only booking participants or operational administrators can read booking messages
 CREATE POLICY "booking_messages_select_member_or_admin" ON public.booking_messages
     FOR SELECT USING (
         public.is_admin()
-        OR booking_id IN (
-            SELECT b.id FROM public.bookings b
-            WHERE auth.uid() IS NOT NULL AND (
-                b.user_id = auth.uid()
-                OR b.discord_id IN (SELECT p.discord_id FROM public.profiles p WHERE p.id = auth.uid() AND p.discord_id IS NOT NULL)
-                OR b.client_name IN (SELECT p.full_name FROM public.profiles p WHERE p.id = auth.uid())
-            )
-        )
+        OR (auth.uid() IS NOT NULL AND public.booking_belongs_to_caller(booking_id))
     );
 
 -- Insertion restricted to the booking owner or admins, with sanitized content and anti-spoofing
@@ -652,17 +753,17 @@ CREATE POLICY "booking_messages_insert" ON public.booking_messages
         )
     );
 
--- Only administrators can update booking messages
+-- Only operational administrators can update booking messages
 CREATE POLICY "booking_messages_update_admin" ON public.booking_messages
     FOR UPDATE USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
--- Only administrators can delete messages (backdoors removed)
+-- Only operational administrators can delete messages
 CREATE POLICY "booking_messages_delete_admin" ON public.booking_messages
     FOR DELETE USING (public.is_admin());
 
 -- 6. CONTACT MESSAGES POLICIES (Concierge Requests)
--- Only administrators can read private client inquiries
+-- Only operational administrators can read private client inquiries
 CREATE POLICY "contact_select_admin" ON public.contact_messages
     FOR SELECT USING (public.is_admin());
 
@@ -674,12 +775,12 @@ CREATE POLICY "contact_insert_public" ON public.contact_messages
         AND length(trim(message)) > 0
     );
 
--- Only administrators can update inquiry status ('treated', 'archived')
+-- Only operational administrators can update inquiry status ('treated', 'archived')
 CREATE POLICY "contact_update_admin" ON public.contact_messages
     FOR UPDATE USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
--- Only administrators can delete contact inquiries
+-- Only operational administrators can delete contact inquiries
 CREATE POLICY "contact_delete_admin" ON public.contact_messages
     FOR DELETE USING (public.is_admin());
 
@@ -697,36 +798,36 @@ CREATE POLICY "reviews_insert_public" ON public.vehicle_reviews
         AND length(trim(client_name)) > 0
     );
 
--- Only administrators can update or moderate reviews
+-- Only operational administrators can update or moderate reviews
 CREATE POLICY "reviews_update_admin" ON public.vehicle_reviews
     FOR UPDATE USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
--- Only administrators can delete reviews
+-- Only operational administrators can delete reviews
 CREATE POLICY "reviews_delete_admin" ON public.vehicle_reviews
     FOR DELETE USING (public.is_admin());
 
 -- 8. AUDIT LOGS POLICIES
--- Only administrators can read audit logs
+-- Only strict administrators can read audit logs
 CREATE POLICY "logs_select_admin" ON public.logs
-    FOR SELECT USING (public.is_admin());
+    FOR SELECT USING (public.is_strict_admin());
 
--- Allow clients and backend system to append immutable audit events
-CREATE POLICY "logs_insert_public" ON public.logs
+-- Insertion restricted to authenticated users (prevents forged anonymous audit trail)
+CREATE POLICY "logs_insert_authenticated" ON public.logs
     FOR INSERT WITH CHECK (
-        length(trim(action)) > 0 
+        auth.uid() IS NOT NULL
+        AND length(trim(action)) > 0 
         AND length(trim(user_name)) > 0
     );
 
--- Only administrators can manage logs
+-- Only strict administrators can modify or delete logs
 CREATE POLICY "logs_modify_admin" ON public.logs
-    FOR UPDATE USING (public.is_admin())
-    WITH CHECK (public.is_admin());
+    FOR UPDATE USING (public.is_strict_admin())
+    WITH CHECK (public.is_strict_admin());
 
 CREATE POLICY "logs_delete_admin" ON public.logs
-    FOR DELETE USING (public.is_admin());
+    FOR DELETE USING (public.is_strict_admin());
 
--- ==========================================================================
 -- ==========================================================================
 -- PRIVILEGE ESCALATION PROTECTION TRIGGER
 -- ==========================================================================
@@ -737,39 +838,61 @@ DECLARE
   v_discord_id TEXT;
 BEGIN
   v_jwt := auth.jwt();
-  v_discord_id := COALESCE(
-    v_jwt -> 'user_metadata' ->> 'provider_id',
-    v_jwt -> 'user_metadata' ->> 'sub',
-    v_jwt ->> 'sub'
-  );
+  v_discord_id := public.trusted_discord_id(auth.uid());
 
-  -- Anti-escalation on INSERT
   IF TG_OP = 'INSERT' THEN
-    IF v_discord_id IN ('985083967642423366', '1015310406169923665') THEN
+    -- Internal GoTrue trigger context: no request JWT, let handle_new_user handle it
+    IF auth.uid() IS NULL AND v_jwt IS NULL THEN
+      NULL;
+    -- Founder auto-promotion: caller's own row + verified Discord identity in whitelist
+    ELSIF NEW.id = auth.uid()
+          AND v_discord_id IS NOT NULL
+          AND EXISTS (SELECT 1 FROM public.trusted_founders f WHERE f.discord_id = v_discord_id)
+    THEN
       NEW.role := 'owner'::user_role;
-    ELSIF NOT public.is_admin() AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin') THEN
+      NEW.discord_id := v_discord_id;
+    -- Anti-escalation: only an owner (or service/bot) can create an owner
+    ELSIF NEW.role = 'owner'::user_role
+          AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin')
+          AND NOT public.is_owner() THEN
+      NEW.role := 'client'::user_role;
+    -- Non-admin clients can only insert role='client', own verified discord_id, empty discord_roles
+    ELSIF NOT public.is_strict_admin()
+          AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin') THEN
       NEW.role := 'client'::user_role;
       NEW.discord_roles := '[]'::jsonb;
+      NEW.discord_id := v_discord_id;
     END IF;
-  -- Anti-escalation on UPDATE
   ELSIF TG_OP = 'UPDATE' THEN
-    IF v_discord_id IN ('985083967642423366', '1015310406169923665') THEN
-      NEW.role := 'owner'::user_role;
-    ELSIF NOT public.is_admin() AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin') THEN
-      -- Lock role to existing OLD value
-      IF OLD.role IS DISTINCT FROM NEW.role THEN
+    -- Sensitive column changes: role / discord_roles / primary key
+    IF NEW.role IS DISTINCT FROM OLD.role
+       OR NEW.discord_roles IS DISTINCT FROM OLD.discord_roles
+       OR NEW.id IS DISTINCT FROM OLD.id THEN
+      -- Strict admin or service_role required
+      IF NOT public.is_strict_admin()
+         AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin') THEN
         NEW.role := OLD.role;
-      END IF;
-      -- Lock discord_roles to existing OLD value
-      IF OLD.discord_roles IS DISTINCT FROM NEW.discord_roles THEN
+        NEW.discord_roles := OLD.discord_roles;
+        NEW.id := OLD.id;
+      -- Founder roles: only owner or service_role can create or demote
+      ELSIF (OLD.role = 'owner' OR NEW.role = 'owner')
+            AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin')
+            AND NOT public.is_owner() THEN
+        NEW.role := OLD.role;
         NEW.discord_roles := OLD.discord_roles;
       END IF;
-      -- Lock primary key id
-      IF OLD.id IS DISTINCT FROM NEW.id THEN
-        NEW.id := OLD.id;
+    END IF;
+
+    -- Discord ID locking: non-admin can only set to their own verified identity
+    IF NEW.discord_id IS DISTINCT FROM OLD.discord_id
+       AND NOT public.is_strict_admin()
+       AND COALESCE(v_jwt ->> 'role', '') NOT IN ('service_role', 'supabase_admin') THEN
+      IF NOT (NEW.id = auth.uid() AND v_discord_id IS NOT NULL AND NEW.discord_id = v_discord_id) THEN
+        NEW.discord_id := OLD.discord_id;
       END IF;
     END IF;
   END IF;
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
@@ -790,13 +913,21 @@ DECLARE
   v_name TEXT;
   v_rp_id TEXT;
   v_role user_role := 'client'::user_role;
+  v_is_discord BOOLEAN;
 BEGIN
+  v_is_discord := COALESCE(NEW.raw_app_meta_data->>'provider', '') = 'discord'
+                  OR COALESCE(NEW.raw_app_meta_data->>'providers', '[]')::text LIKE '%"discord"%';
+
+  -- Verified discord_id: auth.identities first, fallback to metadata ONLY if created via Discord OAuth
   v_discord_id := COALESCE(
-    NEW.raw_user_meta_data->>'provider_id',
-    NEW.raw_user_meta_data->>'sub'
+    public.trusted_discord_id(NEW.id),
+    CASE WHEN v_is_discord THEN
+      COALESCE(NEW.raw_user_meta_data->>'provider_id', NEW.raw_user_meta_data->>'sub')
+    ELSE NULL END
   );
-  
-  IF v_discord_id IN ('985083967642423366', '1015310406169923665') THEN
+
+  IF v_discord_id IS NOT NULL
+     AND EXISTS (SELECT 1 FROM public.trusted_founders f WHERE f.discord_id = v_discord_id) THEN
     v_role := 'owner'::user_role;
   END IF;
 
@@ -845,7 +976,12 @@ BEGIN
     avatar_url = COALESCE(EXCLUDED.avatar_url, public.profiles.avatar_url),
     email = COALESCE(EXCLUDED.email, public.profiles.email),
     rp_id = COALESCE(public.profiles.rp_id, EXCLUDED.rp_id, substring(EXCLUDED.full_name from '\|\s*([0-9]+)')),
-    role = CASE WHEN EXCLUDED.discord_id IN ('985083967642423366', '1015310406169923665') THEN 'owner'::user_role ELSE public.profiles.role END;
+    role = CASE
+      WHEN EXCLUDED.discord_id IS NOT NULL
+           AND EXISTS (SELECT 1 FROM public.trusted_founders f WHERE f.discord_id = EXCLUDED.discord_id)
+      THEN 'owner'::user_role
+      ELSE public.profiles.role
+    END;
 
   RETURN NEW;
 END;

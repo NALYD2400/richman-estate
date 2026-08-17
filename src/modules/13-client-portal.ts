@@ -46,7 +46,10 @@ export async function initClientPortal() {
   if (nameEl) nameEl.textContent = activeUser.name || "Citoyen VIP";
 
   if (roleBadgeEl) {
-    const isMasterOwner = activeUser.discord_id === "985083967642423366" || activeUser.discord_id === "1015310406169923665" || activeUser.role === 'owner';
+    // SÉCURITÉ : le statut fondateur dépend uniquement du rôle (source : base de
+    // données via richman_user). Les discord_id en dur ne sont plus une source de
+    // vérité (métadonnées forgeables côté client).
+    const isMasterOwner = activeUser.role === 'owner';
     const isOwner = isMasterOwner || localStorage.getItem("richman_is_owner") === "true";
     if (isOwner) {
       localStorage.setItem("richman_is_owner", "true");
@@ -163,16 +166,24 @@ async function loadClientBookings(activeUser: any) {
   if (!listEl || !supabaseClient) return;
 
   try {
-    let query = supabaseClient.from("bookings").select("*").order("created_at", { ascending: false });
-
+    // SÉCURITÉ : deux requêtes .eq() paramétrées au lieu d'un filtre or() construit
+    // par concaténation (injection PostgREST via client_name). Union dédupliquée.
+    const queries: any[] = [];
     if (activeUser.discord_id) {
-      query = query.or(`discord_id.eq.${activeUser.discord_id},client_name.eq.${activeUser.name}`);
-    } else {
-      query = query.eq("client_name", activeUser.name);
+      queries.push(supabaseClient.from("bookings").select("*").eq("discord_id", activeUser.discord_id).order("created_at", { ascending: false }));
     }
-
-    const { data, error } = await query;
-    if (error) throw error;
+    if (activeUser.name) {
+      queries.push(supabaseClient.from("bookings").select("*").eq("client_name", activeUser.name).order("created_at", { ascending: false }));
+    }
+    const results = await Promise.all(queries);
+    const seen = new Set<string>();
+    const merged: any[] = [];
+    for (const r of results) {
+      for (const row of (r.data || [])) {
+        if (!seen.has(row.id)) { seen.add(row.id); merged.push(row); }
+      }
+    }
+    const data = merged;
 
     (window as any).allClientBookings = data || [];
 
@@ -540,11 +551,10 @@ export function appendMessageBubble(containerEl: any, msg: any) {
     if (!msg.id && rowPending === `${msg.sender_role}_${cleanContent}`) return;
   }
 
-  const isStaff = msg.sender_role === 'staff' ||
-    msg.sender_id === '985083967642423366' ||
-    msg.sender_id === '1015310406169923665' ||
-    String(msg.sender_name || '').toLowerCase().includes('staff') ||
-    String(msg.sender_name || '').toLowerCase() === 'nalyd';
+  // SÉCURITÉ : le badge Staff repose UNIQUEMENT sur sender_role, verrouillé en base
+  // (add_booking_message force 'client' pour les non-admins). Les sender_id / sender_name
+  // sont contrôlables par l'expéditeur et ne doivent pas piloter l'affichage staff.
+  const isStaff = msg.sender_role === 'staff';
 
   const timeStr = new Date(msg.created_at || Date.now()).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
@@ -650,14 +660,20 @@ function setupClientRealtime(activeUser: any) {
     // 2. Live Booking Status Sync
     if (activeUser && (activeUser.discord_id || activeUser.name) && supabaseClient) {
       try {
-        let query = supabaseClient.from("bookings").select("id, status, amount, dates, duration");
-        if (activeUser.discord_id) {
-          query = query.or(`discord_id.eq.${activeUser.discord_id},client_name.eq.${activeUser.name}`);
-        } else {
-          query = query.eq("client_name", activeUser.name);
+        // SÉCURITÉ : requêtes .eq() paramétrées (anti-injection de filtre or()).
+        const cols = "id, status, amount, dates, duration";
+        const queries: any[] = [];
+        if (activeUser.discord_id) queries.push(supabaseClient.from("bookings").select(cols).eq("discord_id", activeUser.discord_id));
+        if (activeUser.name) queries.push(supabaseClient.from("bookings").select(cols).eq("client_name", activeUser.name));
+        const results = await Promise.all(queries);
+        const seen = new Set<string>();
+        const bList: any[] = [];
+        for (const r of results) {
+          for (const row of (r.data || [])) {
+            if (!seen.has(row.id)) { seen.add(row.id); bList.push(row); }
+          }
         }
-        const { data: bList } = await query;
-        if (bList && bList.length > 0 && (window as any).allClientBookings) {
+        if (bList.length > 0 && (window as any).allClientBookings) {
           let hasChange = false;
           bList.forEach((fresh: any) => {
             const local = (window as any).allClientBookings.find((x: any) => x.id === fresh.id);
