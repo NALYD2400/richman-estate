@@ -208,48 +208,55 @@
           </div>
         </section>
 
-        <!-- Tab: Users & Citizens Management -->
+        <!-- Tab: Users & Citizens Management (Vercel Clean Style) -->
         <section class="admin-tab-content" id="tab-users">
-          <div class="admin-page-header">
-            <h1>Utilisateurs & Citoyens Enregistrés</h1>
-            <p>Gérez l'ensemble des comptes créés via Discord, leurs rôles RP, identifiants et accès au serveur.</p>
+          <div class="admin-tab-header-clean">
+            <div>
+              <h1>Utilisateurs & Citoyens Enregistrés</h1>
+              <p>Gérez l'ensemble des comptes créés via Discord, leurs rôles RP, identifiants et accès au serveur.</p>
+            </div>
           </div>
 
-          <!-- Users Toolbar -->
-          <div class="admin-toolbar">
-            <div class="toolbar-left">
-              <span class="toolbar-badge" id="users-count-badge">0 citoyens</span>
-              <div class="toolbar-search-wrap">
+          <!-- Vercel Toolbar -->
+          <div class="vercel-toolbar">
+            <div class="vercel-toolbar-group">
+              <span class="vercel-count-badge" id="users-count-badge">0 citoyen</span>
+              <div class="vercel-search-wrap">
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="users-search-input" placeholder="Rechercher (pseudo, blaze, ID Discord, ID RP...)" />
+                <input type="text" id="users-search-input" class="vercel-search-input" placeholder="Rechercher pseudo, blaze, ID Discord, #RP..." autocomplete="off" />
+                <span class="vercel-kbd">/</span>
               </div>
             </div>
-            <div class="toolbar-right">
-              <div class="filter-select-wrap">
-                <i class="fa-solid fa-user-shield"></i>
-                <select id="users-filter-role" class="toolbar-select">
+
+            <div class="vercel-toolbar-group">
+              <div class="vercel-select-wrap">
+                <select id="users-filter-role" class="vercel-select">
                   <option value="">Tous les rôles</option>
-                  <option value="owner">Fondateur</option>
-                  <option value="admin">Administrateur</option>
-                  <option value="gerant_hotel">Gérant Hôtel</option>
-                  <option value="gerant_vehicules">Gérant Véhicules</option>
-                  <option value="vip">Membre VIP</option>
-                  <option value="client">Citoyen</option>
+                  <option value="owner">👑 Fondateur</option>
+                  <option value="admin">🛡️ Administrateur</option>
+                  <option value="gerant_hotel">🏨 Gérant Hôtel</option>
+                  <option value="gerant_vehicules">🚗 Gérant Véhicules</option>
+                  <option value="vip">⭐ Membre VIP</option>
+                  <option value="client">🌲 Citoyen</option>
                 </select>
               </div>
+              <button type="button" class="vercel-btn-icon" onclick="window.loadUsers()" title="Rafraîchir les citoyens">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </button>
             </div>
           </div>
 
-          <div class="dash-card">
-            <table class="admin-table">
+          <!-- Vercel Table -->
+          <div class="vercel-table-card">
+            <table class="vercel-table">
               <thead>
                 <tr>
-                  <th>Citoyen / Profil</th>
-                  <th>ID Discord</th>
-                  <th>Matricule RP</th>
-                  <th>Rôle</th>
-                  <th>Inscription</th>
-                  <th>Actions</th>
+                  <th style="width: 28%;">Citoyen / Profil</th>
+                  <th style="width: 22%;">ID Discord</th>
+                  <th style="width: 14%;">Matricule RP</th>
+                  <th style="width: 17%;">Rôle</th>
+                  <th style="width: 11%;">Inscription</th>
+                  <th style="width: 8%; text-align: right;">Actions</th>
                 </tr>
               </thead>
               <tbody id="users-table-body">
@@ -928,14 +935,7 @@
           <input type="hidden" id="ctg-item-original-name" />
           
           <!-- Row 1: Nom de Spawn & Fabricant -->
-          <div class="form-row-2">
-            <div class="form-group">
-              <label for="ctg-item-name">Nom de Spawn / Modèle</label>
-              <input type="text" id="ctg-item-name" class="admin-input" required readonly style="background: rgba(255,255,255,0.03); color: #a1a1aa;" />
-            </div>
-            <div class="form-group">
-              <label for="ctg-item-manufacturer">Fabricant / Marque</label>
-              <input type="text" id="ctg-item-manufacturer" class="admin-input" placeholder="ex: LAMPADATI, PEGASSI..." style="text-transform: uppercase;" />
+              </select>
             </div>
           </div>
 
@@ -1001,118 +1001,121 @@
       </div>
     </div>
 
-    <!-- Ultra Luxury Citizen Profile & Passport Modal -->
+    <!-- Vercel Clean Citizen Profile & Passport Modal (#user-detail) -->
     <div class="admin-modal-overlay" id="user-modal-overlay" aria-hidden="true">
-      <div class="admin-modal" style="max-width: 580px; background: linear-gradient(180deg, #14141c 0%, #0a0a0e 100%); border: 1px solid rgba(197, 168, 128, 0.3); box-shadow: 0 30px 90px rgba(0, 0, 0, 0.85), 0 0 40px rgba(197, 168, 128, 0.08); border-radius: 24px; padding: 24px;">
+      <div class="admin-modal user-modal-box">
         <!-- Modal Header -->
-        <div class="admin-modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.07); padding-bottom: 14px; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(197, 168, 128, 0.15); display: flex; align-items: center; justify-content: center; color: #c5a880; font-size: 15px;">
-              <i class="fa-solid fa-id-card-clip"></i>
-            </div>
-            <div>
-              <h3 style="margin: 0; font-size: 17px; color: #ffffff; font-weight: 700; letter-spacing: -0.01em;">Passeport Citoyen &amp; Identité RP</h3>
-              <span style="font-size: 11px; color: #a1a1aa;">Fiche signalétique et permissions de l'utilisateur</span>
-            </div>
+        <div class="user-modal-head-clean">
+          <div class="user-modal-head-title">
+            <i class="fa-solid fa-id-card" style="color: #a1a1aa; font-size: 14px;"></i>
+            <h3>Fiche Citoyen &amp; Permissions</h3>
           </div>
-          <button class="modal-close-btn" id="user-modal-close-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); color: #a1a1aa; border: none; cursor: pointer; transition: all 0.2s;">&times;</button>
+          <button type="button" class="modal-close-btn" id="user-modal-close-btn" title="Fermer (Échap)" style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #71717a; background: #18181b; border: 1px solid #27272a; padding: 4px 8px; border-radius: 6px;">
+            <span>&times;</span>
+            <span style="font-family: monospace; font-size: 10px;">ESC</span>
+          </button>
         </div>
         
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <!-- 1) Citizen VIP Hero Card -->
-          <div style="position: relative; overflow: hidden; padding: 18px 20px; background: radial-gradient(circle at top right, rgba(197, 168, 128, 0.15) 0%, rgba(22, 22, 28, 0.9) 100%); border: 1px solid rgba(197, 168, 128, 0.25); border-radius: 18px; display: flex; align-items: center; gap: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
-            <div style="position: relative; width: 68px; height: 68px; flex-shrink: 0;">
-              <img id="user-modal-avatar" src="assets/logo.webp" alt="" style="width: 68px; height: 68px; border-radius: 50%; object-fit: cover; border: 2px solid #c5a880; box-shadow: 0 0 25px rgba(197, 168, 128, 0.35); display: none;" />
-              <div id="user-modal-initial" class="admin-avatar" style="width: 68px; height: 68px; font-size: 26px; font-weight: 700; background: linear-gradient(135deg, #242432 0%, #121218 100%); color: #c5a880; border: 2px solid rgba(197, 168, 128, 0.5); box-shadow: 0 0 25px rgba(197, 168, 128, 0.25), inset 0 0 15px rgba(197, 168, 128, 0.12);">N</div>
-              <span style="position: absolute; bottom: 0; right: 0; width: 16px; height: 16px; background: #10b981; border: 2.5px solid #14141c; border-radius: 50%; box-shadow: 0 0 10px #10b981;" title="En ligne"></span>
-            </div>
-            
-            <div style="flex: 1; min-width: 0;">
-              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <h3 id="user-modal-fullname" style="margin: 0; font-size: 20px; color: #ffffff; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">NALYD</h3>
-                <span id="user-modal-role-badge" class="type-tag" style="background: rgba(197, 168, 128, 0.2); color: #c5a880; border: 1px solid rgba(197, 168, 128, 0.4); font-size: 11px; padding: 2px 9px;">👑 Fondateur</span>
-              </div>
-              <div id="user-modal-email" style="font-size: 12px; color: #a1a1aa; margin-top: 3px; font-family: var(--font-sans);">contact@richman-estate.com</div>
-              <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
-                <span id="user-modal-rp-id" style="font-size: 11px; color: #c5a880; font-family: monospace; background: rgba(197, 168, 128, 0.1); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(197, 168, 128, 0.2);">ID RP: #62336</span>
-                <span style="font-size: 11px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2);"><i class="fa-solid fa-circle-check"></i> Compte Certifié</span>
+        <!-- Modal Body -->
+        <div class="user-modal-body-clean">
+          <!-- 1) Identity Hero Card -->
+          <div class="user-modal-card-clean">
+            <div class="user-modal-hero-clean">
+              <img id="user-modal-avatar" src="assets/logo.webp" alt="" class="user-modal-hero-avatar" style="display: none;" />
+              <div id="user-modal-initial" class="user-modal-hero-initial">N</div>
+              
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <h4 id="user-modal-fullname" style="margin: 0; font-size: 16px; color: #ffffff; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Citoyen</h4>
+                  <span id="user-modal-role-badge" class="user-role-badge-clean role-citizen">Citoyen</span>
+                </div>
+                <div id="user-modal-email" style="font-size: 12px; color: #71717a; margin-top: 2px;">email@richman-estate.com</div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                  <span id="user-modal-rp-id" class="user-rp-badge-clean">ID RP: #—</span>
+                  <span style="font-size: 11px; color: #a1a1aa; background: #18181b; border: 1px solid #27272a; padding: 2px 7px; border-radius: 6px;">
+                    <i class="fa-solid fa-circle-check" style="color: #10b981; margin-right: 3px;"></i> Discord lié
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- 2) 4-Card Identity Matrix -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div style="background: #111116; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; justify-content: space-between;">
+          <!-- 2) Information Matrix Grid -->
+          <div class="user-modal-info-grid">
+            <div class="user-modal-info-item">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 10.5px; color: #71717a; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;"><i class="fa-brands fa-discord" style="color: #5865F2; margin-right: 4px;"></i> ID Discord</span>
-                <button type="button" id="user-modal-copy-discord-btn" style="background: rgba(255,255,255,0.06); border: none; color: #a1a1aa; border-radius: 6px; padding: 3px 6px; font-size: 10px; cursor: pointer; transition: all 0.2s;" title="Copier l'ID"><i class="fa-regular fa-copy"></i></button>
+                <span class="user-modal-info-label"><i class="fa-brands fa-discord" style="margin-right: 4px;"></i> ID Discord</span>
+                <button type="button" id="user-modal-copy-discord-btn" class="user-act-btn-clean" style="width: 22px; height: 22px; font-size: 10px;" title="Copier l'ID"><i class="fa-regular fa-copy"></i></button>
               </div>
-              <div id="user-modal-discord-id" style="font-size: 13px; color: #f4f4f5; font-family: monospace; font-weight: 600; margin-top: 4px;">1015310406169923665</div>
+              <div id="user-modal-discord-id" class="user-modal-info-val" style="font-family: monospace; font-size: 12px;">—</div>
             </div>
 
-            <div style="background: #111116; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; justify-content: space-between;">
-              <span style="font-size: 10.5px; color: #71717a; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;"><i class="fa-regular fa-calendar" style="color: #c5a880; margin-right: 4px;"></i> Membre Depuis</span>
-              <div id="user-modal-created-at" style="font-size: 13px; color: #f4f4f5; font-weight: 600; margin-top: 4px;">13 août 2026</div>
+            <div class="user-modal-info-item">
+              <span class="user-modal-info-label"><i class="fa-regular fa-calendar" style="margin-right: 4px;"></i> Inscription</span>
+              <div id="user-modal-created-at" class="user-modal-info-val" style="font-size: 12px;">—</div>
             </div>
           </div>
 
-          <!-- 3) Discord Server Roles & Interactive Management -->
-          <div style="background: #111116; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <span style="font-size: 12px; font-weight: 600; color: #ffffff; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-brands fa-discord" style="color: #5865F2;"></i> Rôles Discord &amp; Permissions
-              </span>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span id="user-modal-discord-roles-count" style="font-size: 10.5px; color: #a1a1aa; font-family: monospace; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 6px;">0 grade(s)</span>
-                <button type="button" id="user-modal-refresh-roles-btn" style="background: rgba(255,255,255,0.06); border: none; color: #a1a1aa; border-radius: 6px; padding: 3px 7px; font-size: 10.5px; cursor: pointer; transition: all 0.2s;" title="Rafraîchir les grades Discord"><i class="fa-solid fa-arrows-rotate"></i></button>
+          <!-- 3) Discord Server Roles & Permissions -->
+          <div class="user-modal-card-clean">
+            <div class="user-modal-section-title">
+              <span><i class="fa-brands fa-discord" style="margin-right: 6px;"></i> Rôles Discord en Direct</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span id="user-modal-discord-roles-count" style="font-size: 10px; color: #a1a1aa; font-family: monospace; background: #18181b; border: 1px solid #27272a; padding: 2px 6px; border-radius: 4px;">0 grade</span>
+                <button type="button" id="user-modal-refresh-roles-btn" class="user-act-btn-clean" style="width: 24px; height: 24px; font-size: 10px;" title="Actualiser les grades Discord"><i class="fa-solid fa-arrows-rotate"></i></button>
               </div>
             </div>
-            <div id="user-modal-discord-roles-list" style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 32px; align-items: center; margin-bottom: 12px;">
-              <span style="color: #71717a; font-size: 11.5px;">Chargement des rôles Discord en direct...</span>
+
+            <div id="user-modal-discord-roles-list" style="display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; align-items: center; margin-bottom: 12px;">
+              <span style="color: #71717a; font-size: 11.5px;">Chargement des rôles...</span>
             </div>
 
-            <!-- Add Role to Member on Discord & Sync Web Perms -->
-            <div style="border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 12px;">
-              <label style="font-size: 11px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 6px;">
-                <i class="fa-solid fa-plus-circle" style="color: #c5a880; margin-right: 4px;"></i> Attribuer un rôle Discord &amp; Accès
+            <!-- Role attribution select & sync -->
+            <div style="border-top: 1px solid #27272a; padding-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+              <label style="font-size: 10.5px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">
+                Attribuer un rôle &amp; permissions
               </label>
               <div style="display: flex; gap: 8px;">
-                <select id="user-modal-role-select" class="admin-input" style="flex: 1; height: 38px; background: #0c0c10; border-color: rgba(255,255,255,0.1); font-size: 12.5px;">
+                <select id="user-modal-role-select" class="vercel-select" style="flex: 1; height: 36px; padding: 6px 12px; font-size: 12px;">
                   <option value="citoyen">🌲 Citoyen (Compte Standard)</option>
                   <option value="vip">⭐ Membre VIP</option>
-                  <option value="gerant_vehicules">🚗 Gérant Véhicules (Gestion Voitures)</option>
-                  <option value="gerant_hotel">🏨 Gérant Hôtel (Gestion Hébergements)</option>
-                  <option value="admin">🛡️ Administrateur (Gestion Globale)</option>
-                  <option value="owner">👑 Fondateur (Accès Total Console)</option>
+                  <option value="gerant_vehicules">🚗 Gérant Véhicules</option>
+                  <option value="gerant_hotel">🏨 Gérant Hôtel</option>
+                  <option value="admin">🛡️ Administrateur</option>
+                  <option value="owner">👑 Fondateur</option>
                 </select>
-                <button type="button" id="user-modal-save-role-btn" class="admin-btn-primary" style="height: 38px; padding: 0 14px; border-radius: 9px; font-weight: 600; font-size: 12px; white-space: nowrap; background: linear-gradient(135deg, #c5a880 0%, #a6895d 100%); border: none; color: #000; box-shadow: 0 4px 14px rgba(197, 168, 128, 0.35);">
+                <button type="button" id="user-modal-save-role-btn" class="admin-btn-secondary" style="height: 36px; padding: 0 14px; border-radius: 8px; font-size: 12px; font-weight: 600; white-space: nowrap; background: #ffffff; color: #000000; border: none;">
                   <i class="fa-solid fa-plus"></i> Ajouter
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- 4) Associated Bookings History -->
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 11.5px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;"><i class="fa-solid fa-clock-rotate-left" style="color: #c5a880; margin-right: 6px;"></i> Historique des Réservations</span>
-              <span id="user-modal-bookings-count" style="font-size: 10.5px; color: #71717a;">0 location(s)</span>
+          <!-- 4) Bookings History -->
+          <div class="user-modal-card-clean">
+            <div class="user-modal-section-title">
+              <span><i class="fa-solid fa-clock-rotate-left" style="margin-right: 6px;"></i> Réservations &amp; Locations</span>
+              <span id="user-modal-bookings-count" style="font-size: 10px; color: #71717a; font-family: monospace;">0 location</span>
             </div>
-            <div id="user-modal-bookings-list" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
-              <div style="text-align: center; color: #71717a; font-size: 12px; padding: 14px; background: #111116; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.06);">Aucune réservation enregistrée pour ce citoyen.</div>
+            <div id="user-modal-bookings-list" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+              <div style="text-align: center; color: #71717a; font-size: 11.5px; padding: 12px; background: #0c0c0e; border-radius: 8px; border: 1px dashed #27272a;">Aucune réservation pour ce citoyen.</div>
             </div>
           </div>
+        </div>
 
-          <!-- 6) Danger Zone & Actions Bar -->
-          <div style="display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 16px; margin-top: 2px;">
-            <button type="button" id="user-modal-delete-btn" class="admin-btn-danger" style="flex: 1; height: 42px; border-radius: 12px; font-weight: 600; font-size: 13px; justify-content: center; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; transition: all 0.2s;"><i class="fa-solid fa-user-slash" style="margin-right: 6px;"></i> Supprimer ce compte</button>
-            <button type="button" id="user-modal-close-bottom-btn" class="admin-btn-secondary" style="height: 42px; padding: 0 24px; border-radius: 12px; font-weight: 600; font-size: 13px; background: #1a1a22; border: 1px solid rgba(255,255,255,0.08); color: #e4e4e7;">Fermer</button>
-          </div>
+        <!-- Modal Footer -->
+        <div class="user-modal-footer-clean">
+          <button type="button" id="user-modal-delete-btn" class="user-act-btn-clean danger" style="width: auto; height: 34px; padding: 0 12px; gap: 6px; font-size: 12px; font-weight: 500;">
+            <i class="fa-solid fa-user-slash"></i> Supprimer ce compte
+          </button>
+          <button type="button" id="user-modal-close-bottom-btn" class="admin-btn-secondary" style="height: 34px; padding: 0 16px; border-radius: 8px; font-size: 12px; font-weight: 500; background: #18181b; border: 1px solid #27272a; color: #e4e4e7;">
+            Fermer
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Custom Luxury Confirmation Modal -->
+    <!-- Custom Confirmation Modal -->
     <div class="admin-modal-overlay" id="confirm-modal-overlay" aria-hidden="true" style="z-index: 1000;">
       <div class="admin-modal" style="max-width: 440px; text-align: center; padding: 28px 24px 24px;">
         <div id="confirm-modal-icon-wrap" style="width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ef4444;">

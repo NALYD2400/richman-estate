@@ -1854,18 +1854,486 @@
   }
 }
 
-/* Clickable User Rows & Luxury Hover Effects */
+/* Clickable User Rows & Vercel Clean Hover Effects */
 .clickable-user-row {
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.15s ease;
 }
 
 .clickable-user-row:hover {
-  background: rgba(197, 168, 128, 0.05) !important;
-  transform: translateY(-1px);
+  background-color: #121216 !important;
 }
 
-.clickable-user-row:active {
-  transform: translateY(0);
+/* ==========================================================================
+   Vercel / Linear Inspired Monochrome Admin Styles (Utilisateurs & Fiche Citoyen)
+   ========================================================================== */
+.admin-tab-header-clean {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
 }
+
+.admin-tab-header-clean h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+}
+
+.admin-tab-header-clean p {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0;
+}
+
+.vercel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #09090b;
+  border: 1px solid #27272a;
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.vercel-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.vercel-count-badge {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: #e4e4e7;
+  background: #18181b;
+  border: 1px solid #27272a;
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.vercel-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.vercel-search-wrap i {
+  position: absolute;
+  left: 11px;
+  color: #71717a;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.vercel-search-input {
+  background: #18181b;
+  border: 1px solid #27272a;
+  color: #ffffff;
+  padding: 6px 36px 6px 32px;
+  border-radius: 8px;
+  font-size: 13px;
+  width: 310px;
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.vercel-search-input:focus {
+  border-color: #52525b;
+  background: #202024;
+}
+
+.vercel-search-input::placeholder {
+  color: #71717a;
+}
+
+.vercel-kbd {
+  position: absolute;
+  right: 10px;
+  font-family: monospace;
+  font-size: 10px;
+  color: #71717a;
+  background: #27272a;
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid #3f3f46;
+  pointer-events: none;
+}
+
+.vercel-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.vercel-select {
+  background: #18181b;
+  border: 1px solid #27272a;
+  color: #e4e4e7;
+  padding: 6px 28px 6px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s ease;
+}
+
+.vercel-select:focus, .vercel-select:hover {
+  border-color: #52525b;
+}
+
+.vercel-select-wrap::after {
+  content: '▼';
+  font-size: 8px;
+  color: #71717a;
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+}
+
+.vercel-btn-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #18181b;
+  border: 1px solid #27272a;
+  color: #a1a1aa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vercel-btn-icon:hover {
+  background: #27272a;
+  color: #ffffff;
+}
+
+/* Vercel Table Card */
+.vercel-table-card {
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.vercel-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.vercel-table th {
+  padding: 11px 16px;
+  background: #0f0f12;
+  border-bottom: 1px solid #27272a;
+  color: #71717a;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.vercel-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #18181b;
+  color: #e4e4e7;
+  vertical-align: middle;
+}
+
+.vercel-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* User Badges & Chips */
+.user-avatar-clean {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #27272a;
+  background: #18181b;
+}
+
+.user-avatar-initial-clean {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.user-discord-badge-clean {
+  font-family: monospace;
+  font-size: 12px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  color: #d4d4d8;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s ease;
+}
+
+.user-discord-badge-clean:hover {
+  border-color: #52525b;
+}
+
+.user-discord-badge-clean .copy-btn {
+  background: none;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 11px;
+  transition: color 0.15s ease;
+}
+
+.user-discord-badge-clean .copy-btn:hover {
+  color: #ffffff;
+}
+
+.user-rp-badge-clean {
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #e4e4e7;
+  background: #18181b;
+  border: 1px solid #27272a;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.user-role-badge-clean {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid transparent;
+}
+
+.user-role-badge-clean.role-owner {
+  background: #18181b;
+  border-color: #52525b;
+  color: #ffffff;
+}
+
+.user-role-badge-clean.role-admin {
+  background: #18181b;
+  border-color: #3f3f46;
+  color: #e4e4e7;
+}
+
+.user-role-badge-clean.role-hotel {
+  background: #18181b;
+  border-color: #27272a;
+  color: #c084fc;
+}
+
+.user-role-badge-clean.role-cars {
+  background: #18181b;
+  border-color: #27272a;
+  color: #facc15;
+}
+
+.user-role-badge-clean.role-vip {
+  background: #18181b;
+  border-color: #3f3f46;
+  color: #fbbf24;
+}
+
+.user-role-badge-clean.role-citizen {
+  background: #18181b;
+  border-color: #27272a;
+  color: #a1a1aa;
+}
+
+.user-act-btn-clean {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #18181b;
+  border: 1px solid #27272a;
+  color: #a1a1aa;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 12px;
+}
+
+.user-act-btn-clean:hover {
+  background: #27272a;
+  color: #ffffff;
+  border-color: #52525b;
+}
+
+.user-act-btn-clean.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+/* User Modal Vercel Design */
+.user-modal-box {
+  background: #09090b !important;
+  border: 1px solid #27272a !important;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.9) !important;
+  border-radius: 16px !important;
+  max-width: 580px !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.user-modal-head-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #27272a;
+  background: #0f0f12;
+}
+
+.user-modal-head-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-modal-head-title h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.user-modal-body-clean {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.user-modal-card-clean {
+  background: #121215;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.user-modal-hero-clean {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.user-modal-hero-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+  border: 1px solid #27272a;
+  background: #18181b;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.user-modal-hero-initial {
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.user-modal-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.user-modal-info-item {
+  background: #121215;
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-modal-info-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #71717a;
+  font-weight: 600;
+}
+
+.user-modal-info-val {
+  font-size: 13px;
+  color: #f4f4f5;
+  font-weight: 500;
+}
+
+.user-modal-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.user-modal-section-title span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.user-modal-footer-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #27272a;
+  background: #0f0f12;
+}
+
 

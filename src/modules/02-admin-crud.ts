@@ -184,13 +184,16 @@ export function closeSuiteModal() {
   }
 }
 
-export function closeUserModal() {
+export function closeUserModal(updateHash = true) {
   if (userModalOverlay) {
     if (document.activeElement && userModalOverlay.contains(document.activeElement)) {
       (document.activeElement as HTMLElement).blur();
     }
     userModalOverlay.classList.remove('active');
     userModalOverlay.setAttribute('aria-hidden', 'true');
+  }
+  if (updateHash && window.location.hash.includes('user-detail')) {
+    history.pushState(null, '', '#users');
   }
 }
 
@@ -968,9 +971,22 @@ function switchAdminTab(tabName) {
 document.querySelectorAll('.admin-nav-item').forEach((btn) => {
   btn.addEventListener('click', () => {
     const tab = (btn as HTMLElement).dataset.tab;
-    if (tab) switchAdminTab(tab);
+    if (tab) {
+      switchAdminTab(tab);
+      if (window.location.hash !== '#' + tab) {
+        history.pushState(null, '', '#' + tab);
+      }
+    }
   });
 });
+
+// Check initial tab from hash on load
+const currentHash = window.location.hash.replace('#', '').split('?')[0];
+if (currentHash === 'user-detail') {
+  switchAdminTab('users');
+} else if (currentHash && document.getElementById(`tab-${currentHash}`)) {
+  switchAdminTab(currentHash);
+}
 
 modalOverlay = document.getElementById('admin-modal-overlay');
 const btnAddVehicleTab = document.getElementById('btn-add-vehicle-tab');
@@ -1151,11 +1167,11 @@ userModalOverlay = document.getElementById('user-modal-overlay');
 const userModalCloseBtn = document.getElementById('user-modal-close-btn');
 const userModalCloseBottomBtn = document.getElementById('user-modal-close-bottom-btn');
 
-if (userModalCloseBtn) userModalCloseBtn.addEventListener('click', closeUserModal);
-if (userModalCloseBottomBtn) userModalCloseBottomBtn.addEventListener('click', closeUserModal);
+if (userModalCloseBtn) userModalCloseBtn.addEventListener('click', () => closeUserModal(true));
+if (userModalCloseBottomBtn) userModalCloseBottomBtn.addEventListener('click', () => closeUserModal(true));
 if (userModalOverlay) {
   userModalOverlay.addEventListener('click', (e) => {
-    if (e.target === userModalOverlay) closeUserModal();
+    if (e.target === userModalOverlay) closeUserModal(true);
   });
 }
 
