@@ -926,6 +926,58 @@ export async function loadConciergeMessages() {
   });
 }
 
+// Direct Discord Ticket Quick Launcher (bypasses browser popup blocker)
+(window as any).quickOpenDiscordTicket = async function(bookingId: string, discordId: string = '', clientName: string = '') {
+  if (!bookingId) return;
+  const win = window.open('about:blank', '_blank');
+  if (win) {
+    try {
+      win.document.title = "Ouverture du salon Discord...";
+      win.document.body.innerHTML = `
+        <div style="background:#09090b;color:#a1a1aa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;">
+          <div style="font-size:16px;color:#fff;font-weight:600;margin-bottom:8px;">Redirection vers Discord...</div>
+          <div style="font-size:13px;">Recherche du salon #${bookingId.slice(0,6).toUpperCase()} en cours...</div>
+        </div>
+      `;
+    } catch (e) {}
+  }
+
+  showToast("Recherche du salon Discord en cours...", "info");
+
+  try {
+    const q = new URLSearchParams({
+      booking_id: bookingId,
+      discord_id: discordId,
+      client_name: clientName
+    });
+    const res = await botFetch(`/api/get-ticket-channel?${q.toString()}`);
+    const data = await res.json();
+    const targetUrl = (res.ok && data.success && data.url)
+      ? data.url
+      : (data.fallbackUrl || 'https://discord.com/channels/1537171063715401870');
+
+    if (win) {
+      win.location.href = targetUrl;
+    } else {
+      window.open(targetUrl, '_blank');
+    }
+  } catch (err: any) {
+    const fallback = 'https://discord.com/channels/1537171063715401870';
+    if (win) win.location.href = fallback;
+    else window.open(fallback, '_blank');
+  }
+};
+
+(window as any).quickOpenAdminTicket = function(bookingId: string, type: string = 'vehicule') {
+  const targetTab = type === 'suite' ? 'tickets-suites' : 'tickets-cars';
+  (window as any).switchAdminTab(targetTab);
+  setTimeout(() => {
+    if (typeof (window as any).selectAdminTicket === 'function') {
+      (window as any).selectAdminTicket(bookingId, type);
+    }
+  }, 100);
+};
+
 export async function loadBookings() {
   if (!supabaseClient) return;
   const { data, error } = await supabaseClient.from("bookings").select("*").order("created_at", { ascending: false });
@@ -935,23 +987,84 @@ export async function loadBookings() {
     applyFleetFilters();
   }
 
-  // Populate dedicated analytics dashboards for locations & suites
+  // Populate dedicated analytics dashboards for locations & suites & general
   renderAnalyticsDashboards(data || []);
 
+  // 1. Render Priority Pending Tickets Alert Box
+  const pendingBox = document.getElementById("overview-pending-box");
+  const pendingList = document.getElementById("overview-pending-list");
+  const pendingBadge = document.getElementById("overview-pending-count-badge");
+  const pendingBookings = (data || []).filter(b => b.status === 'pending');
+
+  if (pendingBox && pendingList) {
+    if (pendingBookings.length > 0) {
+      pendingBox.style.display = "flex";
+      if (pendingBadge) pendingBadge.textContent = `${pendingBookings.length} en attente`;
+      pendingList.innerHTML = "";
+      pendingBookings.forEach(item => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "overview-pending-item";
+        const isSuite = item.type === 'suite';
+        const typeBadge = isSuite ? '🏨 Suite' : '🚗 Véhicule';
+        itemEl.innerHTML = `
+          <div class="overview-pending-item-top">
+            <span class="overview-pending-client">${escapeHTML(item.client_name || 'Citoyen')}</span>
+            <span class="status-pill pending" style="font-size: 9.5px; padding: 1px 6px;">En attente</span>
+          </div>
+          <div class="overview-pending-item-details">
+            <span>${typeBadge}</span>
+            <span>&bull;</span>
+            <strong style="color: #fff;">${escapeHTML(item.item_name || 'Prestation')}</strong>
+            <span>&bull;</span>
+            <span>${escapeHTML(item.amount || 'Devis')}</span>
+          </div>
+          <div class="overview-pending-actions">
+            <button type="button" class="overview-action-btn-discord" onclick="window.quickOpenDiscordTicket('${item.id}', '${item.discord_id || ''}', '${escapeHTML(item.client_name || '')}')" title="Ouvrir le salon Discord du ticket">
+              <i class="fa-brands fa-discord"></i> Salon Discord
+            </button>
+            <button type="button" class="overview-action-btn-open" onclick="window.quickOpenAdminTicket('${item.id}', '${item.type || 'vehicule'}')" title="Traiter sur le panel">
+              <i class="fa-solid fa-bolt"></i> Traiter
+            </button>
+          </div>
+        `;
+        pendingList.appendChild(itemEl);
+      });
+    } else {
+      pendingBox.style.display = "none";
+    }
+  }
+
+  // 2. Render Overview Bookings Table with Direct Quick Actions
   const overviewContainer = document.getElementById("overview-bookings-tbody");
   if (overviewContainer) {
     overviewContainer.innerHTML = "";
     if (data.length === 0) {
-      overviewContainer.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune activité récente.</td></tr>`;
+      overviewContainer.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune activité récente.</td></tr>`;
     } else {
-      data.slice(0, 4).forEach(item => {
+      data.slice(0, 6).forEach(item => {
         const tr = document.createElement("tr");
+        const isSuite = item.type === 'suite';
         tr.innerHTML = `
-          <td><strong style="color: #ffffff; font-size: 13px;">${escapeHTML(item.client_name)}</strong></td>
-          <td><span class="type-tag ${item.type === 'vehicule' ? 'car' : 'suite'}">${item.type === 'vehicule' ? 'Véhicule' : 'Suite'}</span></td>
-          <td style="color: #ffffff; font-size: 13px;">${escapeHTML(item.item_name)}</td>
-          <td style="font-weight: 600; color: #ffffff; font-size: 13px;">${escapeHTML(item.amount)}</td>
-          <td><span class="status-pill ${escapeHTML(item.status)}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
+          <td>
+            <div style="display: flex; flex-direction: column;">
+              <strong style="color: #ffffff; font-size: 13px;">${escapeHTML(item.client_name || 'Citoyen')}</strong>
+              <span style="font-size: 10.5px; color: #71717a;">#${escapeHTML(item.id.slice(0,6).toUpperCase())}</span>
+            </div>
+          </td>
+          <td><span class="type-tag ${isSuite ? 'suite' : 'car'}">${isSuite ? 'Hébergement' : 'Véhicule'}</span></td>
+          <td style="color: #ffffff; font-size: 13px;">${escapeHTML(item.item_name || '')}</td>
+          <td style="font-weight: 600; color: #ffffff; font-size: 13px;">${escapeHTML(item.amount || 'Devis')}</td>
+          <td><span class="status-pill ${escapeHTML(item.status || 'pending')}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
+          <td style="text-align: right;">
+            <div style="display: inline-flex; gap: 5px; justify-content: flex-end;">
+              <button type="button" class="overview-action-btn-discord" onclick="window.quickOpenDiscordTicket('${item.id}', '${item.discord_id || ''}', '${escapeHTML(item.client_name || '')}')" title="Ouvrir le salon Discord">
+                <i class="fa-brands fa-discord"></i> Salon
+              </button>
+              <button type="button" class="overview-action-btn-open" onclick="window.quickOpenAdminTicket('${item.id}', '${item.type || 'vehicule'}')" title="Ouvrir sur le panel">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              </button>
+            </div>
+          </td>
         `;
         overviewContainer.appendChild(tr);
       });

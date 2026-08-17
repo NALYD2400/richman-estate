@@ -125,12 +125,84 @@
 
       <!-- Main Content Area -->
       <main class="admin-main">
-        <!-- Tab 1: Overview -->
+        <!-- Tab 1: Overview & Express Operations Hub -->
         <section class="admin-tab-content active" id="tab-overview">
           <div class="admin-page-header">
             <div>
-              <h1>Tableau de Bord</h1>
-              <p>Vue analytique globale de l'activité Richman Estate.</p>
+              <h1>Tableau de Bord &amp; Opérations Express</h1>
+              <p>Vue analytique globale, alertes prioritaires et accès directs aux salons Discord de l'activité Richman Estate.</p>
+            </div>
+            <div>
+              <button type="button" class="admin-btn-secondary" onclick="window.loadBookings(); window.loadAdminTickets();" title="Actualiser le tableau de bord">
+                <i class="fa-solid fa-arrows-rotate"></i> Actualiser
+              </button>
+            </div>
+          </div>
+
+          <!-- Express Shortcuts Grid -->
+          <div class="overview-shortcuts-grid">
+            <button type="button" class="overview-shortcut-btn" onclick="window.switchAdminTab('tickets-cars')">
+              <div class="shortcut-icon"><i class="fa-solid fa-comments"></i></div>
+              <div class="shortcut-text">
+                <span class="shortcut-title">Tickets Voitures</span>
+                <span class="shortcut-sub">Échanges direct Discord</span>
+              </div>
+            </button>
+            <button type="button" class="overview-shortcut-btn" onclick="window.switchAdminTab('tickets-suites')">
+              <div class="shortcut-icon"><i class="fa-solid fa-hotel"></i></div>
+              <div class="shortcut-text">
+                <span class="shortcut-title">Tickets Hébergements</span>
+                <span class="shortcut-sub">Dossiers &amp; suites VIP</span>
+              </div>
+            </button>
+            <button type="button" class="overview-shortcut-btn" onclick="window.switchAdminTab('stats-general')">
+              <div class="shortcut-icon"><i class="fa-solid fa-chart-line"></i></div>
+              <div class="shortcut-text">
+                <span class="shortcut-title">Statistiques Générales</span>
+                <span class="shortcut-sub">Analytics &amp; CA global</span>
+              </div>
+            </button>
+            <button type="button" class="overview-shortcut-btn" onclick="window.switchAdminTab('fleet')">
+              <div class="shortcut-icon"><i class="fa-solid fa-car"></i></div>
+              <div class="shortcut-text">
+                <span class="shortcut-title">Flotte Supercars</span>
+                <span class="shortcut-sub">Catalogue &amp; statut</span>
+              </div>
+            </button>
+            <button type="button" class="overview-shortcut-btn" onclick="window.switchAdminTab('suites')">
+              <div class="shortcut-icon"><i class="fa-solid fa-bed"></i></div>
+              <div class="shortcut-text">
+                <span class="shortcut-title">Hôtel &amp; Suites</span>
+                <span class="shortcut-sub">Gestion des biens</span>
+              </div>
+            </button>
+            <button type="button" class="overview-shortcut-btn" onclick="window.switchAdminTab('users')">
+              <div class="shortcut-icon"><i class="fa-solid fa-users"></i></div>
+              <div class="shortcut-text">
+                <span class="shortcut-title">Citoyens &amp; Rôles</span>
+                <span class="shortcut-sub">Permissions &amp; profils RP</span>
+              </div>
+            </button>
+            <a class="overview-shortcut-btn" href="https://discord.com/channels/1537171063715401870" target="_blank" rel="noopener">
+              <div class="shortcut-icon discord"><i class="fa-brands fa-discord"></i></div>
+              <div class="shortcut-text">
+                <span class="shortcut-title">Serveur Discord</span>
+                <span class="shortcut-sub">Accès direct au serveur</span>
+              </div>
+            </a>
+          </div>
+
+          <!-- Priority Alert Box: Pending Tickets Awaiting Action -->
+          <div id="overview-pending-box" class="overview-pending-box" style="display: none;">
+            <div class="overview-pending-header">
+              <div class="overview-pending-title-wrap">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span class="overview-pending-title">Dossiers &amp; Tickets en Attente de Traitement</span>
+              </div>
+              <span class="overview-pending-badge" id="overview-pending-count-badge">0 en attente</span>
+            </div>
+            <div class="overview-pending-list" id="overview-pending-list">
+              <!-- Rendered dynamically with direct Discord buttons -->
             </div>
           </div>
 
@@ -139,7 +211,7 @@
             <div class="kpi-card">
               <div class="kpi-icon"><i class="fa-solid fa-dollar-sign"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Revenu du Mois</span>
+                <span class="kpi-label">Revenu Global Confirmé</span>
                 <span class="kpi-value" id="kpi-revenue">0 €</span>
                 <span class="kpi-trend positive">Revenu cumulé</span>
               </div>
@@ -166,40 +238,46 @@
             <div class="kpi-card">
               <div class="kpi-icon"><i class="fa-solid fa-bell"></i></div>
               <div class="kpi-details">
-                <span class="kpi-label">Messages de Contact</span>
+                <span class="kpi-label">Dossiers à Traiter</span>
                 <span class="kpi-value" id="kpi-pending-concierge">0 En attente</span>
-                <span class="kpi-trend warning">Traitement urgent</span>
+                <span class="kpi-trend warning">Action requise</span>
               </div>
             </div>
           </div>
 
           <!-- Live Activity Grid -->
           <div class="dashboard-grid">
+            <!-- Left: Recent Bookings & Tickets with Direct Shortcuts -->
             <div class="dash-card">
               <div class="dash-card-header">
-                <h3>Dernières Réservations</h3>
-                <button class="dash-link-btn" onclick="window.switchAdminTab('bookings-cars')">Voir tout</button>
+                <h3>Dernières Réservations &amp; Échanges Récents</h3>
+                <div style="display: flex; gap: 8px;">
+                  <button class="dash-link-btn" onclick="window.switchAdminTab('tickets-cars')">Voitures</button>
+                  <button class="dash-link-btn" onclick="window.switchAdminTab('tickets-suites')">Suites</button>
+                </div>
               </div>
               <table class="vercel-table">
                 <thead>
                   <tr>
-                    <th>Client</th>
-                    <th>Type</th>
-                    <th>Élément</th>
+                    <th>Citoyen / Client</th>
+                    <th>Pôle</th>
+                    <th>Prestation</th>
                     <th>Montant</th>
                     <th>Statut</th>
+                    <th style="text-align: right;">Raccourcis</th>
                   </tr>
                 </thead>
                 <tbody id="overview-bookings-tbody">
-                  <!-- Dynamic bookings will load here -->
+                  <!-- Dynamic bookings with direct Discord button -->
                 </tbody>
               </table>
             </div>
 
+            <!-- Right: Realtime Fleet & Suites Status -->
             <div class="dash-card">
               <div class="dash-card-header">
-                <h3>État des Véhicules</h3>
-                <button class="dash-link-btn" onclick="window.switchAdminTab('fleet')">Gérer</button>
+                <h3>État des Véhicules de la Flotte</h3>
+                <button class="dash-link-btn" onclick="window.switchAdminTab('fleet')">Gérer Flotte</button>
               </div>
               <div class="fleet-status-list" id="overview-fleet-status-list">
                 <!-- Dynamic fleet status will load here -->

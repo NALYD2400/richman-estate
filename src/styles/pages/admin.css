@@ -634,6 +634,212 @@
   color: #fbbf24;
 }
 
+/* Express Shortcuts Grid */
+.overview-shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.overview-shortcut-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.overview-shortcut-btn:hover {
+  background: #18181b;
+  border-color: #3f3f46;
+  transform: translateY(-1px);
+}
+
+.overview-shortcut-btn .shortcut-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.overview-shortcut-btn .shortcut-icon.discord {
+  background: rgba(88, 101, 242, 0.15);
+  border-color: rgba(88, 101, 242, 0.3);
+  color: #818cf8;
+}
+
+.overview-shortcut-btn .shortcut-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.overview-shortcut-btn .shortcut-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overview-shortcut-btn .shortcut-sub {
+  font-size: 11px;
+  color: #71717a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Priority Alert Box: Pending Tickets */
+.overview-pending-box {
+  background: #09090b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.overview-pending-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.overview-pending-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.overview-pending-title-wrap i {
+  color: #f59e0b;
+  font-size: 15px;
+}
+
+.overview-pending-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.overview-pending-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.overview-pending-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.overview-pending-item {
+  background: #121215;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.overview-pending-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.overview-pending-client {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.overview-pending-item-details {
+  font-size: 12px;
+  color: #a1a1aa;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.overview-pending-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.overview-action-btn-discord {
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(88, 101, 242, 0.12);
+  color: #818cf8;
+  border: 1px solid rgba(88, 101, 242, 0.3);
+  transition: all 0.15s ease;
+}
+
+.overview-action-btn-discord:hover {
+  background: rgba(88, 101, 242, 0.25);
+  border-color: rgba(88, 101, 242, 0.55);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.overview-action-btn-open {
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #18181b;
+  color: #e4e4e7;
+  border: 1px solid #27272a;
+  transition: all 0.15s ease;
+}
+
+.overview-action-btn-open:hover {
+  background: #27272a;
+  color: #ffffff;
+  border-color: #52525b;
+  transform: translateY(-1px);
+}
+
 /* Dashboard Grid (2 Columns) */
 .dashboard-grid {
   display: grid;
