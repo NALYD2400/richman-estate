@@ -945,9 +945,6 @@ export async function loadBookings() {
   updateKPIs();
 }
 
-  updateKPIs();
-}
-
 document.addEventListener("DOMContentLoaded", () => {
 // ==========================================================================
 // Admin Dashboard Tab Switcher & Modal CRUD & Live Search
