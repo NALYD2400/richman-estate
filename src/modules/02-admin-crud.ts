@@ -689,9 +689,12 @@ export function applySuitesFilters() {
     }
 
     if (mediaArray.length === 0) {
-      const fallbackUrl = (item.name && item.name.toUpperCase().includes('VILLA'))
-        ? 'https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/media/villarichman.webp'
-        : 'https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/media/penthouse.webp';
+      const sName = (item.name || '').toUpperCase();
+      const fallbackUrl = sName.includes('VILLA')
+        ? 'assets/hotel/02_piscine_jour.jpg'
+        : sName.includes('PENTHOUSE')
+        ? 'assets/hotel/03_panoramique_jour.jpg'
+        : 'assets/hotel/01_facade_jour.jpg';
       mediaArray = [fallbackUrl];
     }
 
@@ -699,7 +702,7 @@ export function applySuitesFilters() {
       let slidesHtml = '';
       mediaArray.forEach((url) => {
         const safeImgSrc = escapeHTML(sanitizeUrl(url, 'assets/hotel/01_facade_jour.jpg'));
-        slidesHtml += `<img class="vehicle-slide" src="${safeImgSrc}" alt="${escapeHTML(item.name)}" onclick="window.openAdminImagePreview('${safeImgSrc}')" style="flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: start; object-fit: cover; cursor: zoom-in;" />`;
+        slidesHtml += `<img class="vehicle-slide" src="${safeImgSrc}" alt="${escapeHTML(item.name)}" onclick="window.openAdminImagePreview(this.src)" onerror="this.src='assets/hotel/01_facade_jour.jpg';" style="flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: start; object-fit: cover; cursor: zoom-in;" />`;
       });
 
       mediaHtml = `
@@ -720,8 +723,8 @@ export function applySuitesFilters() {
     } else {
       const safeImgSrc = escapeHTML(sanitizeUrl(mediaArray[0], 'assets/hotel/01_facade_jour.jpg'));
       mediaHtml = `
-        <div class="ctg-image-wrapper" style="position: relative; cursor: zoom-in;" onclick="window.openAdminImagePreview('${safeImgSrc}')">
-          <img src="${safeImgSrc}" alt="${escapeHTML(item.name)}" onerror="this.src='https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/media/penthouse.webp';" style="width: 100%; height: 100%; object-fit: cover;" />
+        <div class="ctg-image-wrapper" style="position: relative; cursor: zoom-in;" onclick="window.openAdminImagePreview(this.querySelector('img') ? this.querySelector('img').src : '')">
+          <img src="${safeImgSrc}" alt="${escapeHTML(item.name)}" onerror="this.src='assets/hotel/01_facade_jour.jpg';" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>`;
     }
 
