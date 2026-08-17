@@ -49,6 +49,73 @@ let adminAllTickets: any[] = [];
 let adminActiveTicket: any = null;
 let adminTicketRealtime: any = null;
 
+export async function loadAdminTickets(typeCategory: any = null) {
+  const carsListContainer = document.getElementById("admin-tickets-cars-list-container");
+  const suitesListContainer = document.getElementById("admin-tickets-suites-list-container");
+  const carsBadge = document.getElementById("admin-tickets-cars-badge");
+  const suitesBadge = document.getElementById("admin-tickets-suites-badge");
+  if (!supabaseClient) return;
+
+  if (carsListContainer) {
+    carsListContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 13px;"><i class="fa-solid fa-spinner fa-spin"></i> Chargement des tickets véhicules...</div>`;
+  }
+  if (suitesListContainer) {
+    suitesListContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 13px;"><i class="fa-solid fa-spinner fa-spin"></i> Chargement des tickets hébergements...</div>`;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("bookings")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    adminAllTickets = data || [];
+
+    // Update badges for both sections
+    const carsPending = adminAllTickets.filter(t => (t.type === 'vehicule' || !t.type) && t.status === 'pending').length;
+    const suitesPending = adminAllTickets.filter(t => t.type === 'suite' && t.status === 'pending').length;
+
+    if (carsBadge) {
+      if (carsPending > 0) {
+        carsBadge.textContent = String(carsPending);
+        carsBadge.style.display = "inline-block";
+      } else {
+        carsBadge.style.display = "none";
+      }
+    }
+
+    if (suitesBadge) {
+      if (suitesPending > 0) {
+        suitesBadge.textContent = String(suitesPending);
+        suitesBadge.style.display = "inline-block";
+      } else {
+        suitesBadge.style.display = "none";
+      }
+    }
+
+    if (typeof (window as any).filterAdminTicketsList === 'function') {
+      (window as any).filterAdminTicketsList('vehicule');
+      (window as any).filterAdminTicketsList('suite');
+    }
+
+    // If active ticket is selected, re-sync it
+    if (adminActiveTicket) {
+      const refreshed = adminAllTickets.find(t => t.id === adminActiveTicket.id);
+      if (refreshed && typeof (window as any).selectAdminTicket === 'function') {
+        const category = (refreshed.type === 'suite') ? 'suite' : 'vehicule';
+        (window as any).selectAdminTicket(refreshed.id, category);
+      }
+    }
+  } catch (e) {
+    console.error("Error loading admin tickets:", e);
+    if (carsListContainer) carsListContainer.innerHTML = `<div style="color: #fca5a5; text-align: center; padding: 20px;">Erreur de chargement.</div>`;
+    if (suitesListContainer) suitesListContainer.innerHTML = `<div style="color: #fca5a5; text-align: center; padding: 20px;">Erreur de chargement.</div>`;
+  }
+}
+
+(window as any).loadAdminTickets = loadAdminTickets;
+
 document.addEventListener("DOMContentLoaded", () => {
   (window as any).openAdminChatModal = async function (bookingId: any, clientName: any, itemName: any, discordId: any) {
     const overlay = document.getElementById("admin-chat-modal-overlay");
@@ -178,68 +245,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Admin VIP Tickets & Concierge Live Chat Hub Controller
   // ==========================================================================
 
-  (window as any).loadAdminTickets = async function (typeCategory: any = null) {
-    const carsListContainer = document.getElementById("admin-tickets-cars-list-container");
-    const suitesListContainer = document.getElementById("admin-tickets-suites-list-container");
-    const carsBadge = document.getElementById("admin-tickets-cars-badge");
-    const suitesBadge = document.getElementById("admin-tickets-suites-badge");
-    if (!supabaseClient) return;
-
-    if (carsListContainer) {
-      carsListContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 13px;"><i class="fa-solid fa-spinner fa-spin"></i> Chargement des tickets véhicules...</div>`;
-    }
-    if (suitesListContainer) {
-      suitesListContainer.innerHTML = `<div style="text-align: center; color: #71717a; padding: 24px; font-size: 13px;"><i class="fa-solid fa-spinner fa-spin"></i> Chargement des tickets hébergements...</div>`;
-    }
-
-    try {
-      const { data, error } = await supabaseClient
-        .from("bookings")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      adminAllTickets = data || [];
-
-      // Update badges for both sections
-      const carsPending = adminAllTickets.filter(t => (t.type === 'vehicule' || !t.type) && t.status === 'pending').length;
-      const suitesPending = adminAllTickets.filter(t => t.type === 'suite' && t.status === 'pending').length;
-
-      if (carsBadge) {
-        if (carsPending > 0) {
-          carsBadge.textContent = String(carsPending);
-          carsBadge.style.display = "inline-block";
-        } else {
-          carsBadge.style.display = "none";
-        }
-      }
-
-      if (suitesBadge) {
-        if (suitesPending > 0) {
-          suitesBadge.textContent = String(suitesPending);
-          suitesBadge.style.display = "inline-block";
-        } else {
-          suitesBadge.style.display = "none";
-        }
-      }
-
-      (window as any).filterAdminTicketsList('vehicule');
-      (window as any).filterAdminTicketsList('suite');
-
-      // If active ticket is selected, re-sync it
-      if (adminActiveTicket) {
-        const refreshed = adminAllTickets.find(t => t.id === adminActiveTicket.id);
-        if (refreshed) {
-          const category = (refreshed.type === 'suite') ? 'suite' : 'vehicule';
-          (window as any).selectAdminTicket(refreshed.id, category);
-        }
-      }
-    } catch (e) {
-      console.error("Error loading admin tickets:", e);
-      if (carsListContainer) carsListContainer.innerHTML = `<div style="color: #fca5a5; text-align: center; padding: 20px;">Erreur de chargement.</div>`;
-      if (suitesListContainer) suitesListContainer.innerHTML = `<div style="color: #fca5a5; text-align: center; padding: 20px;">Erreur de chargement.</div>`;
-    }
-  };
 
   (window as any).filterAdminTicketsList = function (category: any = 'vehicule') {
     const isSuite = category === 'suite';

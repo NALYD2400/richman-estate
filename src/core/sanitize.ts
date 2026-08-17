@@ -49,7 +49,7 @@ export function sanitizeUrl(url: unknown, defaultUrl = ""): string {
   if (/^(?:\/)?(?:9j\/|iVBORw0KGgo|R0lGOD|UklGR)/.test(trimmed)) {
     const cleanBase64 = (trimmed.startsWith('/') ? trimmed.slice(1) : trimmed).replace(/\s+/g, '');
     if (cleanBase64.startsWith('9j/')) {
-      return `data:image/jpeg;base64,${cleanBase64}`;
+      return `data:image/jpeg;base64,/${cleanBase64}`;
     } else if (cleanBase64.startsWith('iVBORw0KGgo')) {
       return `data:image/png;base64,${cleanBase64}`;
     } else if (cleanBase64.startsWith('UklGR')) {

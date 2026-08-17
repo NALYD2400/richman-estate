@@ -1700,14 +1700,20 @@ function switchAdminTab(tabName: string) {
     loadConciergeMessages();
   }
   if (tabName === 'tickets-cars') {
-    (window as any).loadAdminTickets('vehicule');
+    if (typeof (window as any).loadAdminTickets === 'function') {
+      (window as any).loadAdminTickets('vehicule');
+    }
   }
   if (tabName === 'tickets-suites') {
-    (window as any).loadAdminTickets('suite');
+    if (typeof (window as any).loadAdminTickets === 'function') {
+      (window as any).loadAdminTickets('suite');
+    }
   }
   if (tabName === 'bookings-cars' || tabName === 'bookings-suites' || tabName === 'overview') {
     loadBookings();
-    (window as any).loadAdminTickets();
+    if (typeof (window as any).loadAdminTickets === 'function') {
+      (window as any).loadAdminTickets();
+    }
   }
 }
 (window as any).switchAdminTab = switchAdminTab;
