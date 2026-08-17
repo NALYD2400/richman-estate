@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin.html
 Disallow: /api/
 
-Sitemap: https://richman-estate.com/sitemap.xml
+Sitemap: https://richman-estate.vercel.app/sitemap.xml
