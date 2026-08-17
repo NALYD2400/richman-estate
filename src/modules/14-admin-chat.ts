@@ -553,20 +553,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const bookingId = adminActiveTicket.id;
-    showToast("Ouverture du salon Discord...", "info");
+    const discordId = adminActiveTicket.discord_id || '';
+    const clientName = adminActiveTicket.client_name || '';
+
+    // Open target window synchronously on user click to avoid modern browser popup blockers
+    const win = window.open('about:blank', '_blank');
+    if (win) {
+      try {
+        win.document.title = "Ouverture du salon Discord...";
+        win.document.body.innerHTML = `
+          <div style="background:#09090b;color:#a1a1aa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;">
+            <div style="font-size:16px;color:#fff;font-weight:600;margin-bottom:8px;">Redirection vers Discord...</div>
+            <div style="font-size:13px;">Recherche du salon #${bookingId.slice(0,6).toUpperCase()} en cours...</div>
+          </div>
+        `;
+      } catch (e) {}
+    }
+
+    showToast("Recherche du salon Discord en cours...", "info");
 
     try {
-      const res = await botFetch(`/api/get-ticket-channel?booking_id=${encodeURIComponent(bookingId)}`);
+      const q = new URLSearchParams({
+        booking_id: bookingId,
+        discord_id: discordId,
+        client_name: clientName
+      });
+      const res = await botFetch(`/api/get-ticket-channel?${q.toString()}`);
       const data = await res.json();
-      if (res.ok && data.success && data.url) {
-        window.open(data.url, '_blank');
-      } else if (data.fallbackUrl) {
-        window.open(data.fallbackUrl, '_blank');
+      const targetUrl = (res.ok && data.success && data.url)
+        ? data.url
+        : (data.fallbackUrl || 'https://discord.com/channels/1537171063715401870');
+
+      if (win) {
+        win.location.href = targetUrl;
       } else {
-        window.open(`https://discord.com/channels/1537171063715401870`, '_blank');
+        window.open(targetUrl, '_blank');
       }
     } catch (err: any) {
-      window.open(`https://discord.com/channels/1537171063715401870`, '_blank');
+      const fallback = 'https://discord.com/channels/1537171063715401870';
+      if (win) win.location.href = fallback;
+      else window.open(fallback, '_blank');
     }
   };
 
