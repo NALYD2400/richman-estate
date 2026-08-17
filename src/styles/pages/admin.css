@@ -55,47 +55,67 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 20px;
-  padding-bottom: 14px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--admin-border-subtle);
 }
 
 .admin-brand .logo-btn {
-  background: none;
-  border: none;
-  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  padding: 6px;
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.admin-brand .logo-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 .admin-brand .logo-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
 }
 
 .admin-brand-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  min-width: 0;
 }
 
 .admin-brand-title {
-  font-weight: 700;
-  font-size: 14.5px;
+  font-weight: 600;
+  font-size: 14px;
   color: #ffffff;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .admin-badge {
-  font-size: 10px;
-  font-family: monospace;
-  background: #18181b;
-  border: 1px solid #27272a;
+  font-size: 9.5px;
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1px 6px;
   border-radius: 4px;
   color: #a1a1aa;
   font-weight: 600;
+  letter-spacing: 0.05em;
   display: inline-block;
   width: fit-content;
+  text-transform: uppercase;
 }
 
 .admin-nav {
