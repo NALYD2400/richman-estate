@@ -19,6 +19,7 @@ import { botFetch } from "../core/api";
 import { state } from "../core/state";
 import {
   applyFleetFilters,
+  applySuitesFilters,
   closeModal,
   closeSuiteModal,
   loadBookings,
@@ -383,6 +384,7 @@ if (suiteModalForm) {
     }
 
     const editId = suiteModalForm.dataset.editId;
+    let savedSuiteId: string | undefined = editId;
     let resError;
     const payload = {
       name,
@@ -400,8 +402,9 @@ if (suiteModalForm) {
       const { error } = await supabaseClient.from('suites').update(payload).eq('id', editId);
       resError = error;
     } else {
-      const { error } = await supabaseClient.from('suites').insert([payload]);
+      const { data: insertRes, error } = await supabaseClient.from('suites').insert([payload]).select();
       resError = error;
+      if (insertRes && insertRes[0]) savedSuiteId = insertRes[0].id;
     }
 
     if (resError) {
@@ -416,6 +419,14 @@ if (suiteModalForm) {
     loadLogs();
     const activeUser = JSON.parse(localStorage.getItem("richman_user") || "{}");
     writeLog(editId ? `Modification hébergement: ${name} (${category})` : `Ajout hébergement: ${name} (${category})`, activeUser.name || 'Gérant Hôtel', 'success');
+
+    // Trigger live Discord sync for the suite
+    if (savedSuiteId) {
+      botFetch('/api/update-hotel-suite-status', {
+        method: 'POST',
+        body: JSON.stringify({ suiteId: savedSuiteId, status })
+      }).catch((err) => console.warn('[Richman Discord Sync Suites]', err));
+    }
   });
 }
 
@@ -482,6 +493,36 @@ if (btnRefreshFleet) {
     const icon = btnRefreshFleet.querySelector('i');
     if (icon) icon.classList.add('fa-spin');
     loadVehicles();
+    setTimeout(() => {
+      if (icon) icon.classList.remove('fa-spin');
+    }, 600);
+  });
+}
+
+// Suites specific search & filters listeners
+const suitesSearchInput = document.getElementById('suites-search-input') as HTMLInputElement | null;
+const suitesFilterCategory = document.getElementById('suites-filter-category') as HTMLSelectElement | null;
+const suitesFilterStatus = document.getElementById('suites-filter-status') as HTMLSelectElement | null;
+const suitesSortBy = document.getElementById('suites-sort-by') as HTMLSelectElement | null;
+const btnRefreshSuites = document.getElementById('btn-refresh-suites') as HTMLButtonElement | null;
+
+if (suitesSearchInput) {
+  suitesSearchInput.addEventListener('input', applySuitesFilters);
+}
+if (suitesFilterCategory) {
+  suitesFilterCategory.addEventListener('change', applySuitesFilters);
+}
+if (suitesFilterStatus) {
+  suitesFilterStatus.addEventListener('change', applySuitesFilters);
+}
+if (suitesSortBy) {
+  suitesSortBy.addEventListener('change', applySuitesFilters);
+}
+if (btnRefreshSuites) {
+  btnRefreshSuites.addEventListener('click', () => {
+    const icon = btnRefreshSuites.querySelector('i');
+    if (icon) icon.classList.add('fa-spin');
+    loadSuites();
     setTimeout(() => {
       if (icon) icon.classList.remove('fa-spin');
     }, 600);

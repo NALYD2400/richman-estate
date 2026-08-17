@@ -585,62 +585,144 @@ export async function loadVehicles() {
   updateKPIs();
 }
 
-export async function loadSuites() {
+export function applySuitesFilters() {
   const container = document.getElementById("suites-admin-list");
-  if (!container || !supabaseClient) return;
-  // access_code n'est plus lisible en SELECT direct (grant SQL par colonne) : RPC staff dédiée
-  const { data, error } = await supabaseClient.from("suites")
-    .select("id,name,price,specs,status,created_at,room_number,category,floor,media_urls")
-    .order("created_at", { ascending: false });
-  if (error) return console.error("Error loading suites:", error.message);
+  const countBadge = document.getElementById("suites-count-badge");
+  if (!container) return;
 
-  state.allSuites = data || [];
+  const searchQuery = (document.getElementById("suites-search-input") as HTMLInputElement | null)?.value.toLowerCase().trim() || "";
+  const filterCategory = (document.getElementById("suites-filter-category") as HTMLSelectElement | null)?.value || "";
+  const filterStatus = (document.getElementById("suites-filter-status") as HTMLSelectElement | null)?.value || "";
+  const sortBy = (document.getElementById("suites-sort-by") as HTMLSelectElement | null)?.value || "default";
 
-  // Digicodes : réservés au staff (get_suite_access_codes renvoie vide pour les non-admins)
-  const { data: accessCodes, error: codesError } = await supabaseClient.rpc("get_suite_access_codes");
-  if (codesError) console.warn("Chargement des digicodes impossible :", codesError.message);
-  if (Array.isArray(accessCodes)) {
-    const codeMap = new Map(accessCodes.map(c => [c.suite_id, c.access_code]));
-    state.allSuites.forEach(s => { s.access_code = codeMap.get(s.id) || null; });
+  let filtered = [...state.allSuites];
+
+  // 1. Apply Search Query
+  if (searchQuery) {
+    filtered = filtered.filter(item =>
+      (item.name && item.name.toLowerCase().includes(searchQuery)) ||
+      (item.specs && item.specs.toLowerCase().includes(searchQuery)) ||
+      (item.price && item.price.toLowerCase().includes(searchQuery)) ||
+      (item.room_number && item.room_number.toLowerCase().includes(searchQuery)) ||
+      (item.floor && item.floor.toLowerCase().includes(searchQuery)) ||
+      (item.category && item.category.toLowerCase().includes(searchQuery))
+    );
   }
+
+  // 2. Apply Category Filter
+  if (filterCategory) {
+    filtered = filtered.filter(item => (item.category || '').toLowerCase() === filterCategory.toLowerCase());
+  }
+
+  // 3. Apply Status Filter
+  if (filterStatus) {
+    filtered = filtered.filter(item => item.status === filterStatus);
+  }
+
+  // 4. Apply Sorting
+  if (sortBy === "price-asc" || sortBy === "price-desc") {
+    const getPriceNum = (pStr: string) => {
+      const parsed = parseInt((pStr || '').replace(/[^0-9]/g, ''), 10);
+      return isNaN(parsed) ? 0 : parsed;
+    };
+    filtered.sort((a, b) => {
+      const priceA = getPriceNum(a.price);
+      const priceB = getPriceNum(b.price);
+      return sortBy === 'price-asc' ? priceA - priceB : priceB - priceA;
+    });
+  } else if (sortBy === "name-asc") {
+    filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  } else {
+    filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+  }
+
+  // Update badge count
+  if (countBadge) {
+    countBadge.textContent = `${filtered.length} hébergement${filtered.length !== 1 ? 's' : ''}`;
+  }
+
   container.innerHTML = "";
-  if (state.allSuites.length === 0) {
-    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #8e8e8e; padding: 40px 0; font-family: var(--font-sans);">Aucun hébergement enregistré pour le moment.</div>`;
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #8e8e8e; padding: 40px 0; font-family: var(--font-sans);">Aucun hébergement ne correspond aux critères.</div>`;
     return;
   }
 
-  state.allSuites.forEach(item => {
+  const catLabels: Record<string, { label: string; style: string }> = {
+    suite: { label: '🏨 Suite', style: 'background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);' },
+    appartement: { label: '🏢 Appartement', style: 'background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);' },
+    chambre: { label: '🛏️ Chambre', style: 'background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);' },
+    penthouse: { label: '🌆 Penthouse', style: 'background: rgba(197, 168, 128, 0.15); color: #c5a880; border: 1px solid rgba(197, 168, 128, 0.3);' },
+    villa: { label: '🏡 Villa Privée', style: 'background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);' },
+    loft: { label: '🛖 Loft Prestige', style: 'background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3);' }
+  };
+
+  filtered.forEach(item => {
     const card = document.createElement("div");
     card.className = "admin-card-item";
 
-    const toggleButton = item.status === 'confirmed'
-      ? `<button class="admin-btn-secondary" onclick="window.updateItemStatus('${item.id}', 'suites', 'rented')"><i class="fa-solid fa-bed"></i> Occuper</button>`
-      : `<button class="admin-btn-primary" onclick="window.updateItemStatus('${item.id}', 'suites', 'confirmed')"><i class="fa-solid fa-check"></i> Libérer</button>`;
+    const isAvailable = item.status === 'confirmed' || item.status === 'available';
+    const toggleButton = isAvailable
+      ? `<button class="admin-btn-secondary" onclick="window.updateItemStatus('${item.id}', 'suites', 'rented')"><i class="fa-solid fa-bed"></i> Occuper cet hébergement</button>`
+      : `<button class="admin-btn-primary" onclick="window.updateItemStatus('${item.id}', 'suites', 'confirmed')"><i class="fa-solid fa-check"></i> Libérer cet hébergement</button>`;
 
-    const catLabels = {
-      suite: { label: '🏨 Suite', style: 'background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3);' },
-      appartement: { label: '🏢 Appartement', style: 'background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);' },
-      chambre: { label: '🛏️ Chambre', style: 'background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);' },
-      penthouse: { label: '🌆 Penthouse', style: 'background: rgba(197, 168, 128, 0.15); color: #c5a880; border: 1px solid rgba(197, 168, 128, 0.3);' },
-      villa: { label: '🏡 Villa Privée', style: 'background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);' },
-      loft: { label: '🛖 Loft Prestige', style: 'background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3);' }
-    };
     const catInfo = catLabels[item.category] || catLabels.suite;
-
     const roomBadge = item.room_number ? `<span style="font-family: monospace; font-size: 11.5px; background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12); color: #fff; font-weight: 600;">🚪 ${escapeHTML(item.room_number)}</span>` : '';
     const codeBadge = item.access_code ? `<span style="font-family: monospace; font-size: 11.5px; background: rgba(56, 189, 248, 0.12); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-weight: 600;" title="Code d'accès / Digicode">🔑 ${escapeHTML(item.access_code)}</span>` : '';
-    const floorInfo = item.floor ? `<div style="font-size: 11.5px; color: #a1a1aa; margin-top: 2px;"><i class="fa-solid fa-layer-group" style="margin-right: 4px; color: #c5a880;"></i> ${escapeHTML(item.floor)}</div>` : '';
+    const floorInfo = item.floor ? `<div style="font-size: 12px; color: #a1a1aa; margin-top: 2px;"><i class="fa-solid fa-layer-group" style="margin-right: 4px; color: #c5a880;"></i> ${escapeHTML(item.floor)}</div>` : '';
 
+    // Handle Media & Carousels
     let mediaHtml = '';
+    let mediaArray: string[] = [];
     if (item.media_urls) {
-      let firstImg = item.media_urls;
-      if (item.media_urls.startsWith("[")) {
-        try { firstImg = JSON.parse(item.media_urls)[0] || ''; } catch (e) { console.warn('[Richman] JSON parse:', e.message); }
+      if (typeof item.media_urls === 'string' && item.media_urls.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(item.media_urls);
+          if (Array.isArray(parsed)) mediaArray = parsed.filter(Boolean);
+        } catch (e) {}
+      } else if (typeof item.media_urls === 'string' && item.media_urls.includes(',')) {
+        mediaArray = item.media_urls.split(',').map(s => s.trim()).filter(Boolean);
+      } else if (typeof item.media_urls === 'string' && item.media_urls.trim()) {
+        mediaArray = [item.media_urls.trim()];
+      } else if (Array.isArray(item.media_urls)) {
+        mediaArray = item.media_urls.filter(Boolean);
       }
-      if (firstImg) {
-        const safeImgUrl = escapeHTML(sanitizeUrl(firstImg, 'assets/hotel/01_facade_jour.jpg'));
-        mediaHtml = `<div style="width: 100%; height: 130px; border-radius: 12px; overflow: hidden; margin-bottom: 12px; background: #000; border: 1px solid rgba(255,255,255,0.08);"><img src="${safeImgUrl}" alt="" style="width: 100%; height: 100%; object-fit: cover;" /></div>`;
-      }
+    }
+
+    if (mediaArray.length === 0) {
+      const fallbackUrl = (item.name && item.name.toUpperCase().includes('VILLA'))
+        ? 'https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/media/villarichman.webp'
+        : 'https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/media/penthouse.webp';
+      mediaArray = [fallbackUrl];
+    }
+
+    if (mediaArray.length > 1) {
+      let slidesHtml = '';
+      mediaArray.forEach((url) => {
+        const safeImgSrc = escapeHTML(sanitizeUrl(url, 'assets/hotel/01_facade_jour.jpg'));
+        slidesHtml += `<img class="vehicle-slide" src="${safeImgSrc}" alt="${escapeHTML(item.name)}" onclick="window.openAdminImagePreview('${safeImgSrc}')" style="flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: start; object-fit: cover; cursor: zoom-in;" />`;
+      });
+
+      mediaHtml = `
+        <div class="ctg-image-wrapper" style="position: relative;">
+          <div id="suite-slideshow-${item.id}" class="vehicle-slideshow" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; width: 100%; height: 100%; scrollbar-width: none; scroll-behavior: smooth;">
+            ${slidesHtml}
+          </div>
+          <button type="button" class="card-carousel-nav-btn prev" onclick="event.stopPropagation(); window.slideSuiteCardCarousel('${item.id}', -1)" aria-label="Image précédente" title="Photo précédente">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button type="button" class="card-carousel-nav-btn next" onclick="event.stopPropagation(); window.slideSuiteCardCarousel('${item.id}', 1)" aria-label="Image suivante" title="Photo suivante">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+          <div id="suite-dots-${item.id}" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; background: rgba(0,0,0,0.55); padding: 4px 8px; border-radius: 99px; z-index: 2; pointer-events: none; backdrop-filter: blur(4px);">
+            ${mediaArray.map((_, i) => `<span class="suite-carousel-dot" style="width: 5px; height: 5px; border-radius: 50%; background: ${i === 0 ? '#ffffff' : 'rgba(255,255,255,0.4)'}; transition: all 0.2s;"></span>`).join('')}
+          </div>
+        </div>`;
+    } else {
+      const safeImgSrc = escapeHTML(sanitizeUrl(mediaArray[0], 'assets/hotel/01_facade_jour.jpg'));
+      mediaHtml = `
+        <div class="ctg-image-wrapper" style="position: relative; cursor: zoom-in;" onclick="window.openAdminImagePreview('${safeImgSrc}')">
+          <img src="${safeImgSrc}" alt="${escapeHTML(item.name)}" onerror="this.src='https://ghbeopdnfdxuqfjzmmeb.supabase.co/storage/v1/object/public/public_assets/media/penthouse.webp';" style="width: 100%; height: 100%; object-fit: cover;" />
+        </div>`;
     }
 
     let renterInfoHtml = "";
@@ -656,7 +738,7 @@ export async function loadSuites() {
 
       if (activeBooking) {
         renterInfoHtml = `
-          <div class="active-rental-card-info" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 10px 12px; margin: 8px 0; display: flex; flex-direction: column; gap: 4px;">
+          <div class="active-rental-card-info" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #ef4444; display: inline-flex; align-items: center; gap: 5px;">
                 <i class="fa-solid fa-key" style="font-size: 10px;"></i> Réservé par
@@ -686,30 +768,59 @@ export async function loadSuites() {
 
     card.innerHTML = `
       ${mediaHtml}
-      <div class="admin-card-header" style="flex-wrap: wrap; gap: 8px;">
-        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+      <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
           <span class="type-tag" style="${catInfo.style}">${catInfo.label}</span>
           ${roomBadge}
           ${codeBadge}
         </div>
         <span class="card-price">${escapeHTML(item.price)}</span>
       </div>
-      <h3 style="margin-top: 8px;">${escapeHTML(item.name)}</h3>
+      <h3 style="margin-top: 6px; margin-bottom: 4px; font-size: 16px; font-weight: 700; color: #ffffff;">${escapeHTML(item.name)}</h3>
       ${floorInfo}
-      <p class="card-sub" style="margin-top: 6px;">${escapeHTML(item.specs || "")}</p>
-      <div style="margin: 8px 0;">
-        <span class="status-pill ${item.status}">${item.status === 'confirmed' ? 'Disponible' : item.status === 'rented' ? 'Occupé / En location' : 'En attente'}</span>
+      <p class="card-sub" style="margin-top: 6px; margin-bottom: 12px; min-height: 18px;">${escapeHTML(item.specs || "")}</p>
+      <div style="margin-bottom: 10px;">
+        <span class="status-pill ${item.status}">${item.status === 'confirmed' ? 'Disponible' : item.status === 'rented' ? 'Occupé' : 'En attente'}</span>
       </div>
       ${renterInfoHtml}
-      <div class="admin-card-actions">
-        ${toggleButton}
-        <button class="admin-btn-secondary" style="flex: none; width: 38px; padding: 0;" onclick="window.openEditSuiteModal('${item.id}')" title="Modifier cet hébergement"><i class="fa-solid fa-pen-to-square"></i></button>
-        <button class="admin-btn-danger" style="flex: none; width: 38px; padding: 0;" onclick="window.deleteItem('${item.id}', 'suites')" title="Supprimer"><i class="fa-solid fa-trash-can"></i></button>
+      <div class="admin-card-actions-v2">
+        <div class="admin-card-actions-row-main">
+          ${toggleButton}
+        </div>
+        <div class="admin-card-actions-row-sub">
+          <button class="admin-btn-secondary" onclick="window.openEditSuiteModal('${item.id}')" title="Modifier cet hébergement"><i class="fa-solid fa-pen"></i> Modifier</button>
+          <button class="admin-btn-danger" onclick="window.deleteItem('${item.id}', 'suites')" title="Supprimer définitivement"><i class="fa-solid fa-trash"></i> Supprimer</button>
+        </div>
       </div>
     `;
     container.appendChild(card);
   });
+}
 
+export async function loadSuites() {
+  const container = document.getElementById("suites-admin-list");
+  if (!container || !supabaseClient) return;
+  // access_code n'est plus lisible en SELECT direct (grant SQL par colonne) : RPC staff dédiée
+  const [{ data, error }, { data: bData }] = await Promise.all([
+    supabaseClient.from("suites")
+      .select("id,name,price,specs,status,created_at,room_number,category,floor,media_urls")
+      .order("created_at", { ascending: false }),
+    supabaseClient.from("bookings").select("*").order("created_at", { ascending: false })
+  ]);
+  if (error) return console.error("Error loading suites:", error.message);
+
+  state.allSuites = data || [];
+  if (bData) state.allBookingsList = bData;
+
+  // Digicodes : réservés au staff (get_suite_access_codes renvoie vide pour les non-admins)
+  const { data: accessCodes, error: codesError } = await supabaseClient.rpc("get_suite_access_codes");
+  if (codesError) console.warn("Chargement des digicodes impossible :", codesError.message);
+  if (Array.isArray(accessCodes)) {
+    const codeMap = new Map(accessCodes.map(c => [c.suite_id, c.access_code]));
+    state.allSuites.forEach(s => { s.access_code = codeMap.get(s.id) || null; });
+  }
+
+  applySuitesFilters();
   updateKPIs();
 }
 
@@ -2008,6 +2119,32 @@ if (urlInput) {
   }
 };
 
+// Glissement fluide carrousel cartes suites
+(window as any).slideSuiteCardCarousel = function (itemId: string, direction: number) {
+  const container = document.getElementById(`suite-slideshow-${itemId}`);
+  if (!container) return;
+  const slideWidth = container.clientWidth || container.offsetWidth || 260;
+  const maxScroll = container.scrollWidth - slideWidth;
+  let newScroll = container.scrollLeft + direction * slideWidth;
+
+  if (direction > 0 && container.scrollLeft >= maxScroll - 5) {
+    newScroll = 0;
+  } else if (direction < 0 && container.scrollLeft <= 5) {
+    newScroll = maxScroll;
+  }
+
+  container.scrollTo({ left: newScroll, behavior: 'smooth' });
+
+  const dotsContainer = document.getElementById(`suite-dots-${itemId}`);
+  if (dotsContainer) {
+    const dots = dotsContainer.querySelectorAll('.suite-carousel-dot');
+    const activeIndex = Math.round(newScroll / (slideWidth || 1)) % dots.length;
+    dots.forEach((dot, idx) => {
+      (dot as HTMLElement).style.background = idx === activeIndex ? '#ffffff' : 'rgba(255,255,255,0.4)';
+    });
+  }
+};
+
 (window as any).openEditSuiteModal = function(suiteDataOrId) {
   let target = suiteDataOrId;
   if (typeof suiteDataOrId === 'string') {
@@ -2056,6 +2193,7 @@ if (urlInput) {
   (window as any).closeUserModal = closeUserModal;
   (window as any).updateCalculatedPrice = updateCalculatedPrice;
   (window as any).applyFleetFilters = applyFleetFilters;
+  (window as any).applySuitesFilters = applySuitesFilters;
   (window as any).writeLog = writeLog;
   (window as any).loadVehicles = loadVehicles;
   (window as any).loadSuites = loadSuites;

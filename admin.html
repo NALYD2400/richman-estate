@@ -329,7 +329,7 @@
               <h1>Gestion de l'Hôtel &amp; Suites</h1>
               <p>Contrôlez les tarifs, disponibilités et réservations d'hébergements.</p>
             </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <button class="admin-btn-secondary" id="btn-sync-discord-suites">
                 <i class="fa-brands fa-discord" style="color: #5865F2;"></i>
                 <span>Sync Discord (#hotel)</span>
@@ -337,6 +337,51 @@
               <button class="admin-btn-primary" id="btn-add-suite-tab">
                 <i class="fa-solid fa-plus"></i>
                 <span>Nouvelle Suite</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Suites Vercel Toolbar (Search & Filters) -->
+          <div class="vercel-toolbar">
+            <div class="vercel-toolbar-group">
+              <span class="vercel-count-badge" id="suites-count-badge">0 hébergement(s)</span>
+              <div class="vercel-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="suites-search-input" class="vercel-search-input" placeholder="Rechercher par nom, catégorie, specs..." autocomplete="off" />
+              </div>
+            </div>
+            <div class="vercel-toolbar-group">
+              <div class="vercel-select-wrap">
+                <select id="suites-filter-category" class="vercel-select">
+                  <option value="">Toutes les catégories</option>
+                  <option value="suite">🏨 Suites</option>
+                  <option value="villa">🏡 Villas Privées</option>
+                  <option value="penthouse">🌆 Penthouses</option>
+                  <option value="appartement">🏢 Appartements</option>
+                  <option value="chambre">🛏️ Chambres</option>
+                  <option value="loft">🛖 Lofts Prestige</option>
+                </select>
+              </div>
+
+              <div class="vercel-select-wrap">
+                <select id="suites-filter-status" class="vercel-select">
+                  <option value="">Tous les statuts</option>
+                  <option value="confirmed">🟢 Disponible</option>
+                  <option value="rented">🔴 Occupé / En location</option>
+                </select>
+              </div>
+
+              <div class="vercel-select-wrap">
+                <select id="suites-sort-by" class="vercel-select">
+                  <option value="default">Tri par défaut</option>
+                  <option value="price-asc">Prix : croissant</option>
+                  <option value="price-desc">Prix : décroissant</option>
+                  <option value="name-asc">Nom : A à Z</option>
+                </select>
+              </div>
+
+              <button class="vercel-btn-icon" id="btn-refresh-suites" title="Actualiser les hébergements">
+                <i class="fa-solid fa-arrows-rotate"></i>
               </button>
             </div>
           </div>
