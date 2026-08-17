@@ -31,9 +31,23 @@ export function sanitizeUrl(url: unknown, defaultUrl = ""): string {
   if (!trimmed) return defaultUrl;
   if (/^(?:javascript|vbscript|file):/i.test(trimmed)) return defaultUrl;
 
+  // Si c'est déjà un data: URI
+  if (/^data:/i.test(trimmed)) {
+    if (!/^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,/i.test(trimmed)) {
+      return defaultUrl;
+    }
+    const commaIndex = trimmed.indexOf(',');
+    if (commaIndex !== -1) {
+      const header = trimmed.slice(0, commaIndex);
+      const payload = trimmed.slice(commaIndex + 1).replace(/\s+/g, '');
+      return `${header},${payload}`;
+    }
+    return trimmed;
+  }
+
   // Détection des chaînes Base64 brutes sans le préfixe data:image
   if (/^(?:\/)?(?:9j\/|iVBORw0KGgo|R0lGOD|UklGR)/.test(trimmed)) {
-    const cleanBase64 = trimmed.startsWith('/') ? trimmed.slice(1) : trimmed;
+    const cleanBase64 = (trimmed.startsWith('/') ? trimmed.slice(1) : trimmed).replace(/\s+/g, '');
     if (cleanBase64.startsWith('9j/')) {
       return `data:image/jpeg;base64,${cleanBase64}`;
     } else if (cleanBase64.startsWith('iVBORw0KGgo')) {
@@ -43,15 +57,8 @@ export function sanitizeUrl(url: unknown, defaultUrl = ""): string {
     }
   }
 
-  if (/^data:/i.test(trimmed)) {
-    if (!/^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);base64,/i.test(trimmed)) {
-      return defaultUrl;
-    }
-    return trimmed;
-  }
-
   // Protection contre les URLs relatives géantes (> 2048 chars) qui provoquent l'erreur 414
-  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://') && trimmed.length > 2048) {
+  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://') && !trimmed.startsWith('assets/') && !trimmed.startsWith('/assets/') && trimmed.length > 2048) {
     return defaultUrl;
   }
 
