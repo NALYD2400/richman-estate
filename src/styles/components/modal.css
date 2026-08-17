@@ -638,6 +638,39 @@ input:checked + .toggle-switch-slider:before {
   object-position: center;
 }
 
+/* Placeholder quand aucune photo n'est configurée : plutôt qu'un logo perdu
+   au milieu d'un grand cadre vide, on affiche un bloc assumé et élégant */
+.detail-media-placeholder {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 200px;
+  width: 100%;
+  color: #71717a;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.detail-media-placeholder i {
+  font-size: 44px;
+  color: rgba(197, 168, 128, 0.45);
+}
+
+.detail-modal-media.is-placeholder img {
+  display: none;
+}
+
+.detail-modal-media.is-placeholder .detail-media-placeholder {
+  display: flex;
+}
+
+.detail-modal-media.is-placeholder {
+  cursor: default;
+}
+
 .detail-modal-media .btn-card-fullscreen {
   position: absolute;
   top: 12px;
