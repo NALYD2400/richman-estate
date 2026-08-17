@@ -2189,8 +2189,10 @@ if (urlInput) {
   (window as any).showToast = showToast;
   (window as any).openModal = openModal;
   (window as any).closeModal = closeModal;
+  (window as any).openSuiteModal = openSuiteModal;
   (window as any).closeSuiteModal = closeSuiteModal;
   (window as any).closeUserModal = closeUserModal;
+  (window as any).openAdminImagePreview = openAdminImagePreview;
   (window as any).updateCalculatedPrice = updateCalculatedPrice;
   (window as any).applyFleetFilters = applyFleetFilters;
   (window as any).applySuitesFilters = applySuitesFilters;
