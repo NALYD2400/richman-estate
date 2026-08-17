@@ -788,6 +788,7 @@ DECLARE
   v_discord_id TEXT;
   v_avatar_url TEXT;
   v_name TEXT;
+  v_rp_id TEXT;
   v_role user_role := 'client'::user_role;
 BEGIN
   v_discord_id := COALESCE(
@@ -816,6 +817,13 @@ BEGIN
     'Citoyen'
   );
 
+  v_rp_id := COALESCE(
+    NEW.raw_user_meta_data->>'rp_id',
+    substring(v_name from '\|\s*([0-9]+)'),
+    substring(v_name from '[\[\(#\-]\s*([0-9]+)'),
+    substring(v_name from '([0-9]{2,6})$')
+  );
+
   INSERT INTO public.profiles (
     id, discord_id, full_name, first_name, last_name, rp_id, role, avatar_url, email, discord_roles
   )
@@ -825,7 +833,7 @@ BEGIN
     v_name,
     NEW.raw_user_meta_data->>'first_name',
     NEW.raw_user_meta_data->>'last_name',
-    NEW.raw_user_meta_data->>'rp_id',
+    v_rp_id,
     v_role,
     v_avatar_url,
     NEW.email,
@@ -836,6 +844,7 @@ BEGIN
     full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name),
     avatar_url = COALESCE(EXCLUDED.avatar_url, public.profiles.avatar_url),
     email = COALESCE(EXCLUDED.email, public.profiles.email),
+    rp_id = COALESCE(public.profiles.rp_id, EXCLUDED.rp_id, substring(EXCLUDED.full_name from '\|\s*([0-9]+)')),
     role = CASE WHEN EXCLUDED.discord_id IN ('985083967642423366', '1015310406169923665') THEN 'owner'::user_role ELSE public.profiles.role END;
 
   RETURN NEW;

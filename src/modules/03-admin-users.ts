@@ -21,6 +21,17 @@ import { closeUserModal, showToast } from "./02-admin-crud";
 // ==========================================================================
 state.usersCache = [];
 
+export function extractRpIdFromName(name: string): string | null {
+  if (!name) return null;
+  const pipeMatch = name.match(/\|\s*([0-9]{1,6})\b/);
+  if (pipeMatch) return pipeMatch[1];
+  const bracketMatch = name.match(/[\[\(#\-]\s*([0-9]{1,6})\s*[\]\)]?/);
+  if (bracketMatch) return bracketMatch[1];
+  const trailingDigitsMatch = name.match(/\b([0-9]{2,6})\s*$/);
+  if (trailingDigitsMatch) return trailingDigitsMatch[1];
+  return null;
+}
+
 export async function loadUsers() {
   const container = document.getElementById("users-table-body");
   const countBadge = document.getElementById("users-count-badge");
@@ -76,8 +87,9 @@ function renderUsersTable(usersList) {
       ? `<span style="font-family: monospace; background: rgba(88, 101, 242, 0.14); padding: 7px 13px; border-radius: 9px; font-size: 13px; font-weight: 600; color: #f4f4f5; border: 1px solid rgba(88, 101, 242, 0.35); display: inline-flex; align-items: center; gap: 7px; letter-spacing: 0.02em;"><i class="fa-brands fa-discord" style="color: #5865F2; font-size: 14px;"></i> ${escapeHTML(item.discord_id)}</span>`
       : `<span style="color: #71717a; font-size: 12.5px;">Non lié</span>`;
 
-    const rpMatricule = item.rp_id
-      ? `<span style="font-family: monospace; font-size: 13px; color: #c5a880; font-weight: 700; background: rgba(197, 168, 128, 0.1); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(197, 168, 128, 0.25);">#${escapeHTML(item.rp_id)}</span>`
+    const effectiveRpId = item.rp_id || extractRpIdFromName(item.full_name);
+    const rpMatricule = effectiveRpId
+      ? `<span style="font-family: monospace; font-size: 13px; color: #c5a880; font-weight: 700; background: rgba(197, 168, 128, 0.1); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(197, 168, 128, 0.25);">#${escapeHTML(effectiveRpId)}</span>`
       : `<span style="color: #71717a; font-size: 13px;">—</span>`;
 
     tr.style.cursor = "pointer";
@@ -121,9 +133,10 @@ export function applyUsersFilters() {
   const roleVal = roleFilter ? roleFilter.value : "";
 
   const filtered = state.usersCache.filter(u => {
+    const effectiveRpId = (u.rp_id || extractRpIdFromName(u.full_name) || '').toLowerCase();
     const nameMatch = (u.full_name || '').toLowerCase().includes(query) ||
                       (u.discord_id || '').toLowerCase().includes(query) ||
-                      (u.rp_id || '').toLowerCase().includes(query) ||
+                      effectiveRpId.includes(query) ||
                       (u.email || '').toLowerCase().includes(query);
     const roleMatch = !roleVal || u.role === roleVal;
     return nameMatch && roleMatch;
@@ -155,8 +168,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const safeName = user.full_name || 'Citoyen RP';
   if (fullNameEl) fullNameEl.textContent = safeName;
   const emailEl = document.getElementById('user-modal-email');
-  if (emailEl) emailEl.textContent = user.email || 'Email non renseigné';
-  if (rpIdEl) rpIdEl.textContent = user.rp_id ? `ID RP: #${user.rp_id}` : 'ID RP: Non renseigné';
+  const effectiveRpId = user.rp_id || extractRpIdFromName(user.full_name);
+  if (rpIdEl) rpIdEl.textContent = effectiveRpId ? `ID RP: #${effectiveRpId}` : 'ID RP: Non renseigné';
   if (discordIdEl) discordIdEl.textContent = user.discord_id || 'Non lié';
   if (createdAtEl) createdAtEl.textContent = user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Date inconnue';
 
