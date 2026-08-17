@@ -35,12 +35,14 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  background: transparent;
-  border: none;
-  color: #ffffff;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
   font-size: 13px;
   font-family: var(--font-sans, inherit);
-  outline: none;
+  outline: none !important;
   margin: 0;
   padding: 0;
   line-height: normal;

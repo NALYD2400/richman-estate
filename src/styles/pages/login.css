@@ -325,21 +325,21 @@
   gap: 12px;
 }
 
-.form-group {
+.auth-form .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
 }
 
-.form-group label {
+.auth-form .form-group label {
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: 13px;
   color: #d0d0d5;
 }
 
-.form-group input {
+.auth-form .form-group input {
   height: 50px;
   border-radius: 14px;
   background: #141416;
@@ -353,11 +353,11 @@
   width: 100%;
 }
 
-.form-group input::placeholder {
+.auth-form .form-group input::placeholder {
   color: #3a3a3e;
 }
 
-.form-group input:focus {
+.auth-form .form-group input:focus {
   border-color: rgba(255, 255, 255, 0.35);
   background: #1a1a1d;
 }
