@@ -245,44 +245,33 @@
             </div>
           </div>
 
-          <!-- Live Activity Grid -->
-          <div class="dashboard-grid">
-            <!-- Left: Recent Bookings & Tickets with Direct Shortcuts -->
-            <div class="dash-card">
-              <div class="dash-card-header">
-                <h3>Dernières Réservations &amp; Échanges Récents</h3>
-                <div style="display: flex; gap: 8px;">
-                  <button class="dash-link-btn" onclick="window.switchAdminTab('tickets-cars')">Voitures</button>
-                  <button class="dash-link-btn" onclick="window.switchAdminTab('tickets-suites')">Suites</button>
-                </div>
+          <!-- Live Activity Section -->
+          <div class="dash-card" style="margin-bottom: 24px;">
+            <div class="dash-card-header">
+              <div>
+                <h3 style="font-size: 14px; font-weight: 600; color: #ffffff; margin: 0 0 2px 0;">Dernières Réservations &amp; Échanges Récents</h3>
+                <span style="font-size: 11px; color: #71717a;">Vue consolidée des activités et accès direct aux salons Discord</span>
               </div>
-              <table class="vercel-table">
-                <thead>
-                  <tr>
-                    <th>Citoyen / Client</th>
-                    <th>Pôle</th>
-                    <th>Prestation</th>
-                    <th>Montant</th>
-                    <th>Statut</th>
-                    <th style="text-align: right;">Raccourcis</th>
-                  </tr>
-                </thead>
-                <tbody id="overview-bookings-tbody">
-                  <!-- Dynamic bookings with direct Discord button -->
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Right: Realtime Fleet & Suites Status -->
-            <div class="dash-card">
-              <div class="dash-card-header">
-                <h3>État des Véhicules de la Flotte</h3>
-                <button class="dash-link-btn" onclick="window.switchAdminTab('fleet')">Gérer Flotte</button>
-              </div>
-              <div class="fleet-status-list" id="overview-fleet-status-list">
-                <!-- Dynamic fleet status will load here -->
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="dash-link-btn" onclick="window.switchAdminTab('tickets-cars')">Tickets Voitures</button>
+                <button type="button" class="dash-link-btn" onclick="window.switchAdminTab('tickets-suites')">Tickets Suites</button>
               </div>
             </div>
+            <table class="vercel-table">
+              <thead>
+                <tr>
+                  <th>Citoyen / Client</th>
+                  <th>Pôle</th>
+                  <th>Prestation</th>
+                  <th>Montant</th>
+                  <th>Statut</th>
+                  <th style="text-align: right;">Raccourcis</th>
+                </tr>
+              </thead>
+              <tbody id="overview-bookings-tbody">
+                <!-- Dynamic bookings with direct Discord button -->
+              </tbody>
+            </table>
           </div>
         </section>
 
