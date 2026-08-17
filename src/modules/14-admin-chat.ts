@@ -555,6 +555,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const bookingId = adminActiveTicket.id;
     const discordId = adminActiveTicket.discord_id || '';
     const clientName = adminActiveTicket.client_name || '';
+    const directChannelId = adminActiveTicket.ticket_channel_id;
+
+    if (directChannelId) {
+      window.open(`https://discord.com/channels/1537171063715401870/${directChannelId}`, '_blank');
+      showToast("Ouverture du salon Discord...", "success");
+      return;
+    }
 
     // Open target window synchronously on user click to avoid modern browser popup blockers
     const win = window.open('about:blank', '_blank');
@@ -583,6 +590,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const targetUrl = (res.ok && data.success && data.url)
         ? data.url
         : (data.fallbackUrl || 'https://discord.com/channels/1537171063715401870');
+
+      if (res.ok && data.success && data.channelId) {
+        adminActiveTicket.ticket_channel_id = data.channelId;
+      }
 
       if (win) {
         win.location.href = targetUrl;
