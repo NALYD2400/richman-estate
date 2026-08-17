@@ -1462,28 +1462,39 @@
 }
 
 .admin-ticket-empty {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
   margin: auto;
-  text-align: center;
   padding: 40px 20px;
   color: #71717a;
+  width: 100%;
 }
 
 .admin-ticket-empty i {
   font-size: 32px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   color: #3f3f46;
+  display: block;
 }
 
 .admin-ticket-empty h3 {
   font-size: 15px;
+  font-weight: 600;
   color: #ffffff;
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
+  display: block;
 }
 
 .admin-ticket-empty p {
   font-size: 12px;
-  max-width: 340px;
+  max-width: 360px;
   margin: 0 auto;
+  color: #71717a;
+  line-height: 1.5;
+  display: block;
 }
 
 .admin-ticket-active-view {
