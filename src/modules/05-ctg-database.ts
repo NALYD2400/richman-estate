@@ -376,6 +376,8 @@ document.addEventListener("DOMContentLoaded", () => {
           } catch (e) {
             state.uploadedImagesArray = [meta.media_url];
           }
+        } else if (meta.media_url.startsWith('data:image') || meta.media_url.startsWith('http://') || meta.media_url.startsWith('https://') || meta.media_url.startsWith('/9j/')) {
+          state.uploadedImagesArray = [meta.media_url.trim()];
         } else if (meta.media_url.includes(",")) {
           state.uploadedImagesArray = meta.media_url.split(",").map((s: string) => s.trim()).filter(Boolean);
         } else if (meta.media_url.trim()) {

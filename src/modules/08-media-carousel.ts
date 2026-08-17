@@ -39,6 +39,8 @@ export function extractItemMediaArray(item: any, type = 'suite') {
           });
         }
       } catch (e) { console.warn('[Richman]', e); }
+    } else if (typeof raw === 'string' && (raw.startsWith('data:image') || raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('/9j/'))) {
+      list.push(raw.trim());
     } else if (typeof raw === 'string' && raw.includes(",")) {
       raw.split(",").forEach((p: string) => {
         if (p && p.trim()) list.push(p.trim());

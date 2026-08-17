@@ -672,13 +672,15 @@ export function applySuitesFilters() {
 
     // Handle Media & Carousels
     let mediaHtml = '';
-    let mediaArray: string[] = [];
+    let mediaArray: any[] = [];
     if (item.media_urls) {
       if (typeof item.media_urls === 'string' && item.media_urls.startsWith('[')) {
         try {
           const parsed = JSON.parse(item.media_urls);
           if (Array.isArray(parsed)) mediaArray = parsed.filter(Boolean);
         } catch (e) {}
+      } else if (typeof item.media_urls === 'string' && (item.media_urls.startsWith('data:image') || item.media_urls.startsWith('http://') || item.media_urls.startsWith('https://') || item.media_urls.startsWith('/9j/'))) {
+        mediaArray = [item.media_urls.trim()];
       } else if (typeof item.media_urls === 'string' && item.media_urls.includes(',')) {
         mediaArray = item.media_urls.split(',').map(s => s.trim()).filter(Boolean);
       } else if (typeof item.media_urls === 'string' && item.media_urls.trim()) {
@@ -1874,17 +1876,21 @@ function openSuiteModal(editData = null) {
 
       state.uploadedSuiteImagesArray = [];
       if (editData.media_urls) {
-        if (editData.media_urls.startsWith("[")) {
+        if (typeof editData.media_urls === 'string' && editData.media_urls.startsWith("[")) {
           try {
             const parsed = JSON.parse(editData.media_urls);
             if (Array.isArray(parsed)) state.uploadedSuiteImagesArray = parsed.filter(Boolean);
           } catch (e) {
             state.uploadedSuiteImagesArray = [editData.media_urls];
           }
-        } else if (editData.media_urls.includes(",")) {
-          state.uploadedSuiteImagesArray = editData.media_urls.split(",").map(s => s.trim()).filter(Boolean);
-        } else if (editData.media_urls.trim()) {
+        } else if (typeof editData.media_urls === 'string' && (editData.media_urls.startsWith('data:image') || editData.media_urls.startsWith('http://') || editData.media_urls.startsWith('https://') || editData.media_urls.startsWith('/9j/'))) {
           state.uploadedSuiteImagesArray = [editData.media_urls.trim()];
+        } else if (typeof editData.media_urls === 'string' && editData.media_urls.includes(",")) {
+          state.uploadedSuiteImagesArray = editData.media_urls.split(",").map(s => s.trim()).filter(Boolean);
+        } else if (typeof editData.media_urls === 'string' && editData.media_urls.trim()) {
+          state.uploadedSuiteImagesArray = [editData.media_urls.trim()];
+        } else if (Array.isArray(editData.media_urls)) {
+          state.uploadedSuiteImagesArray = editData.media_urls.filter(Boolean);
         }
       }
       renderSuiteUploadPreviews();
