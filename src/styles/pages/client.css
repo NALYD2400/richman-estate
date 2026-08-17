@@ -1000,15 +1000,20 @@
   transform: scale(1.06);
 }
 
-/* Sélecteur de dossiers dans la fenêtre */
+/* Sélecteur de dossiers dans la fenêtre avec scrollbar horizontale fluide */
 .dialog-dossiers-bar {
   display: flex;
+  align-items: center;
   gap: 8px;
-  padding: 8px 18px;
+  padding: 10px 18px;
   background: #0b0c12;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   overflow-x: auto;
-  scrollbar-width: none;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(197, 168, 128, 0.45) rgba(255, 255, 255, 0.03);
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
   flex-shrink: 0;
 }
 
@@ -1017,35 +1022,59 @@
 }
 
 .dialog-dossiers-bar::-webkit-scrollbar {
-  display: none;
+  height: 5px;
+  display: block;
+}
+
+.dialog-dossiers-bar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.dialog-dossiers-bar::-webkit-scrollbar-thumb {
+  background: rgba(197, 168, 128, 0.4);
+  border-radius: 6px;
+}
+
+.dialog-dossiers-bar::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 168, 128, 0.7);
 }
 
 .dialog-dossier-pill {
-  background: #151620;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: #a1a1aa;
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 11.5px;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
+  gap: 7px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
 }
 
 .dialog-dossier-pill:hover {
-  background: #1f212e;
+  background: rgba(197, 168, 128, 0.12);
+  border-color: rgba(197, 168, 128, 0.3);
   color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .dialog-dossier-pill.active {
-  background: #ffffff;
-  color: #0c0c12;
-  border-color: #ffffff;
+  background: linear-gradient(135deg, rgba(197, 168, 128, 0.25) 0%, rgba(197, 168, 128, 0.1) 100%);
+  color: #f7ede2;
+  border-color: rgba(197, 168, 128, 0.6);
+  box-shadow: 0 2px 10px rgba(197, 168, 128, 0.15);
   font-weight: 700;
+}
+
+.dialog-dossier-pill i {
+  font-size: 12px;
+  color: var(--accent-gold, #c5a880);
 }
 
 /* Zone de Messages de la Fenêtre */
@@ -1055,7 +1084,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   scrollbar-width: thin;
   background: #090a0f;
 }
@@ -1135,7 +1164,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 6px 0;
+  margin: 10px 0;
   position: relative;
 }
 
@@ -1153,21 +1182,33 @@
   position: relative;
   background: #111218;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 3px 12px;
+  padding: 4px 14px;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
-  color: #71717a;
+  color: #8e8e93;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
-/* Chat Message Rows & Bubbles */
+/* Chat Message Rows & Bubbles with High-End Styling */
 .chat-msg-row {
   display: flex;
   flex-direction: column;
-  max-width: 82%;
-  animation: fadeIn 0.2s ease-out;
+  max-width: 78%;
+  animation: chatMsgAppear 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: margin 0.2s ease;
+}
+
+@keyframes chatMsgAppear {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .chat-msg-row.client {
@@ -1180,13 +1221,22 @@
   align-items: flex-start;
 }
 
+/* Tighter gap and hidden headers for grouped consecutive messages */
+.chat-msg-row.grouped-continuation {
+  margin-top: -8px;
+}
+
+.chat-msg-row.grouped-continuation .chat-msg-meta {
+  display: none;
+}
+
 .chat-msg-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-size: 11px;
   color: #71717a;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   padding: 0 4px;
 }
 
@@ -1194,48 +1244,68 @@
   font-weight: 700;
   color: #e4e4e7;
   font-size: 11.5px;
+  letter-spacing: -0.01em;
 }
 
 .chat-msg-role-chip {
   font-size: 9.5px;
   font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .chat-msg-role-chip.staff {
-  background: rgba(197, 168, 128, 0.18);
+  background: rgba(197, 168, 128, 0.16);
   color: #f5eedf;
-  border: 1px solid rgba(197, 168, 128, 0.35);
+  border: 1px solid rgba(197, 168, 128, 0.4);
+  box-shadow: 0 2px 6px rgba(197, 168, 128, 0.1);
 }
 
 .chat-msg-time {
-  font-size: 10.5px;
+  font-size: 10px;
   color: #71717a;
+  font-weight: 500;
 }
 
 .chat-msg-bubble {
+  position: relative;
   padding: 10px 16px;
   font-size: 13.5px;
   line-height: 1.5;
   word-break: break-word;
+  font-weight: 450;
+  letter-spacing: -0.01em;
 }
 
+/* Client Bubble (Right) */
 .chat-msg-row.client .chat-msg-bubble {
-  background: #1c1d26;
+  background: linear-gradient(135deg, #1e202c 0%, #151621 100%);
   border: 1px solid rgba(197, 168, 128, 0.35);
   color: #ffffff;
-  border-radius: 16px 16px 3px 16px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  border-radius: 18px 18px 4px 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
+.chat-msg-row.client.grouped-continuation .chat-msg-bubble {
+  border-radius: 18px 4px 4px 18px;
+}
+
+/* Staff Conciergerie Bubble (Left) */
 .chat-msg-row.staff .chat-msg-bubble {
-  background: #13141d;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f4f4f5;
-  border-radius: 16px 16px 16px 3px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(135deg, rgba(197, 168, 128, 0.14) 0%, rgba(20, 21, 30, 0.95) 100%);
+  border: 1px solid rgba(197, 168, 128, 0.45);
+  color: #f7f3ec;
+  border-radius: 18px 18px 18px 4px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), 0 0 16px rgba(197, 168, 128, 0.08);
+}
+
+.chat-msg-row.staff.grouped-continuation .chat-msg-bubble {
+  border-radius: 4px 18px 18px 4px;
 }
 
 /* Saisie de Messages */

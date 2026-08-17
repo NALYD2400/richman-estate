@@ -583,13 +583,28 @@ export function appendMessageBubble(containerEl: any, msg: any) {
   }
 
   // SÉCURITÉ : le badge Staff repose UNIQUEMENT sur sender_role, verrouillé en base
-  // (add_booking_message force 'client' pour les non-admins). Les sender_id / sender_name
-  // sont contrôlables par l'expéditeur et ne doivent pas piloter l'affichage staff.
   const isStaff = senderRole === 'staff';
   const timeStr = new Date(msgTimestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
+  // Intelligent Message Grouping (avoid repeating author & time header for consecutive messages < 2 min)
+  const allRows = containerEl.querySelectorAll(".chat-msg-row");
+  const lastRow = allRows.length > 0 ? allRows[allRows.length - 1] : null;
+  let isGroupedContinuation = false;
+
+  if (lastRow) {
+    const lastRole = lastRow.classList.contains("staff") ? "staff" : "client";
+    const lastTimeAttr = lastRow.getAttribute("data-timestamp");
+    const lastTime = lastTimeAttr ? parseInt(lastTimeAttr, 10) : 0;
+    const sameSender = (lastRole === senderRole);
+    const timeDiff = Math.abs(msgTimestamp - lastTime);
+
+    if (sameSender && timeDiff < 120000) {
+      isGroupedContinuation = true;
+    }
+  }
+
   const row = document.createElement("div");
-  row.className = `chat-msg-row ${isStaff ? 'staff' : 'client'}`;
+  row.className = `chat-msg-row ${isStaff ? 'staff' : 'client'} ${isGroupedContinuation ? 'grouped-continuation' : ''}`;
   row.setAttribute("data-timestamp", String(msgTimestamp));
   if (msgId) {
     row.setAttribute("data-msg-id", msgId);
@@ -599,8 +614,8 @@ export function appendMessageBubble(containerEl: any, msg: any) {
 
   row.innerHTML = `
     <div class="chat-msg-meta">
-      <span class="chat-msg-sender">${escapeHTML(msg.sender_name || (isStaff ? 'Staff Richman' : 'Client'))}</span>
-      ${isStaff ? '<span class="chat-msg-role-chip staff"><i class="fa-solid fa-shield-halved"></i> Staff</span>' : ''}
+      <span class="chat-msg-sender">${escapeHTML(msg.sender_name || (isStaff ? 'Conciergerie Richman' : 'Client'))}</span>
+      ${isStaff ? '<span class="chat-msg-role-chip staff"><i class="fa-solid fa-shield-halved"></i> Conciergerie</span>' : ''}
       <span class="chat-msg-time">&bull; ${timeStr}</span>
     </div>
     <div class="chat-msg-bubble">
