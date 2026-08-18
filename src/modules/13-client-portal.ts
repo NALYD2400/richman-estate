@@ -72,10 +72,19 @@ export async function initClientPortal() {
   await loadClientBookings(activeUser);
   setupClientRealtime(activeUser);
 
-  // If URL has ?booking=<id>, open dialog directly
+  // If URL has ?booking=<id> or ?invoice=<id>, open dialog or invoice directly
   const urlParams = new URLSearchParams(window.location.search);
   const targetBooking = urlParams.get("booking");
-  if (targetBooking) {
+  const targetInvoice = urlParams.get("invoice");
+  if (targetInvoice && targetInvoice !== 'new') {
+    setTimeout(() => {
+      if (typeof (window as any).openInvoiceModal === 'function') {
+        (window as any).openInvoiceModal(targetInvoice);
+      } else {
+        import('./16-invoice-system').then(m => m.openInvoiceModal(targetInvoice));
+      }
+    }, 300);
+  } else if (targetBooking) {
     setTimeout(() => (window as any).openBookingDialog(targetBooking), 250);
   }
 }
