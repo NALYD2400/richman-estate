@@ -360,16 +360,26 @@ document.addEventListener("DOMContentLoaded", () => {
       badgeEl.textContent = statusLabel;
     }
 
-    // Dynamic Button Visibility
     const returnBtn = document.getElementById(`btn-admin-return-ticket-${pfx}`);
     const acceptBtn = document.getElementById(`btn-admin-accept-ticket-${pfx}`);
     const refuseBtn = document.getElementById(`btn-admin-refuse-ticket-${pfx}`);
     const closeBtn = document.getElementById(`btn-admin-close-ticket-${pfx}`);
+    const hardDeleteBtn = document.getElementById(`btn-admin-hard-delete-ticket-${pfx}`);
+
+    const isOwner = localStorage.getItem("richman_is_owner") === "true" ||
+                    localStorage.getItem("richman_role") === "owner" ||
+                    localStorage.getItem("richman_role") === "founder" ||
+                    localStorage.getItem("richman_role") === "fondateur";
 
     if (returnBtn) returnBtn.style.display = (ticket.status === 'confirmed') ? 'inline-flex' : 'none';
     if (acceptBtn) acceptBtn.style.display = (ticket.status === 'pending') ? 'inline-flex' : 'none';
     if (refuseBtn) refuseBtn.style.display = (ticket.status === 'pending') ? 'inline-flex' : 'none';
     if (closeBtn) closeBtn.style.display = (ticket.status !== 'closed') ? 'inline-flex' : 'none';
+    if (hardDeleteBtn) {
+      hardDeleteBtn.style.display = (isOwner && (ticket.status === 'closed' || ticket.status === 'completed' || ticket.status === 'cancelled'))
+        ? 'inline-flex'
+        : 'none';
+    }
 
     // Load Messages Stream
     const stream = document.getElementById(`admin-ticket-${pfx}-messages-stream`);
@@ -618,6 +628,75 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e: any) {
       console.error(e);
       showToast("Erreur lors de la clôture du dossier : " + e.message, "danger");
+    }
+  };
+
+  (window as any).handleAdminHardDeleteTicket = async function (category: any = 'vehicule') {
+    if (!adminActiveTicket) return;
+
+    const isOwner = localStorage.getItem("richman_is_owner") === "true" ||
+                    localStorage.getItem("richman_role") === "owner" ||
+                    localStorage.getItem("richman_role") === "founder" ||
+                    localStorage.getItem("richman_role") === "fondateur";
+
+    if (!isOwner) {
+      showToast("Action réservée exclusivement aux Fondateurs.", "warning");
+      return;
+    }
+
+    const isSuite = (category === 'suite') || (adminActiveTicket.type === 'suite');
+    const pfx = isSuite ? 'suites' : 'cars';
+    const ticketId = adminActiveTicket.id;
+    const discordId = adminActiveTicket.discord_id;
+    const itemName = adminActiveTicket.item_name || 'Dossier';
+
+    const confirmed = await (window as any).showConfirmDialog({
+      title: "⚠️ Suppression Définitive (Fondateur)",
+      message: `Êtes-vous certain de vouloir <strong>supprimer définitivement</strong> le dossier <strong>#${ticketId.slice(0, 6).toUpperCase()}</strong> (${escapeHTML(itemName)}) ?<div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 10px 14px; margin-top: 14px; text-align: left; display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: #fca5a5; line-height: 1.45;"><i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px; font-size: 14px; flex-shrink: 0; color: #ef4444;"></i><div><strong>Action irréversible :</strong> Le dossier, tous les messages de discussion et la facture seront définitivement supprimés de la base de données.</div></div>`,
+      confirmText: "Supprimer Définitivement",
+      cancelText: "Annuler",
+      icon: "fa-solid fa-trash-can",
+      isDanger: true
+    });
+
+    if (!confirmed) return;
+
+    try {
+      // 1. Delete messages & booking in Supabase
+      if (supabaseClient) {
+        await supabaseClient.from("booking_messages").delete().eq("booking_id", ticketId);
+        await supabaseClient.from("bookings").delete().eq("id", ticketId);
+      }
+
+      // 2. Call Bot API to delete temporary Discord channel if it still exists
+      botFetch('/api/close-ticket', {
+        method: "POST",
+        body: JSON.stringify({
+          booking_id: ticketId,
+          discord_id: discordId || null
+        })
+      }).catch(() => {});
+
+      // 3. Reset Active Ticket View
+      adminActiveTicket = null;
+      (window as any).adminActiveTicket = null;
+      const emptyState = document.getElementById(`admin-ticket-${pfx}-empty-state`);
+      const activeView = document.getElementById(`admin-ticket-${pfx}-active-view`);
+      if (emptyState) emptyState.style.display = "flex";
+      if (activeView) activeView.style.display = "none";
+
+      // 4. Reload admin tickets list and bookings
+      if (typeof (window as any).loadAdminTickets === 'function') {
+        (window as any).loadAdminTickets(isSuite ? 'suite' : 'vehicule');
+      }
+      if (typeof (window as any).loadBookings === 'function') {
+        (window as any).loadBookings();
+      }
+
+      showToast(`Dossier #${ticketId.slice(0, 6).toUpperCase()} définitivement supprimé de la base.`, "success");
+    } catch (e: any) {
+      console.error(e);
+      showToast("Erreur lors de la suppression définitive : " + e.message, "danger");
     }
   };
 

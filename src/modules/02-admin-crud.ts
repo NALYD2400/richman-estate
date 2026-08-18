@@ -1042,9 +1042,22 @@ export async function loadBookings() {
     if (data.length === 0) {
       overviewContainer.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #71717a; padding: 24px; font-size: 12.5px;">Aucune activité récente.</td></tr>`;
     } else {
-      data.slice(0, 6).forEach(item => {
+      const isOwner = localStorage.getItem("richman_is_owner") === "true" ||
+                      localStorage.getItem("richman_role") === "owner" ||
+                      localStorage.getItem("richman_role") === "founder" ||
+                      localStorage.getItem("richman_role") === "fondateur";
+
+      data.slice(0, 8).forEach(item => {
         const tr = document.createElement("tr");
         const isSuite = item.type === 'suite';
+        const statusLabel = item.status === 'confirmed'
+          ? 'Validé'
+          : (item.status === 'completed'
+              ? 'Restitué'
+              : (item.status === 'closed'
+                  ? 'Archivé'
+                  : (item.status === 'cancelled' ? 'Refusé' : 'En attente')));
+
         tr.innerHTML = `
           <td>
             <div style="display: flex; flex-direction: column;">
@@ -1055,15 +1068,20 @@ export async function loadBookings() {
           <td><span class="type-tag ${isSuite ? 'suite' : 'car'}">${isSuite ? 'Hébergement' : 'Véhicule'}</span></td>
           <td style="color: #ffffff; font-size: 13px;">${escapeHTML(item.item_name || '')}</td>
           <td style="font-weight: 600; color: #ffffff; font-size: 13px;">${escapeHTML(item.amount || 'Devis')}</td>
-          <td><span class="status-pill ${escapeHTML(item.status || 'pending')}">${item.status === 'confirmed' ? 'Validé' : item.status === 'cancelled' ? 'Annulé' : 'En attente'}</span></td>
+          <td><span class="status-pill ${escapeHTML(item.status || 'pending')}">${statusLabel}</span></td>
           <td style="text-align: right;">
-            <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
+            <div style="display: inline-flex; gap: 6px; justify-content: flex-end; align-items: center;">
               <button type="button" class="overview-action-btn-discord" onclick="window.quickOpenDiscordTicket('${item.id}', '${item.discord_id || ''}', '${escapeHTML(item.client_name || '')}')" title="Ouvrir le salon Discord">
                 <i class="fa-brands fa-discord"></i> Salon
               </button>
               <button type="button" class="overview-action-btn-open" onclick="window.quickOpenAdminTicket('${item.id}', '${item.type || 'vehicule'}')" title="Ouvrir sur le panel">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
               </button>
+              ${(isOwner && (item.status === 'closed' || item.status === 'completed' || item.status === 'cancelled')) ? `
+                <button type="button" class="overview-action-btn-delete" onclick="window.handleAdminHardDeleteBookingDirect('${item.id}', '${escapeHTML(item.item_name || 'Dossier')}', '${item.discord_id || ''}')" title="Suppression définitive en base (Fondateur)" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; transition: all 0.15s ease;">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              ` : ''}
             </div>
           </td>
         `;
@@ -1074,6 +1092,50 @@ export async function loadBookings() {
 
   updateKPIs();
 }
+
+(window as any).handleAdminHardDeleteBookingDirect = async function(id: string, name: string, discordId: string) {
+  const isOwner = localStorage.getItem("richman_is_owner") === "true" ||
+                  localStorage.getItem("richman_role") === "owner" ||
+                  localStorage.getItem("richman_role") === "founder" ||
+                  localStorage.getItem("richman_role") === "fondateur";
+
+  if (!isOwner) {
+    showToast("Action réservée exclusivement aux Fondateurs.", "warning");
+    return;
+  }
+
+  const confirmed = await (window as any).showConfirmDialog({
+    title: "⚠️ Suppression Définitive (Fondateur)",
+    message: `Êtes-vous certain de vouloir <strong>supprimer définitivement</strong> le dossier <strong>#${id.slice(0, 6).toUpperCase()}</strong> (${escapeHTML(name)}) ?<div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 10px 14px; margin-top: 14px; text-align: left; display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: #fca5a5; line-height: 1.45;"><i class="fa-solid fa-triangle-exclamation" style="margin-top: 2px; font-size: 14px; flex-shrink: 0; color: #ef4444;"></i><div><strong>Action irréversible :</strong> Le dossier, tous les messages et la facture seront définitivement effacés de la base de données.</div></div>`,
+    confirmText: "Supprimer Définitivement",
+    cancelText: "Annuler",
+    icon: "fa-solid fa-trash-can",
+    isDanger: true
+  });
+
+  if (!confirmed) return;
+
+  try {
+    if (supabaseClient) {
+      await supabaseClient.from("booking_messages").delete().eq("booking_id", id);
+      await supabaseClient.from("bookings").delete().eq("id", id);
+    }
+    botFetch('/api/close-ticket', {
+      method: "POST",
+      body: JSON.stringify({ booking_id: id, discord_id: discordId || null })
+    }).catch(() => {});
+
+    loadBookings();
+    if (typeof (window as any).loadAdminTickets === 'function') {
+      (window as any).loadAdminTickets('vehicule');
+      (window as any).loadAdminTickets('suite');
+    }
+    showToast(`Dossier #${id.slice(0, 6).toUpperCase()} définitivement supprimé.`, "success");
+  } catch (e: any) {
+    console.error(e);
+    showToast("Erreur lors de la suppression définitive : " + e.message, "danger");
+  }
+};
 
 let currentStatsPeriod: Record<string, string> = { general: 'all', cars: 'all', suites: 'all' };
 let currentStatsMetric: Record<string, string> = { general: 'revenue', cars: 'revenue', suites: 'revenue' };
