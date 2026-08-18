@@ -398,7 +398,10 @@ function renderClientBookingsList(bookings: any) {
           <span class="booking-created-time">
             <i class="fa-regular fa-clock"></i> ${new Date(b.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
           </span>
-          <div class="card-actions-btn-group">
+          <div class="card-actions-btn-group" style="display: flex; gap: 8px;">
+            <button type="button" class="btn-invoice-card" onclick="event.stopPropagation(); window.openInvoiceModal('${escapeHTML(b.id)}');" style="background: rgba(197, 168, 128, 0.12); border: 1px solid rgba(197, 168, 128, 0.3); color: #c5a880; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+              <i class="fa-solid fa-file-invoice-dollar"></i> Facture
+            </button>
             <button type="button" class="btn-open-chat-card" onclick="event.stopPropagation(); window.openBookingDialog('${escapeHTML(b.id)}');">
               <i class="fa-solid fa-comments"></i> Discussion
             </button>

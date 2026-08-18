@@ -13,6 +13,7 @@
 @import "./components/buttons.css";
 @import "./components/forms.css";
 @import "./components/toasts.css";
+@import "./components/invoice.css";
 
 /* 3. Page-Specific Styles */
 @import "./pages/home.css";

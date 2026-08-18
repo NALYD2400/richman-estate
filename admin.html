@@ -1031,6 +1031,9 @@
 
                   <!-- Quick Actions -->
                   <div class="admin-ticket-actions-group" id="admin-active-ticket-cars-actions">
+                    <button type="button" class="admin-ticket-btn-invoice" id="btn-admin-invoice-ticket-cars" onclick="if(window.adminActiveTicket){window.openInvoiceModal(window.adminActiveTicket.id);}" title="Consulter et imprimer la facture officielle" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880; font-weight: 600; font-size: 12px; border-radius: 8px; padding: 6px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-file-invoice-dollar"></i> Facture
+                    </button>
                     <button type="button" class="admin-ticket-btn-discord" id="btn-admin-discord-ticket-cars" onclick="window.openDiscordTicketChannel('vehicule');" title="Ouvrir le salon Discord du ticket">
                       <i class="fa-brands fa-discord"></i> Salon Discord
                     </button>
@@ -1125,6 +1128,9 @@
 
                   <!-- Quick Actions -->
                   <div class="admin-ticket-actions-group" id="admin-active-ticket-suites-actions">
+                    <button type="button" class="admin-ticket-btn-invoice" id="btn-admin-invoice-ticket-suites" onclick="if(window.adminActiveTicket){window.openInvoiceModal(window.adminActiveTicket.id);}" title="Consulter et imprimer la facture officielle" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880; font-weight: 600; font-size: 12px; border-radius: 8px; padding: 6px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-file-invoice-dollar"></i> Facture
+                    </button>
                     <button type="button" class="admin-ticket-btn-discord" id="btn-admin-discord-ticket-suites" onclick="window.openDiscordTicketChannel('suite');" title="Ouvrir le salon Discord du ticket">
                       <i class="fa-brands fa-discord"></i> Salon Discord
                     </button>
@@ -1671,6 +1677,11 @@
           <button type="submit" class="admin-btn-primary" style="padding: 0 16px; height: 36px; border-radius: 8px;"><i class="fa-solid fa-paper-plane"></i> Envoyer</button>
         </form>
       </div>
+    </div>
+
+    <!-- Luxury Invoice Modal Overlay -->
+    <div class="luxury-invoice-modal-overlay" id="invoice-modal-overlay" aria-hidden="true">
+      <div class="luxury-invoice-modal-container" id="invoice-modal-content"></div>
     </div>
 
     <!-- Toast Container -->

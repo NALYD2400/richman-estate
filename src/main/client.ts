@@ -15,3 +15,4 @@ import "../modules/12-suites-showroom";
 import "../modules/13-client-portal";
 import "../modules/14-admin-chat";
 import "../modules/15-atmosphere";
+import "../modules/16-invoice-system";
