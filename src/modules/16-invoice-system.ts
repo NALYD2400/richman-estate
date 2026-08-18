@@ -105,7 +105,7 @@ export function renderInvoiceHTML(inv: InvoiceData): string {
           <img src="assets/logo.webp" alt="Richman Estate" class="invoice-logo" />
           <div class="invoice-brand-text">
             <h3>Richman Estate</h3>
-            <span>Luxury Services &amp; Conciergerie</span>
+            <span>Flotte Automobile &amp; Résidences VIP</span>
           </div>
         </div>
         <div class="invoice-meta-top">
@@ -119,10 +119,10 @@ export function renderInvoiceHTML(inv: InvoiceData): string {
         <div>
           <div class="invoice-party-title">Émetteur</div>
           <div class="invoice-party-content">
-            <strong>Richman Estate Luxury Inc.</strong><br />
-            Domaine &amp; Palace de Richman<br />
-            Los Santos, San Andreas<br />
-            <em>Service de Conciergerie &amp; Flotte Officielle</em>
+            <strong>Richman Estate</strong><br />
+            Domaine de Richman, Los Santos<br />
+            San Andreas<br />
+            <em>Flotte Automobile &amp; Résidences VIP</em>
           </div>
         </div>
         <div>
