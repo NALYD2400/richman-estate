@@ -324,9 +324,28 @@ function renderClientBookingsList(bookings: any) {
   bookings.forEach((b: any) => {
     const isCar = (b.type || 'vehicule') === 'vehicule';
     const isSuite = b.type === 'suite';
-    const statusLabel = b.status === 'confirmed' ? 'Validée' : (b.status === 'cancelled' ? 'Refusée' : 'En Attente');
-    const statusClass = b.status === 'confirmed' ? 'confirmed' : (b.status === 'cancelled' ? 'cancelled' : 'pending');
-    const statusIcon = b.status === 'confirmed' ? 'fa-circle-check' : (b.status === 'cancelled' ? 'fa-circle-xmark' : 'fa-hourglass-half');
+    let statusLabel = 'En Attente';
+    let statusClass = 'pending';
+    let statusIcon = 'fa-hourglass-half';
+
+    if (b.status === 'confirmed') {
+      statusLabel = isSuite ? 'Séjour en cours' : 'En circulation';
+      statusClass = 'confirmed';
+      statusIcon = 'fa-key';
+    } else if (b.status === 'completed') {
+      statusLabel = isSuite ? 'Check-out effectué' : 'Restitué';
+      statusClass = 'confirmed';
+      statusIcon = 'fa-circle-check';
+    } else if (b.status === 'closed') {
+      statusLabel = 'Archivé';
+      statusClass = 'pending';
+      statusIcon = 'fa-box-archive';
+    } else if (b.status === 'cancelled') {
+      statusLabel = 'Refusé';
+      statusClass = 'cancelled';
+      statusIcon = 'fa-circle-xmark';
+    }
+
     const photoThumb = getBookingThumbnail(b);
     const shortRef = `BKG-${String(b.id || '').slice(0, 6).toUpperCase()}`;
 
@@ -491,6 +510,26 @@ async function loadBookingMessages(bookingId: any, containerEl: any, currentBook
             </div>
           </div>
         `;
+      } else if (booking.status === 'completed') {
+        statusBannerHtml = `
+          <div class="chat-status-recap-banner confirmed" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25);">
+            <div class="banner-icon-wrap" style="color: #10b981;"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="banner-content">
+              <h4 style="color: #10b981;">Restitution Effectuée &bull; Dossier Clôturé</h4>
+              <p>Le véhicule ou l'hébergement a été restitué avec succès. Votre facture officielle et votre reçu restent consultables en un clic.</p>
+            </div>
+          </div>
+        `;
+      } else if (booking.status === 'closed') {
+        statusBannerHtml = `
+          <div class="chat-status-recap-banner closed" style="background: rgba(107, 114, 128, 0.08); border: 1px solid rgba(107, 114, 128, 0.2);">
+            <div class="banner-icon-wrap" style="color: #9ca3af;"><i class="fa-solid fa-box-archive"></i></div>
+            <div class="banner-content">
+              <h4 style="color: #e5e7eb;">Dossier Archivé</h4>
+              <p>Ce dossier a été clôturé et archivé. Vous pouvez toujours consulter son historique et imprimer votre facture officielle.</p>
+            </div>
+          </div>
+        `;
       } else if (booking.status === 'cancelled') {
         statusBannerHtml = `
           <div class="chat-status-recap-banner cancelled">
@@ -598,15 +637,16 @@ export function appendMessageBubble(containerEl: any, msg: any) {
   const isStaff = senderRole === 'staff';
   const timeStr = new Date(msgTimestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
-  // 1. Detection of Official Status Milestones (Validation / Refusal)
-  const isAcceptedMilestone = cleanContent.includes("ACCEPTÉE et VALIDÉE") || cleanContent.includes("ACCEPTÉE");
-  const isRefusedMilestone = cleanContent.includes("n'a pas pu être retenue") || cleanContent.includes("REFUSÉE");
+  // 1. Detection of Official Status Milestones (Validation / Restitution / Refusal)
+  const isAcceptedMilestone = cleanContent.includes("ACCEPTÉE et VALIDÉE") || cleanContent.includes("ACCEPTÉE") || cleanContent.includes("été VALIDÉE");
+  const isReturnedMilestone = cleanContent.includes("restitution pour") || cleanContent.includes("check-out pour") || cleanContent.includes("VÉHICULE RESTITUÉ") || cleanContent.includes("validée avec succès");
+  const isRefusedMilestone = cleanContent.includes("n'a pas pu être retenue") || cleanContent.includes("REFUSÉE") || cleanContent.includes("n'a pas été retenue");
   const isInitialRequestMilestone = cleanContent.startsWith("Demande de réservation pour");
 
   // Skip rendering the raw booking initialization text as a chat card (already in header & status recap)
   if (isInitialRequestMilestone) return;
 
-  const isMilestone = isAcceptedMilestone || isRefusedMilestone;
+  const isMilestone = isAcceptedMilestone || isReturnedMilestone || isRefusedMilestone;
 
   if (isMilestone) {
     // Deduplication check for milestones
@@ -614,7 +654,7 @@ export function appendMessageBubble(containerEl: any, msg: any) {
     for (const m of existingMilestones) {
       if (msgId && m.getAttribute("data-msg-id") === msgId) return;
       const desc = (m.querySelector(".milestone-badge-desc")?.textContent || "").trim();
-      if (desc && desc === cleanContent.replace(/^[✅❌\s]+/, '').trim()) return;
+      if (desc && desc === cleanContent.replace(/^[✅🔄❌\s]+/, '').trim()) return;
     }
 
     const row = document.createElement("div");
@@ -622,7 +662,18 @@ export function appendMessageBubble(containerEl: any, msg: any) {
     row.setAttribute("data-timestamp", String(msgTimestamp));
     if (msgId) row.setAttribute("data-msg-id", msgId);
 
-    if (isAcceptedMilestone) {
+    if (isReturnedMilestone) {
+      row.innerHTML = `
+        <div class="chat-system-milestone confirmed" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35);">
+          <div class="milestone-badge-icon" style="background: rgba(16, 185, 129, 0.2); color: #10b981;"><i class="fa-solid fa-arrows-rotate"></i></div>
+          <div class="milestone-badge-body">
+            <span class="milestone-badge-title" style="color: #10b981;">RESTITUTION VALIDÉE &amp; SÉJOUR TERMINÉ</span>
+            <p class="milestone-badge-desc">${escapeHTML(cleanContent.replace(/^[🔄✅\s]+/, ''))}</p>
+            <span class="milestone-badge-time"><i class="fa-regular fa-clock"></i> ${timeStr}</span>
+          </div>
+        </div>
+      `;
+    } else if (isAcceptedMilestone) {
       row.innerHTML = `
         <div class="chat-system-milestone confirmed">
           <div class="milestone-badge-icon"><i class="fa-solid fa-circle-check"></i></div>
