@@ -823,4 +823,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize Interactive Geist Pixel Matrix & Luxury Atmosphere Background
   initRichmanMatrixBackground();
+
+  // Realtime Live Sync: update tickets and bookings across admin whenever updated from Discord
+  if (supabaseClient) {
+    supabaseClient
+      .channel('admin_global_bookings_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+        loadAdminTickets();
+        if (typeof (window as any).loadBookings === 'function') {
+          (window as any).loadBookings();
+        }
+      })
+      .subscribe();
+  }
 });
