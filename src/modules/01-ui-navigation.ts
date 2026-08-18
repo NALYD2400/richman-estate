@@ -86,8 +86,60 @@ document.addEventListener("DOMContentLoaded", () => {
   const burgerBtn = document.getElementById("burger-btn");
   const mobileMenu = document.getElementById("mobile-menu");
   const mobileOverlay = document.getElementById("mobile-overlay");
+
+  // Sync Logged-In User in Mobile Menu Drawer
+  try {
+    const rawUser = localStorage.getItem("richman_user");
+    if (rawUser && mobileMenu) {
+      const u = JSON.parse(rawUser);
+      if (u && u.name) {
+        const isOwner = localStorage.getItem("richman_is_owner") === "true";
+        const isStaff = isOwner || u.is_admin || u.role === "admin" || u.role === "gerant_hotel" || u.role === "gerant_vehicules" || u.role === "owner";
+        const targetHref = isStaff ? "admin.html" : "client.html";
+        const avatarUrl = u.avatar || "assets/logo.webp";
+        const roleLabel = isOwner ? "Fondateur & Owner" : isStaff ? "Staff Officiel" : "Membre Privilège";
+
+        const signinBtnEl = mobileMenu.querySelector(".mobile-signin");
+        if (signinBtnEl) {
+          const userCard = document.createElement("div");
+          userCard.className = "mobile-user-card";
+          userCard.innerHTML = `
+            <a href="${targetHref}" class="mobile-user-info">
+              <img src="${avatarUrl}" alt="${u.name}" class="mobile-user-avatar" />
+              <div class="mobile-user-details">
+                <span class="mobile-user-name">${u.name}</span>
+                <span class="mobile-user-role">${roleLabel}</span>
+              </div>
+            </a>
+            <button class="mobile-user-logout" title="Se Déconnecter" aria-label="Se Déconnecter">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          `;
+
+          const logoutBtn = userCard.querySelector(".mobile-user-logout");
+          if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => {
+              if ((window as any).handleUserLogout) {
+                (window as any).handleUserLogout();
+              } else {
+                localStorage.removeItem("richman_user");
+                localStorage.removeItem("richman_role");
+                localStorage.removeItem("richman_is_owner");
+                window.location.reload();
+              }
+            });
+          }
+
+          signinBtnEl.parentElement?.replaceChild(userCard, signinBtnEl);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("[Richman] Mobile nav user sync error:", e);
+  }
+
   const mobileLinks = document.querySelectorAll(
-    ".mobile-nav-link, .mobile-signin"
+    ".mobile-nav-link, .mobile-signin, .mobile-user-info"
   );
 
   function openMenu() {
@@ -99,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileOverlay.classList.add("active");
     mobileOverlay.removeAttribute("aria-hidden");
     document.body.classList.add("menu-open");
+    document.body.style.overflow = "hidden";
   }
 
   function closeMenu() {
@@ -110,6 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileOverlay.classList.remove("active");
     mobileOverlay.setAttribute("aria-hidden", "true");
     document.body.classList.remove("menu-open");
+    document.body.style.overflow = "";
   }
 
   function toggleMenu() {
@@ -141,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("resize", () => {
     if (
-      window.innerWidth > 720 &&
+      window.innerWidth > 860 &&
       burgerBtn &&
       burgerBtn.classList.contains("open")
     ) {

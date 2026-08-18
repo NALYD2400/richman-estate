@@ -29,9 +29,24 @@
     <link rel="stylesheet" href="src/styles/styles.css" />
   </head>
   <body class="admin-body">
+    <div class="admin-sidebar-overlay" id="admin-sidebar-overlay"></div>
     <div class="admin-layout">
+      <!-- Mobile Header for Admin -->
+      <header class="admin-mobile-header">
+        <button id="admin-mobile-menu-btn" class="admin-mobile-burger" aria-label="Menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="admin-mobile-brand">
+          <img src="assets/logo.webp" alt="Logo" width="28" height="28" class="admin-mobile-logo" />
+          <span>CONSOLE ADMIN</span>
+        </div>
+        <button onclick="if(window.handleUserLogout){window.handleUserLogout();}else{localStorage.clear();window.location.href='login.html';}" class="admin-mobile-logout" title="Déconnexion">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </header>
+
       <!-- Sidebar Navigation -->
-      <aside class="admin-sidebar">
+      <aside class="admin-sidebar" id="admin-sidebar">
         <div class="admin-brand">
           <button class="logo-btn" onclick="window.location.href='index.html'" aria-label="Home">
             <img src="assets/logo.webp" alt="" width="40" height="40" class="logo-img" />

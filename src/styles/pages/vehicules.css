@@ -622,6 +622,103 @@
   }
 }
 
+@media (max-width: 860px) {
+  .showroom-section {
+    padding: 0 16px;
+    margin: 24px auto 60px auto;
+  }
+
+  .showroom-toolbar {
+    padding: 14px 16px;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-radius: 18px;
+  }
+
+  .showroom-toolbar-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .showroom-search-wrap {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 14px;
+  }
+
+  .showroom-filters-right {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .custom-select-container {
+    width: 100%;
+  }
+
+  .custom-select-trigger {
+    width: 100%;
+    justify-content: space-between;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+
+  .showroom-categories-bar {
+    overflow-x: auto;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  .showroom-categories-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category-pill {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .showroom-pagination-wrap {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 16px;
+  }
+
+  .showroom-pagination-btns {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .showroom-section {
+    padding: 0 12px;
+    margin: 16px auto 48px auto;
+  }
+
+  .showroom-filters-right {
+    grid-template-columns: 1fr;
+  }
+
+  .public-vehicle-card {
+    border-radius: 18px;
+  }
+
+  .public-card-media {
+    height: 200px;
+  }
+}
+
 /* Luxury Showroom Pagination Bar */
 .showroom-pagination-wrap {
   margin-top: 42px;

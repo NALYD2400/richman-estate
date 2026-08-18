@@ -2027,8 +2027,39 @@ function switchAdminTab(tabName: string) {
       (window as any).loadAdminTickets();
     }
   }
+
+  // Close mobile sidebar drawer if open
+  const adminSidebar = document.getElementById('admin-sidebar');
+  const adminOverlay = document.getElementById('admin-sidebar-overlay');
+  if (adminSidebar && adminSidebar.classList.contains('open')) {
+    adminSidebar.classList.remove('open');
+    adminOverlay?.classList.remove('active');
+  }
 }
 (window as any).switchAdminTab = switchAdminTab;
+
+// Admin Mobile Drawer Setup
+const adminMobileBtn = document.getElementById('admin-mobile-menu-btn');
+const adminSidebar = document.getElementById('admin-sidebar');
+const adminOverlay = document.getElementById('admin-sidebar-overlay');
+
+if (adminMobileBtn && adminSidebar && adminOverlay) {
+  adminMobileBtn.addEventListener('click', () => {
+    const isOpen = adminSidebar.classList.contains('open');
+    if (isOpen) {
+      adminSidebar.classList.remove('open');
+      adminOverlay.classList.remove('active');
+    } else {
+      adminSidebar.classList.add('open');
+      adminOverlay.classList.add('active');
+    }
+  });
+
+  adminOverlay.addEventListener('click', () => {
+    adminSidebar.classList.remove('open');
+    adminOverlay.classList.remove('active');
+  });
+}
 
 document.querySelectorAll('.admin-nav-item').forEach((btn) => {
   btn.addEventListener('click', () => {

@@ -168,3 +168,23 @@
   cursor: not-allowed;
   transform: none;
 }
+
+/* Mobile & Touch Controls Optimization */
+@media (max-width: 640px) {
+  .luxury-input-wrap {
+    height: 42px;
+    min-height: 42px;
+  }
+
+  .luxury-input-wrap input,
+  .luxury-input-wrap select,
+  .luxury-input-wrap textarea {
+    font-size: 15px !important;
+  }
+
+  .luxury-submit-btn {
+    padding: 14px 20px;
+    font-size: 14px;
+    min-height: 46px;
+  }
+}

@@ -1,14 +1,16 @@
 /* ==========================================================================
-   1) Header Component
+   1) Header & Navigation Component (Responsive & Multi-Screen Optimized)
    ========================================================================== */
 .header {
   width: 100%;
   display: flex;
   justify-content: center;
   flex-shrink: 0;
-  z-index: 10;
+  z-index: 100;
   user-select: none;
   -webkit-user-select: none;
+  padding: max(12px, env(safe-area-inset-top, 0px)) 16px 0;
+  box-sizing: border-box;
 }
 
 .header-container {
@@ -16,12 +18,13 @@
   align-items: center;
   justify-content: center;
   width: auto;
-  max-width: 100%;
+  max-width: calc(100vw - 24px);
   padding: 4px 10px;
   background-color: #ffffff;
   border-radius: 999px;
   box-shadow: var(--nav-shadow, 0 4px 14px rgba(0, 0, 0, 0.16));
   gap: 6px;
+  box-sizing: border-box;
   transition: box-shadow 0.25s ease, background-color 0.25s ease;
 }
 
@@ -57,7 +60,7 @@
   object-fit: contain;
 }
 
-/* Nav Pill (Inside Unified White Navbar) */
+/* Nav Pill (Desktop View) */
 .nav-pill {
   background: transparent;
   height: 38px;
@@ -94,7 +97,7 @@
 
 .nav-link.active {
   opacity: 1;
-  font-weight: 500;
+  font-weight: 600;
   color: #000000;
 }
 
@@ -137,14 +140,14 @@
   }
 }
 
-/* Sign In Button / User Pill */
+/* Sign In Button / User Pill (Desktop) */
 .signin-btn {
   background-color: var(--pill-dark, #28282a);
   color: var(--sign-in-text, #c8c8c8);
   height: 38px;
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  padding: 0 clamp(16px, 2vw, 22px);
+  padding: 0 clamp(14px, 2vw, 22px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -190,7 +193,258 @@
   letter-spacing: -0.01em;
 }
 
+/* Burger Button (Universal, contrast-ready) */
 .burger-btn {
   display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  padding: 0;
+  box-shadow: none;
+  z-index: 101;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.burger-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.burger-bar {
+  width: 16px;
+  height: 2px;
+  background-color: #18181b;
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease, background-color 0.25s ease;
+}
+
+.burger-btn.open {
+  background-color: #18181b;
+}
+
+.burger-btn.open .burger-bar {
+  background-color: #ffffff;
+}
+
+.burger-btn.open .burger-bar:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.burger-btn.open .burger-bar:nth-child(2) {
+  opacity: 0;
+  transform: scale(0.4);
+}
+
+.burger-btn.open .burger-bar:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* ==========================================================================
+   Responsive Breakpoints for Header (Tablet & Mobile <= 860px)
+   ========================================================================== */
+@media (max-width: 860px) {
+  .nav-pill,
+  .signin-btn,
+  .nav-user-pill-wrap {
+    display: none !important;
+  }
+
+  .header-container {
+    padding: 3px 6px 3px 4px;
+    gap: 12px;
+  }
+
+  .burger-btn {
+    display: flex;
+  }
+}
+
+/* ==========================================================================
+   Mobile Menu Overlay & Drawer (Luxury Frosted Glass)
+   ========================================================================== */
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 9998;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 85vh;
+  background: linear-gradient(180deg, rgba(14, 14, 18, 0.98) 0%, rgba(8, 8, 11, 0.99) 100%);
+  border-bottom: 1px solid rgba(197, 168, 128, 0.25);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.8), 0 0 40px rgba(197, 168, 128, 0.08);
+  padding: max(74px, calc(env(safe-area-inset-top, 0px) + 68px)) 20px 28px 20px;
+  z-index: 9999;
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, visibility 0.38s ease;
+  box-sizing: border-box;
+}
+
+.mobile-menu.active {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 18px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #d4d4d8;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link.active {
+  background: rgba(197, 168, 128, 0.12);
+  border-color: rgba(197, 168, 128, 0.35);
+  color: #ffffff;
+  transform: translateX(4px);
+}
+
+.mobile-nav-link.active {
+  font-weight: 600;
+  color: #c5a880;
+}
+
+.mobile-signin {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #c5a880 0%, #a2835b 100%);
+  color: #000000;
+  font-size: 14.5px;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  box-shadow: 0 4px 16px rgba(197, 168, 128, 0.3);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.mobile-signin:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+/* Mobile Logged-in User Card */
+.mobile-user-card {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(197, 168, 128, 0.2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #ffffff;
+  min-width: 0;
+  flex: 1;
+}
+
+.mobile-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #c5a880;
+  flex-shrink: 0;
+}
+
+.mobile-user-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mobile-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-user-role {
+  font-size: 11px;
+  color: #c5a880;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mobile-user-logout {
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #ef4444;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobile-user-logout:hover {
+  background: #dc2626;
+  color: #ffffff;
 }
 

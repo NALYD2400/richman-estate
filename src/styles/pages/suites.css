@@ -32,8 +32,23 @@
 
 .suites-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 28px;
+}
+
+@media (max-width: 768px) {
+  .suites-container {
+    padding: 24px 16px 60px;
+  }
+
+  .suites-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .suites-header {
+    margin-bottom: 24px;
+  }
 }
 
 /* Cost Breakdown box in Reservation Modal */
