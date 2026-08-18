@@ -246,6 +246,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // ==========================================================================
 
 
+  function isRentalOverdue(ticket: any): boolean {
+    if (!ticket || ticket.status !== 'confirmed') return false;
+    const createdDate = ticket.created_at ? new Date(ticket.created_at).getTime() : Date.now();
+    const durationDays = parseInt(String(ticket.duration || '1'), 10) || 1;
+    const durationMs = durationDays * 24 * 60 * 60 * 1000;
+    return Date.now() >= (createdDate + durationMs);
+  }
+
   (window as any).filterAdminTicketsList = function (category: any = 'vehicule') {
     const isSuite = category === 'suite';
     const listContainerId = isSuite ? "admin-tickets-suites-list-container" : "admin-tickets-cars-list-container";
@@ -260,7 +268,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let filtered = adminAllTickets.filter(t => isSuite ? t.type === 'suite' : (t.type === 'vehicule' || !t.type));
 
-    if (statusVal !== "all") {
+    if (statusVal === "overdue") {
+      filtered = filtered.filter(t => isRentalOverdue(t));
+    } else if (statusVal !== "all") {
       filtered = filtered.filter(t => t.status === statusVal);
     }
 
@@ -287,12 +297,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const isCar = ticket.type === 'vehicule' || !ticket.type;
       const icon = isCar ? 'fa-car-side' : 'fa-hotel';
-      const statusLabel = ticket.status === 'confirmed' ? 'Validé' : ticket.status === 'cancelled' ? 'Refusé' : 'En attente';
+      const isOverdue = isRentalOverdue(ticket);
+      
+      let statusLabel = ticket.status === 'confirmed' ? 'Validé' : ticket.status === 'cancelled' ? 'Refusé' : ticket.status === 'completed' ? 'Restitué' : 'En attente';
+      let pillClass = ticket.status || 'pending';
+      if (isOverdue) {
+        statusLabel = isSuite ? '⏰ À Libérer' : '⏰ À Récupérer';
+        pillClass = 'cancelled';
+      }
 
       card.innerHTML = `
         <div class="admin-ticket-card-header">
           <span class="admin-ticket-client-name">${escapeHTML(ticket.client_name || 'Citoyen')}</span>
-          <span class="status-pill ${escapeHTML(ticket.status || 'pending')}" style="font-size: 10px; padding: 2px 7px;">${statusLabel}</span>
+          <span class="status-pill ${pillClass}" style="font-size: 10px; padding: 2px 7px; ${isOverdue ? 'background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-weight: 700;' : ''}">${statusLabel}</span>
         </div>
         <div class="admin-ticket-car-name">
           <i class="fa-solid ${icon}"></i>
@@ -347,16 +364,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (idEl) idEl.textContent = `#${ticket.id.slice(0,6).toUpperCase()}`;
     if (avatarEl) avatarEl.textContent = (ticket.client_name || "C").slice(0, 2).toUpperCase();
 
-    const statusLabel = ticket.status === 'confirmed'
-      ? (isSuite ? 'Séjour en cours' : 'En circulation')
-      : (ticket.status === 'completed'
-          ? (isSuite ? 'Check-out effectué' : 'Restitué')
-          : (ticket.status === 'closed'
-              ? 'Archivé'
-              : (ticket.status === 'cancelled' ? 'Refusé' : 'En attente')));
+    const isOverdue = isRentalOverdue(ticket);
+    const statusLabel = isOverdue
+      ? (isSuite ? '⏰ Échéance dépassée (À libérer)' : '⏰ Échéance dépassée (À récupérer)')
+      : (ticket.status === 'confirmed'
+          ? (isSuite ? 'Séjour en cours' : 'En circulation')
+          : (ticket.status === 'completed'
+              ? (isSuite ? 'Check-out effectué' : 'Restitué')
+              : (ticket.status === 'closed'
+                  ? 'Archivé'
+                  : (ticket.status === 'cancelled' ? 'Refusé' : 'En attente'))));
 
     if (badgeEl) {
-      badgeEl.className = `status-pill ${ticket.status || 'pending'}`;
+      badgeEl.className = `status-pill ${isOverdue ? 'cancelled' : (ticket.status || 'pending')}`;
       badgeEl.textContent = statusLabel;
     }
 
