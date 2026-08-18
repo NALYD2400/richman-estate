@@ -1479,10 +1479,12 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
     });
   };
 
+  const isValidSale = (status: string) => status === 'confirmed' || status === 'completed' || status === 'closed';
+
   // 1. CARS STATS
   const rawCarBookings = (allBookings || []).filter(b => b.type === 'vehicule' || !b.type);
   const carBookings = filterByPeriod(rawCarBookings, currentStatsPeriod.cars || 'all');
-  const carConfirmed = carBookings.filter(b => b.status === 'confirmed');
+  const carConfirmed = carBookings.filter(b => isValidSale(b.status));
   const carPending = carBookings.filter(b => b.status === 'pending');
   const carCancelled = carBookings.filter(b => b.status === 'cancelled');
 
@@ -1535,7 +1537,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
       };
     }
     carDailyMap[dStr].count++;
-    if (b.status === 'confirmed') {
+    if (isValidSale(b.status)) {
       const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
       if (!isNaN(num)) carDailyMap[dStr].revenue += num;
     }
@@ -1561,7 +1563,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
     const name = (b.item_name || 'Supercar').trim();
     if (!carCounts[name]) carCounts[name] = { count: 0, revenue: 0, name };
     carCounts[name].count++;
-    if (b.status === 'confirmed') {
+    if (isValidSale(b.status)) {
       const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
       if (!isNaN(num)) carCounts[name].revenue += num;
     }
@@ -1607,9 +1609,9 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
               <div class="stats-progress-fill" style="width: ${pct}%;"></div>
             </div>
             <div class="stats-item-meta">
-              <span><strong>${car.count}</strong> location(s)</span>
+              <span><strong>${car.count}</strong> demande(s)</span>
               <span>&bull;</span>
-              <span>${carTotal > 0 ? Math.round((car.count / carTotal) * 100) : 0}% de la demande</span>
+              <span>${carTotal > 0 ? Math.round((car.count / carTotal) * 100) : 0}% des demandes</span>
             </div>
           </div>
         `;
@@ -1624,7 +1626,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
     const cName = (b.client_name || 'Client Inconnu').trim();
     if (!carClients[cName]) carClients[cName] = { name: cName, discordId: b.discord_id || '', count: 0, spent: 0 };
     carClients[cName].count++;
-    if (b.status === 'confirmed') {
+    if (isValidSale(b.status)) {
       const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
       if (!isNaN(num)) carClients[cName].spent += num;
     }
@@ -1633,7 +1635,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   const sortedCarClients = Object.values(carClients).sort((a, b) => b.spent - a.spent || b.count - a.count);
   const topCarClientsContainer = document.getElementById("stats-cars-top-clients-list");
   const carClientsCountEl = document.getElementById("stats-cars-clients-count");
-  if (carClientsCountEl) carClientsCountEl.textContent = `${sortedCarClients.length} loueur(s)`;
+  if (carClientsCountEl) carClientsCountEl.textContent = `${sortedCarClients.length} client(s)`;
 
   if (topCarClientsContainer) {
     topCarClientsContainer.innerHTML = "";
@@ -1664,7 +1666,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   // 2. SUITES STATS
   const rawSuiteBookings = (allBookings || []).filter(b => b.type === 'suite');
   const suiteBookings = filterByPeriod(rawSuiteBookings, currentStatsPeriod.suites || 'all');
-  const suiteConfirmed = suiteBookings.filter(b => b.status === 'confirmed');
+  const suiteConfirmed = suiteBookings.filter(b => isValidSale(b.status));
   const suitePending = suiteBookings.filter(b => b.status === 'pending');
   const suiteCancelled = suiteBookings.filter(b => b.status === 'cancelled');
 
@@ -1714,7 +1716,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
       };
     }
     suiteDailyMap[dStr].count++;
-    if (b.status === 'confirmed') {
+    if (isValidSale(b.status)) {
       const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
       if (!isNaN(num)) suiteDailyMap[dStr].revenue += num;
     }
@@ -1740,7 +1742,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
     const name = (b.item_name || 'Suite Prestige').trim();
     if (!suiteCounts[name]) suiteCounts[name] = { count: 0, revenue: 0, name };
     suiteCounts[name].count++;
-    if (b.status === 'confirmed') {
+    if (isValidSale(b.status)) {
       const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
       if (!isNaN(num)) suiteCounts[name].revenue += num;
     }
@@ -1803,7 +1805,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
     const cName = (b.client_name || 'Résident Inconnu').trim();
     if (!suiteClients[cName]) suiteClients[cName] = { name: cName, discordId: b.discord_id || '', count: 0, spent: 0 };
     suiteClients[cName].count++;
-    if (b.status === 'confirmed') {
+    if (isValidSale(b.status)) {
       const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
       if (!isNaN(num)) suiteClients[cName].spent += num;
     }
@@ -1843,7 +1845,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
   // 3. GENERAL / GLOBAL CONSOLIDATED STATS
   const rawGeneralBookings = allBookings || [];
   const generalBookings = filterByPeriod(rawGeneralBookings, currentStatsPeriod.general || 'all');
-  const generalConfirmed = generalBookings.filter(b => b.status === 'confirmed');
+  const generalConfirmed = generalBookings.filter(b => isValidSale(b.status));
   const generalPending = generalBookings.filter(b => b.status === 'pending');
   const generalCancelled = generalBookings.filter(b => b.status === 'cancelled');
 
@@ -1901,7 +1903,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
       };
     }
     genDailyMap[dStr].count++;
-    if (b.status === 'confirmed') {
+    if (isValidSale(b.status)) {
       const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
       if (!isNaN(num)) genDailyMap[dStr].revenue += num;
     }
@@ -1928,7 +1930,7 @@ export function renderAnalyticsDashboards(allBookings: any[]) {
     const type = b.type === 'suite' ? 'suite' : 'vehicule';
     if (!genOfferingCounts[name]) genOfferingCounts[name] = { count: 0, revenue: 0, name, type };
     genOfferingCounts[name].count++;
-    if (b.status === 'confirmed') {
+    if (isValidSale(b.status)) {
       const num = parseInt(String(b.amount || '').replace(/[^0-9]/g, ''), 10);
       if (!isNaN(num)) genOfferingCounts[name].revenue += num;
     }
