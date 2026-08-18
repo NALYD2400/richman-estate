@@ -16,6 +16,7 @@ export interface InvoiceData {
   discordId: string;
   itemName: string;
   itemType: 'vehicle' | 'suite';
+  itemPlate?: string;
   dates: string;
   duration: number;
   durationUnit: string;
@@ -52,8 +53,24 @@ export function buildInvoiceData(booking: any): InvoiceData {
   const rawTotal = parsePriceNumber(booking.amount || booking.total_price || booking.price || 0);
   const totalAmount = rawTotal > 0 ? rawTotal : 50000;
   const unitPrice = Math.round(totalAmount / Math.max(1, duration));
-  const deposit = Math.round(totalAmount * 0.1); // Caution 10%
+  const deposit = Math.round(totalAmount * 0.1); // Caution de sécurité (10%)
   const subTotal = totalAmount;
+
+  // Extract license plate / room number
+  let itemPlate = booking.plate || booking.item_plate || '';
+  if (!itemPlate && booking.specs) {
+    try {
+      if (typeof booking.specs === 'string' && booking.specs.startsWith('{')) {
+        const meta = JSON.parse(booking.specs);
+        itemPlate = meta.plate || '';
+      } else if (typeof booking.specs === 'string' && !booking.specs.startsWith('{')) {
+        itemPlate = booking.specs;
+      }
+    } catch (e) {}
+  }
+  if (!itemPlate && !isSuite) {
+    itemPlate = 'LXS-RICH-RP';
+  }
 
   return {
     invoiceNumber,
@@ -63,6 +80,7 @@ export function buildInvoiceData(booking: any): InvoiceData {
     discordId: booking.discord_id || '',
     itemName: booking.item_name || booking.vehicle_name || booking.suite_name || (isSuite ? 'Hébergement de Prestige' : 'Supercar de Prestige'),
     itemType: isSuite ? 'suite' : 'vehicle',
+    itemPlate,
     dates: booking.dates || 'Location Immédiate',
     duration,
     durationUnit,
@@ -154,7 +172,10 @@ export function renderInvoiceHTML(inv: InvoiceData): string {
           <tr>
             <td>
               <div class="invoice-item-desc">
-                <strong>${inv.itemType === 'suite' ? '🏨 ' : '🏎️ '}${escapeHTML(inv.itemName)}</strong>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <strong>${inv.itemType === 'suite' ? '🏨 ' : '🏎️ '}${escapeHTML(inv.itemName)}</strong>
+                  ${inv.itemPlate ? `<span class="invoice-plate-badge" style="font-family: monospace; font-size: 11px; font-weight: 700; background: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; padding: 2px 7px; letter-spacing: 0.06em; text-transform: uppercase;">🔢 ${escapeHTML(inv.itemPlate)}</span>` : ''}
+                </div>
                 <span>Période réservée : ${escapeHTML(inv.dates)}</span>
               </div>
             </td>
@@ -177,22 +198,22 @@ export function renderInvoiceHTML(inv: InvoiceData): string {
           ${statusStamp}
         </div>
 
-        <div class="invoice-totals-table">
+        <div class="invoice-totals-table" style="width: 320px;">
           <div class="invoice-total-row">
-            <span>Sous-total HT :</span>
+            <span>Montant Location HT :</span>
             <span style="font-family: monospace;">${formatCurrency(inv.subTotal)}</span>
           </div>
           <div class="invoice-total-row">
-            <span>Caution Garantie (10%) :</span>
-            <span style="font-family: monospace;">${formatCurrency(inv.deposit)}</span>
-          </div>
-          <div class="invoice-total-row">
-            <span>TVA &amp; Taxes Séjour (0%) :</span>
+            <span>Taxes &amp; Frais de dossier (0%) :</span>
             <span style="font-family: monospace;">0 $</span>
           </div>
           <div class="invoice-total-row grand-total">
             <span>Total Règlement :</span>
             <span style="font-family: monospace;">${formatCurrency(inv.totalAmount)}</span>
+          </div>
+          <div class="invoice-total-row" style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 11px; color: #a1a1aa; display: flex; justify-content: space-between;">
+            <span><i class="fa-solid fa-shield-halved" style="color: #c5a880; margin-right: 4px;"></i> Caution Garantie (10%) :</span>
+            <span style="font-family: monospace; color: #d4d4d8;">${formatCurrency(inv.deposit)} <em>(Empreinte restituée)</em></span>
           </div>
         </div>
       </div>
@@ -226,6 +247,35 @@ export async function openInvoiceModal(bookingOrId: any) {
       showToast("Base de données indisponible", "danger");
       return;
     }
+  }
+
+  if (!bookingData) {
+    showToast("Données de réservation invalides", "danger");
+    return;
+  }
+
+  // Lookup vehicle plate from database if not set in booking
+  const isSuite = bookingData.type === 'suite' || bookingData.type === 'appartement' || bookingData.type === 'chambre';
+  if (!bookingData.plate && !isSuite && supabaseClient) {
+    try {
+      let vQuery = supabaseClient.from('vehicules').select('specs, name');
+      if (bookingData.vehicle_id) {
+        vQuery = vQuery.eq('id', bookingData.vehicle_id);
+      } else if (bookingData.item_name) {
+        vQuery = vQuery.ilike('name', `%${bookingData.item_name}%`);
+      }
+      const { data: vData } = await vQuery.limit(1).maybeSingle();
+      if (vData && vData.specs) {
+        try {
+          if (typeof vData.specs === 'string' && vData.specs.startsWith('{')) {
+            const meta = JSON.parse(vData.specs);
+            bookingData.plate = meta.plate || '';
+          } else {
+            bookingData.plate = vData.specs;
+          }
+        } catch (e) {}
+      }
+    } catch (e) {}
   }
 
   if (!bookingData) {
