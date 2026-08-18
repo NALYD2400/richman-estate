@@ -226,12 +226,30 @@ function updateClientCounters() {
   const fCon = document.getElementById("filter-count-confirmed");
   const fCan = document.getElementById("filter-count-cancelled");
 
-  if (fAll) fAll.textContent = String(totalCount);
-  if (fVeh) fVeh.textContent = String(vehiculesCount);
-  if (fSui) fSui.textContent = String(suitesCount);
-  if (fPen) fPen.textContent = String(pendingCount);
-  if (fCon) fCon.textContent = String(confirmedCount);
-  if (fCan) fCan.textContent = String(cancelledCount);
+    if (fAll) fAll.textContent = String(totalCount);
+    if (fVeh) fVeh.textContent = String(vehiculesCount);
+    if (fSui) fSui.textContent = String(suitesCount);
+    if (fPen) fPen.textContent = String(pendingCount);
+    if (fCon) fCon.textContent = String(confirmedCount);
+    if (fCan) fCan.textContent = String(cancelledCount);
+  }
+
+function getClientBookingStatusInfo(booking: any) {
+  const isSuite = booking?.type === 'suite';
+  const status = booking?.status || 'pending';
+  if (status === 'confirmed') {
+    return { label: isSuite ? 'Séjour en cours' : 'En circulation', className: 'confirmed' };
+  }
+  if (status === 'completed') {
+    return { label: isSuite ? 'Check-out effectué' : 'Restitué', className: 'completed' };
+  }
+  if (status === 'closed') {
+    return { label: 'Archivé', className: 'closed' };
+  }
+  if (status === 'cancelled') {
+    return { label: 'Refusé', className: 'cancelled' };
+  }
+  return { label: 'En attente', className: 'pending' };
 }
 
 function applyClientFiltersAndRender() {
@@ -245,6 +263,8 @@ function applyClientFiltersAndRender() {
     filtered = filtered.filter((b: any) => b.status === 'pending');
   } else if (clientCurrentFilter === 'confirmed') {
     filtered = filtered.filter((b: any) => b.status === 'confirmed');
+  } else if (clientCurrentFilter === 'completed') {
+    filtered = filtered.filter((b: any) => b.status === 'completed' || b.status === 'closed');
   } else if (clientCurrentFilter === 'cancelled') {
     filtered = filtered.filter((b: any) => b.status === 'cancelled');
   }
@@ -803,11 +823,25 @@ function setupClientRealtime(activeUser: any) {
             applyClientFiltersAndRender();
             if ((window as any).activeChatBookingId === updated.id) {
               const chipEl = document.getElementById("dialog-status-chip");
-              const statusLabel = updated.status === 'confirmed' ? 'Validée' : (updated.status === 'cancelled' ? 'Refusée' : 'En Attente');
-              const statusClass = updated.status === 'confirmed' ? 'confirmed' : (updated.status === 'cancelled' ? 'cancelled' : 'pending');
+              const statusInfo = getClientBookingStatusInfo(updated);
               if (chipEl) {
-                chipEl.textContent = statusLabel;
-                chipEl.className = `dialog-status-chip ${statusClass}`;
+                chipEl.textContent = statusInfo.label;
+                chipEl.className = `dialog-status-chip ${statusInfo.className}`;
+              }
+              const inputEl = document.getElementById("chat-message-input") as HTMLInputElement | null;
+              const sendBtn = document.getElementById("chat-send-btn") as HTMLButtonElement | null;
+              const suggestionsBar = document.querySelector(".dialog-quick-suggestions-bar") as HTMLElement | null;
+              const isClosed = updated.status === 'closed';
+              if (suggestionsBar) suggestionsBar.style.display = isClosed ? 'none' : 'flex';
+              if (inputEl && isClosed) {
+                inputEl.value = '';
+                inputEl.disabled = true;
+                inputEl.placeholder = '🔒 Ce dossier est archivé. Les échanges sont clôturés.';
+              }
+              if (sendBtn && isClosed) {
+                sendBtn.disabled = true;
+                sendBtn.style.opacity = '0.35';
+                sendBtn.style.cursor = 'not-allowed';
               }
             }
           }
@@ -876,11 +910,25 @@ function setupClientRealtime(activeUser: any) {
               const currentB = (window as any).allClientBookings.find((x: any) => x.id === (window as any).activeChatBookingId);
               if (currentB) {
                 const chipEl = document.getElementById("dialog-status-chip");
-                const statusLabel = currentB.status === 'confirmed' ? 'Validée' : (currentB.status === 'cancelled' ? 'Refusée' : 'En Attente');
-                const statusClass = currentB.status === 'confirmed' ? 'confirmed' : (currentB.status === 'cancelled' ? 'cancelled' : 'pending');
+                const statusInfo = getClientBookingStatusInfo(currentB);
                 if (chipEl) {
-                  chipEl.textContent = statusLabel;
-                  chipEl.className = `dialog-status-chip ${statusClass}`;
+                  chipEl.textContent = statusInfo.label;
+                  chipEl.className = `dialog-status-chip ${statusInfo.className}`;
+                }
+                const inputEl = document.getElementById("chat-message-input") as HTMLInputElement | null;
+                const sendBtn = document.getElementById("chat-send-btn") as HTMLButtonElement | null;
+                const suggestionsBar = document.querySelector(".dialog-quick-suggestions-bar") as HTMLElement | null;
+                const isClosed = currentB.status === 'closed';
+                if (suggestionsBar) suggestionsBar.style.display = isClosed ? 'none' : 'flex';
+                if (inputEl && isClosed) {
+                  inputEl.value = '';
+                  inputEl.disabled = true;
+                  inputEl.placeholder = '🔒 Ce dossier est archivé. Les échanges sont clôturés.';
+                }
+                if (sendBtn && isClosed) {
+                  sendBtn.disabled = true;
+                  sendBtn.style.opacity = '0.35';
+                  sendBtn.style.cursor = 'not-allowed';
                 }
               }
             }
@@ -1032,8 +1080,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Populate Dialog Header
     const photoThumb = getBookingThumbnail(booking);
     const shortRef = `BKG-${String(booking.id || '').slice(0, 6).toUpperCase()}`;
-    const statusLabel = booking.status === 'confirmed' ? 'Validée' : (booking.status === 'cancelled' ? 'Refusée' : 'En Attente');
-    const statusClass = booking.status === 'confirmed' ? 'confirmed' : (booking.status === 'cancelled' ? 'cancelled' : 'pending');
+    const statusInfo = getClientBookingStatusInfo(booking);
+    const isClosed = booking.status === 'closed';
 
     const thumbEl = document.getElementById("dialog-item-thumb") as HTMLImageElement | null;
     const titleEl = document.getElementById("dialog-item-title");
@@ -1044,23 +1092,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputEl = document.getElementById("chat-message-input") as HTMLInputElement | null;
     const sendBtn = document.getElementById("chat-send-btn") as HTMLButtonElement | null;
     const msgContainer = document.getElementById("dialog-messages-container");
+    const suggestionsBar = document.querySelector(".dialog-quick-suggestions-bar") as HTMLElement | null;
 
     if (thumbEl) thumbEl.src = photoThumb;
     if (titleEl) titleEl.textContent = booking.item_name;
     if (refText) refText.textContent = `#${shortRef}`;
     if (chipEl) {
-      chipEl.textContent = statusLabel;
-      chipEl.className = `dialog-status-chip ${statusClass}`;
+      chipEl.textContent = statusInfo.label;
+      chipEl.className = `dialog-status-chip ${statusInfo.className}`;
     }
     if (priceEl) priceEl.textContent = booking.amount || 'Sur devis';
     if (datesEl) datesEl.textContent = booking.dates ? `• ${booking.dates}` : '';
 
-    if (inputEl) {
-      inputEl.disabled = false;
-      inputEl.placeholder = `Écrivez à propos de ${booking.item_name}...`;
-      setTimeout(() => inputEl.focus(), 150);
+    if (suggestionsBar) {
+      suggestionsBar.style.display = isClosed ? 'none' : 'flex';
     }
-    if (sendBtn) sendBtn.disabled = false;
+
+    if (inputEl) {
+      if (isClosed) {
+        inputEl.value = '';
+        inputEl.disabled = true;
+        inputEl.placeholder = '🔒 Ce dossier est archivé. Les échanges sont clôturés.';
+      } else {
+        inputEl.disabled = false;
+        inputEl.placeholder = `Écrivez à propos de ${booking.item_name}...`;
+        setTimeout(() => inputEl.focus(), 150);
+      }
+    }
+    if (sendBtn) {
+      sendBtn.disabled = isClosed;
+      sendBtn.style.opacity = isClosed ? '0.35' : '1';
+      sendBtn.style.cursor = isClosed ? 'not-allowed' : 'pointer';
+    }
 
     renderDialogDossiersBar();
 
@@ -1099,8 +1162,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   (window as any).insertQuickChatMessage = function (text: string) {
+    const bookingId = (window as any).activeChatBookingId;
+    const booking = (window as any).allClientBookings?.find((b: any) => b.id === bookingId);
+    if (booking && booking.status === 'closed') return;
     const input = document.getElementById("chat-message-input") as HTMLInputElement | null;
-    if (input) {
+    if (input && !input.disabled) {
       input.value = text;
       input.focus();
     }
@@ -1113,6 +1179,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const msgContainer = document.getElementById("dialog-messages-container");
     const bookingId = (window as any).activeChatBookingId;
     if (!input || !bookingId) return;
+
+    const activeBooking = (window as any).allClientBookings?.find((b: any) => b.id === bookingId);
+    if (activeBooking && activeBooking.status === 'closed') {
+      showToast("Ce dossier est archivé et clôturé.", "warning");
+      input.value = "";
+      input.disabled = true;
+      if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = '0.35';
+        sendBtn.style.cursor = 'not-allowed';
+      }
+      return;
+    }
 
     const content = input.value.trim();
     if (!content) return;
