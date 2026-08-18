@@ -1051,9 +1051,9 @@ export async function loadBookings() {
         const tr = document.createElement("tr");
         const isSuite = item.type === 'suite';
         const statusLabel = item.status === 'confirmed'
-          ? 'Validé'
+          ? (isSuite ? 'Séjour en cours' : 'En circulation')
           : (item.status === 'completed'
-              ? 'Restitué'
+              ? (isSuite ? 'Check-out' : 'Restitué')
               : (item.status === 'closed'
                   ? 'Archivé'
                   : (item.status === 'cancelled' ? 'Refusé' : 'En attente')));

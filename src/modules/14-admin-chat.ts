@@ -299,7 +299,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const icon = isCar ? 'fa-car-side' : 'fa-hotel';
       const isOverdue = isRentalOverdue(ticket);
       
-      let statusLabel = ticket.status === 'confirmed' ? 'Validé' : ticket.status === 'cancelled' ? 'Refusé' : ticket.status === 'completed' ? 'Restitué' : 'En attente';
+      let statusLabel = ticket.status === 'confirmed'
+        ? (isSuite ? 'Séjour en cours' : 'En circulation')
+        : (ticket.status === 'completed'
+            ? (isSuite ? 'Check-out' : 'Restitué')
+            : (ticket.status === 'closed'
+                ? 'Archivé'
+                : (ticket.status === 'cancelled' ? 'Refusé' : 'En attente')));
       let pillClass = ticket.status || 'pending';
       if (isOverdue) {
         statusLabel = isSuite ? '⏰ À Libérer' : '⏰ À Récupérer';
