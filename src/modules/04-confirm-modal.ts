@@ -59,7 +59,7 @@ function showConfirmDialog({
             <i id="confirm-modal-icon" class="fa-solid fa-triangle-exclamation"></i>
           </div>
           <h3 id="confirm-modal-title" style="margin: 0 0 8px 0; font-size: 18px; color: #ffffff; font-weight: 700;"></h3>
-          <p id="confirm-modal-message" style="margin: 0 0 24px 0; font-size: 13.5px; color: #a1a1aa; line-height: 1.5;"></p>
+          <div id="confirm-modal-message" style="margin: 0 0 24px 0; font-size: 13.5px; color: #a1a1aa; line-height: 1.5; text-align: center;"></div>
           <div style="display: flex; gap: 12px;">
             <button type="button" id="confirm-modal-cancel-btn" style="flex: 1; height: 44px; border-radius: 12px; font-weight: 600; font-size: 13.5px; background: #1a1a22; border: 1px solid rgba(255,255,255,0.1); color: #e4e4e7; cursor: pointer;">Annuler</button>
             <button type="button" id="confirm-modal-action-btn" style="flex: 1; height: 44px; border-radius: 12px; font-weight: 600; font-size: 13.5px; justify-content: center; color: #ffffff; border: none; cursor: pointer;">Confirmer</button>

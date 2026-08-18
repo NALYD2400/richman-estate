@@ -522,7 +522,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const confirmed = await (window as any).showConfirmDialog({
       title: isSuite ? "Valider le Check-out de la Suite" : "Valider le Retour du Véhicule",
-      message: `Confirmer la restitution de <strong>${escapeHTML(itemName)}</strong> loué par <strong>${escapeHTML(clientName)}</strong> ?<br><br><span style="color: #34d399; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-check"></i> L'élément sera immédiatement remis en disponibilité dans le showroom, la caution sera libérée et le dossier passera en statut Restitué.</span>`,
+      message: `Confirmer la restitution de <strong>${escapeHTML(itemName)}</strong> loué par <strong>${escapeHTML(clientName)}</strong> ?<div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 10px 14px; margin-top: 14px; text-align: left; display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: #6ee7b7; line-height: 1.45;"><i class="fa-solid fa-circle-check" style="margin-top: 2px; font-size: 14px; flex-shrink: 0; color: #34d399;"></i><div>L'élément sera immédiatement remis en disponibilité dans le showroom, la caution sera libérée et le dossier passera en statut Restitué.</div></div>`,
       confirmText: isSuite ? "Valider le Check-out" : "Valider le Retour",
       cancelText: "Annuler",
       icon: isSuite ? "fa-solid fa-key" : "fa-solid fa-rotate-left",
@@ -586,7 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const confirmed = await (window as any).showConfirmDialog({
       title: "Clôturer & Archiver le Dossier",
-      message: `Êtes-vous certain de vouloir clôturer le dossier <strong>#${ticketId.slice(0, 6).toUpperCase()}</strong> (${escapeHTML(itemName)}) ?<br><br><span style="color: #60a5fa; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-box-archive"></i> Le salon Discord sera supprimé, mais le dossier restera <strong>archivé en base</strong> avec sa facture accessible dans l'Espace Client.</span>`,
+      message: `Êtes-vous certain de vouloir clôturer le dossier <strong>#${ticketId.slice(0, 6).toUpperCase()}</strong> (${escapeHTML(itemName)}) ?<div style="background: rgba(96, 165, 250, 0.08); border: 1px solid rgba(96, 165, 250, 0.25); border-radius: 10px; padding: 10px 14px; margin-top: 14px; text-align: left; display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: #93c5fd; line-height: 1.45;"><i class="fa-solid fa-box-archive" style="margin-top: 2px; font-size: 14px; flex-shrink: 0; color: #60a5fa;"></i><div>Le salon Discord sera supprimé, mais le dossier restera <strong>archivé en base</strong> avec sa facture accessible dans l'Espace Client.</div></div>`,
       confirmText: "Clôturer & Archiver",
       cancelText: "Annuler",
       icon: "fa-solid fa-box-archive",
