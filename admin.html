@@ -993,10 +993,12 @@
                   <input type="text" id="admin-tickets-cars-search" placeholder="Rechercher client, véhicule..." class="admin-input" style="padding-left: 28px; font-size: 12px; height: 34px;" oninput="window.filterAdminTicketsList('vehicule');" />
                 </div>
                 <select id="admin-tickets-cars-status-filter" class="vercel-select" style="height: 34px; font-size: 11.5px;" onchange="window.filterAdminTicketsList('vehicule');">
-                  <option value="all" selected>Tous</option>
-                  <option value="pending">En Attente</option>
-                  <option value="confirmed">Validés</option>
-                  <option value="cancelled">Refusés</option>
+                  <option value="all" selected>Tous les dossiers</option>
+                  <option value="pending">🚨 En attente</option>
+                  <option value="confirmed">🚗 En circulation (À restituer)</option>
+                  <option value="completed">✅ Restitués / Terminés</option>
+                  <option value="closed">📦 Archivés</option>
+                  <option value="cancelled">❌ Refusés</option>
                 </select>
               </div>
 
@@ -1008,12 +1010,14 @@
             <!-- Right Pane: Active Ticket View & Chat Stream -->
             <div class="admin-ticket-chat-pane" id="admin-ticket-cars-chat-pane">
               <div id="admin-ticket-cars-empty-state" class="admin-ticket-empty">
-                <i class="fa-solid fa-car-side"></i>
-                <h3>Sélectionnez un Dossier de Location</h3>
-                <p>Cliquez sur un ticket dans la liste de gauche pour afficher l'historique de la conversation et valider la location.</p>
+                <i class="fa-solid fa-car-side" style="font-size: 32px; color: #3f3f46; margin-bottom: 12px;"></i>
+                <h4 style="color: #ffffff; font-size: 15px; margin: 0 0 6px 0;">Sélectionnez un Dossier de Location</h4>
+                <p style="color: #71717a; font-size: 12.5px; max-width: 320px; line-height: 1.4; margin: 0;">
+                  Cliquez sur un ticket dans la liste de gauche pour afficher l'historique de la conversation et valider la location.
+                </p>
               </div>
 
-              <div id="admin-ticket-cars-active-view" class="admin-ticket-active-view" style="display: none;">
+              <div id="admin-ticket-cars-active-view" class="admin-ticket-active-wrap" style="display: none;">
                 <!-- Header with Booking Info & Actions -->
                 <div class="admin-ticket-active-header">
                   <div style="display: flex; align-items: center; gap: 12px;">
@@ -1031,6 +1035,9 @@
 
                   <!-- Quick Actions -->
                   <div class="admin-ticket-actions-group" id="admin-active-ticket-cars-actions">
+                    <button type="button" class="admin-ticket-btn-return" id="btn-admin-return-ticket-cars" onclick="window.handleAdminValidateReturn('vehicule');" title="Valider la restitution du véhicule et libérer dans le showroom" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-weight: 700; font-size: 12px; border-radius: 8px; padding: 6px 12px; cursor: pointer; display: none; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-rotate-left"></i> Valider Retour
+                    </button>
                     <button type="button" class="admin-ticket-btn-invoice" id="btn-admin-invoice-ticket-cars" onclick="window.handleAdminOpenInvoice('vehicule');" title="Consulter et imprimer la facture officielle" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880; font-weight: 600; font-size: 12px; border-radius: 8px; padding: 6px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                       <i class="fa-solid fa-file-invoice-dollar"></i> Facture
                     </button>
@@ -1044,7 +1051,7 @@
                       <i class="fa-solid fa-xmark"></i> Refuser
                     </button>
                     <button type="button" class="admin-ticket-btn-close" id="btn-admin-close-ticket-cars" onclick="window.handleAdminCloseTicket('vehicule');">
-                      <i class="fa-solid fa-trash-can"></i> Clôturer
+                      <i class="fa-solid fa-box-archive"></i> Clôturer &amp; Archiver
                     </button>
                   </div>
                 </div>
@@ -1090,10 +1097,12 @@
                   <input type="text" id="admin-tickets-suites-search" placeholder="Rechercher client, suite..." class="admin-input" style="padding-left: 28px; font-size: 12px; height: 34px;" oninput="window.filterAdminTicketsList('suite');" />
                 </div>
                 <select id="admin-tickets-suites-status-filter" class="vercel-select" style="height: 34px; font-size: 11.5px;" onchange="window.filterAdminTicketsList('suite');">
-                  <option value="all" selected>Tous</option>
-                  <option value="pending">En Attente</option>
-                  <option value="confirmed">Validés</option>
-                  <option value="cancelled">Refusés</option>
+                  <option value="all" selected>Tous les dossiers</option>
+                  <option value="pending">🚨 En attente</option>
+                  <option value="confirmed">🏨 Séjours en cours (À libérer)</option>
+                  <option value="completed">✅ Check-out effectués</option>
+                  <option value="closed">📦 Archivés</option>
+                  <option value="cancelled">❌ Refusés</option>
                 </select>
               </div>
 
@@ -1128,6 +1137,9 @@
 
                   <!-- Quick Actions -->
                   <div class="admin-ticket-actions-group" id="admin-active-ticket-suites-actions">
+                    <button type="button" class="admin-ticket-btn-return" id="btn-admin-return-ticket-suites" onclick="window.handleAdminValidateReturn('suite');" title="Valider le check-out et libérer l'hébergement dans le showroom" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-weight: 700; font-size: 12px; border-radius: 8px; padding: 6px 12px; cursor: pointer; display: none; align-items: center; gap: 6px;">
+                      <i class="fa-solid fa-key"></i> Valider Check-out
+                    </button>
                     <button type="button" class="admin-ticket-btn-invoice" id="btn-admin-invoice-ticket-suites" onclick="window.handleAdminOpenInvoice('suite');" title="Consulter et imprimer la facture officielle" style="background: rgba(197, 168, 128, 0.15); border: 1px solid rgba(197, 168, 128, 0.35); color: #c5a880; font-weight: 600; font-size: 12px; border-radius: 8px; padding: 6px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                       <i class="fa-solid fa-file-invoice-dollar"></i> Facture
                     </button>
@@ -1141,7 +1153,7 @@
                       <i class="fa-solid fa-xmark"></i> Refuser
                     </button>
                     <button type="button" class="admin-ticket-btn-close" id="btn-admin-close-ticket-suites" onclick="window.handleAdminCloseTicket('suite');">
-                      <i class="fa-solid fa-trash-can"></i> Clôturer
+                      <i class="fa-solid fa-box-archive"></i> Clôturer &amp; Archiver
                     </button>
                   </div>
                 </div>

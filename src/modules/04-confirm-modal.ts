@@ -198,19 +198,27 @@ function showConfirmDialog({
     return;
   }
 
-  showToast(`Réservation mise à jour : ${status === 'confirmed' ? 'Validée' : 'Annulée'}`, 'success');
+  const isRented = status === 'confirmed';
+  const label = status === 'confirmed'
+    ? 'Validée (En circulation)'
+    : (status === 'completed'
+        ? 'Location terminée & Restitution effectuée'
+        : (status === 'closed' ? 'Dossier archivé' : 'Demande refusée'));
 
-  // If vehicle or suite booking confirmed -> sync status to rented, if cancelled -> reset to confirmed (disponible)
+  showToast(`Réservation mise à jour : ${label}`, 'success');
+
+  // If booking confirmed -> item becomes rented; if cancelled/completed/closed -> item returns to confirmed (disponible)
   if (bookingData) {
+    const itemTargetStatus = isRented ? 'rented' : 'confirmed';
     if (bookingData.type === 'vehicule' || !bookingData.type) {
       const { data: vMatch } = await supabaseClient.from("vehicules").select("id").ilike("name", `%${bookingData.item_name}%`).limit(1);
       if (vMatch && vMatch.length > 0) {
-        (window as any).updateItemStatus(vMatch[0].id, 'fleet', status === 'confirmed' ? 'rented' : 'confirmed');
+        (window as any).updateItemStatus(vMatch[0].id, 'fleet', itemTargetStatus);
       }
     } else if (bookingData.type === 'suite') {
       const { data: sMatch } = await supabaseClient.from("suites").select("id").ilike("name", `%${bookingData.item_name}%`).limit(1);
       if (sMatch && sMatch.length > 0) {
-        (window as any).updateItemStatus(sMatch[0].id, 'suites', status === 'confirmed' ? 'rented' : 'confirmed');
+        (window as any).updateItemStatus(sMatch[0].id, 'suites', itemTargetStatus);
       }
     }
 

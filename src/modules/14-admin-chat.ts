@@ -347,10 +347,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (idEl) idEl.textContent = `#${ticket.id.slice(0,6).toUpperCase()}`;
     if (avatarEl) avatarEl.textContent = (ticket.client_name || "C").slice(0, 2).toUpperCase();
 
+    const statusLabel = ticket.status === 'confirmed'
+      ? (isSuite ? 'Séjour en cours' : 'En circulation')
+      : (ticket.status === 'completed'
+          ? (isSuite ? 'Check-out effectué' : 'Restitué')
+          : (ticket.status === 'closed'
+              ? 'Archivé'
+              : (ticket.status === 'cancelled' ? 'Refusé' : 'En attente')));
+
     if (badgeEl) {
       badgeEl.className = `status-pill ${ticket.status || 'pending'}`;
-      badgeEl.textContent = ticket.status === 'confirmed' ? 'Validé' : ticket.status === 'cancelled' ? 'Refusé' : 'En attente';
+      badgeEl.textContent = statusLabel;
     }
+
+    // Dynamic Button Visibility
+    const returnBtn = document.getElementById(`btn-admin-return-ticket-${pfx}`);
+    const acceptBtn = document.getElementById(`btn-admin-accept-ticket-${pfx}`);
+    const refuseBtn = document.getElementById(`btn-admin-refuse-ticket-${pfx}`);
+    const closeBtn = document.getElementById(`btn-admin-close-ticket-${pfx}`);
+
+    if (returnBtn) returnBtn.style.display = (ticket.status === 'confirmed') ? 'inline-flex' : 'none';
+    if (acceptBtn) acceptBtn.style.display = (ticket.status === 'pending') ? 'inline-flex' : 'none';
+    if (refuseBtn) refuseBtn.style.display = (ticket.status === 'pending') ? 'inline-flex' : 'none';
+    if (closeBtn) closeBtn.style.display = (ticket.status !== 'closed') ? 'inline-flex' : 'none';
 
     // Load Messages Stream
     const stream = document.getElementById(`admin-ticket-${pfx}-messages-stream`);
@@ -484,17 +503,76 @@ document.addEventListener("DOMContentLoaded", () => {
       await (window as any).updateBookingStatus(adminActiveTicket.id, newStatus);
       adminActiveTicket.status = newStatus;
       const isSuite = (category === 'suite') || (adminActiveTicket.type === 'suite');
-      const pfx = isSuite ? 'suites' : 'cars';
-      const badgeEl = document.getElementById(`admin-active-ticket-${pfx}-badge`);
-      if (badgeEl) {
-        badgeEl.className = `status-pill ${newStatus}`;
-        badgeEl.textContent = newStatus === 'confirmed' ? 'Validé' : 'Refusé';
-      }
+      (window as any).selectAdminTicket(adminActiveTicket.id, isSuite ? 'suite' : 'vehicule');
       (window as any).loadAdminTickets(isSuite ? 'suite' : 'vehicule');
-      showToast(`Dossier #${adminActiveTicket.id.slice(0,6).toUpperCase()} ${newStatus === 'confirmed' ? 'validé avec succès' : 'refusé'}.`, "success");
+      if (typeof (window as any).loadBookings === 'function') (window as any).loadBookings();
+      showToast(`Dossier #${adminActiveTicket.id.slice(0,6).toUpperCase()} ${newStatus === 'confirmed' ? 'validé (en circulation)' : 'refusé'}.`, "success");
     } catch (e) {
       console.error(e);
       showToast("Erreur lors de la mise à jour du statut.", "danger");
+    }
+  };
+
+  (window as any).handleAdminValidateReturn = async function (category: any = 'vehicule') {
+    if (!adminActiveTicket) return;
+
+    const isSuite = (category === 'suite') || (adminActiveTicket.type === 'suite');
+    const itemName = adminActiveTicket.item_name || (isSuite ? 'Hébergement' : 'Véhicule');
+    const clientName = adminActiveTicket.client_name || 'Citoyen';
+
+    const confirmed = await (window as any).showConfirmDialog({
+      title: isSuite ? "Valider le Check-out de la Suite" : "Valider le Retour du Véhicule",
+      message: `Confirmer la restitution de <strong>${escapeHTML(itemName)}</strong> loué par <strong>${escapeHTML(clientName)}</strong> ?<br><br><span style="color: #34d399; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-check"></i> L'élément sera immédiatement remis en disponibilité dans le showroom, la caution sera libérée et le dossier passera en statut Restitué.</span>`,
+      confirmText: isSuite ? "Valider le Check-out" : "Valider le Retour",
+      cancelText: "Annuler",
+      icon: isSuite ? "fa-solid fa-key" : "fa-solid fa-rotate-left",
+      isDanger: false
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await (window as any).updateBookingStatus(adminActiveTicket.id, 'completed');
+      adminActiveTicket.status = 'completed';
+
+      // Insert return confirmation message into chat stream & sync to Discord
+      const rawUser = localStorage.getItem("richman_user");
+      const activeUser = rawUser ? JSON.parse(rawUser) : { name: "Staff Richman" };
+      const returnMsgContent = isSuite
+        ? `🔑 **Check-out validé** : L'hébergement ${itemName} a été libéré et inspecté par le staff. Le séjour est clôturé avec succès.`
+        : `🔄 **Retour validé** : Le véhicule ${itemName} a été inspecté et restitué à la flotte Richman Estate. La caution est débloquée et la location est clôturée.`;
+
+      if (supabaseClient) {
+        await supabaseClient.from("booking_messages").insert([{
+          booking_id: adminActiveTicket.id,
+          sender_name: activeUser.name || "Staff Richman",
+          sender_id: activeUser.discord_id || null,
+          sender_role: "staff",
+          content: returnMsgContent
+        }]);
+      }
+
+      botFetch('/api/sync-booking-message', {
+        method: "POST",
+        body: JSON.stringify({
+          booking_id: adminActiveTicket.id,
+          discord_id: adminActiveTicket.discord_id || null,
+          sender_name: activeUser.name || "Staff Richman",
+          sender_role: "staff",
+          content: returnMsgContent,
+          skip_db_insert: true
+        })
+      }).catch(() => {});
+
+      // Refresh views
+      (window as any).selectAdminTicket(adminActiveTicket.id, isSuite ? 'suite' : 'vehicule');
+      (window as any).loadAdminTickets(isSuite ? 'suite' : 'vehicule');
+      if (typeof (window as any).loadBookings === 'function') (window as any).loadBookings();
+
+      showToast(`Restitution de ${itemName} validée avec succès !`, "success");
+    } catch (e: any) {
+      console.error(e);
+      showToast("Erreur lors de la validation du retour : " + e.message, "danger");
     }
   };
 
@@ -502,30 +580,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!adminActiveTicket) return;
 
     const isSuite = (category === 'suite') || (adminActiveTicket.type === 'suite');
-    const pfx = isSuite ? 'suites' : 'cars';
+    const ticketId = adminActiveTicket.id;
+    const discordId = adminActiveTicket.discord_id;
+    const itemName = adminActiveTicket.item_name || 'Prestation';
 
     const confirmed = await (window as any).showConfirmDialog({
-      title: "Fermer & Supprimer le Ticket",
-      message: `Êtes-vous certain de vouloir fermer et supprimer le ticket <strong>#${adminActiveTicket.id.slice(0, 6).toUpperCase()}</strong> (${escapeHTML(adminActiveTicket.item_name || 'Réservation')}) ?<br><br><span style="color: #f87171; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-triangle-exclamation"></i> Le dossier sera supprimé du site et le salon Discord associé sera également détruit.</span>`,
-      confirmText: "Fermer & Supprimer",
+      title: "Clôturer & Archiver le Dossier",
+      message: `Êtes-vous certain de vouloir clôturer le dossier <strong>#${ticketId.slice(0, 6).toUpperCase()}</strong> (${escapeHTML(itemName)}) ?<br><br><span style="color: #60a5fa; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-box-archive"></i> Le salon Discord sera supprimé, mais le dossier restera <strong>archivé en base</strong> avec sa facture accessible dans l'Espace Client.</span>`,
+      confirmText: "Clôturer & Archiver",
       cancelText: "Annuler",
-      icon: "fa-solid fa-trash-can",
-      isDanger: true
+      icon: "fa-solid fa-box-archive",
+      isDanger: false
     });
 
     if (!confirmed) return;
 
     try {
-      const ticketId = adminActiveTicket.id;
-      const discordId = adminActiveTicket.discord_id;
+      // 1. Mark as closed in Supabase (NO DATA LOSS: preserve booking & messages for client invoice & admin analytics)
+      await (window as any).updateBookingStatus(ticketId, 'closed');
+      adminActiveTicket.status = 'closed';
 
-      // 1. Delete messages & booking in Supabase
-      if (supabaseClient) {
-        await supabaseClient.from("booking_messages").delete().eq("booking_id", ticketId);
-        await supabaseClient.from("bookings").delete().eq("id", ticketId);
-      }
-
-      // 2. Call Bot API to delete/close ticket channel on Discord
+      // 2. Call Bot API to delete temporary Discord channel
       botFetch('/api/close-ticket', {
         method: "POST",
         body: JSON.stringify({
@@ -534,25 +609,15 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       }).catch(err => console.warn("Close ticket API error:", err));
 
-      // 3. Reset Active Ticket View
-      adminActiveTicket = null;
-      const emptyState = document.getElementById(`admin-ticket-${pfx}-empty-state`);
-      const activeView = document.getElementById(`admin-ticket-${pfx}-active-view`);
-      if (emptyState) emptyState.style.display = "flex";
-      if (activeView) activeView.style.display = "none";
+      // 3. Update view
+      (window as any).selectAdminTicket(ticketId, isSuite ? 'suite' : 'vehicule');
+      (window as any).loadAdminTickets(isSuite ? 'suite' : 'vehicule');
+      if (typeof (window as any).loadBookings === 'function') (window as any).loadBookings();
 
-      // 4. Reload admin tickets list and bookings
-      if (typeof (window as any).loadAdminTickets === 'function') {
-        (window as any).loadAdminTickets(isSuite ? 'suite' : 'vehicule');
-      }
-      if (typeof (window as any).loadBookings === 'function') {
-        (window as any).loadBookings();
-      }
-
-      showToast(`Ticket #${ticketId.slice(0, 6).toUpperCase()} supprimé avec succès sur Discord & Web !`, "success");
+      showToast(`Dossier #${ticketId.slice(0, 6).toUpperCase()} archivé avec succès !`, "success");
     } catch (e: any) {
       console.error(e);
-      showToast("Erreur lors de la suppression du ticket : " + e.message, "danger");
+      showToast("Erreur lors de la clôture du dossier : " + e.message, "danger");
     }
   };
 

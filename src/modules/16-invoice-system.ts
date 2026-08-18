@@ -23,7 +23,7 @@ export interface InvoiceData {
   subTotal: number;
   deposit: number;
   totalAmount: number;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed' | 'closed';
   bookingId: string;
 }
 
@@ -70,17 +70,21 @@ export function buildInvoiceData(booking: any): InvoiceData {
     subTotal,
     deposit,
     totalAmount,
-    status: booking.status === 'confirmed' ? 'confirmed' : (booking.status === 'cancelled' ? 'cancelled' : 'pending'),
+    status: (booking.status === 'completed' || booking.status === 'closed')
+      ? 'completed'
+      : (booking.status === 'confirmed' ? 'confirmed' : (booking.status === 'cancelled' ? 'cancelled' : 'pending')),
     bookingId: bId
   };
 }
 
 export function renderInvoiceHTML(inv: InvoiceData): string {
-  const statusStamp = inv.status === 'confirmed'
-    ? '<div class="invoice-stamp"><i class="fa-solid fa-circle-check"></i> PAYÉ &amp; CERTIFIÉ</div>'
-    : (inv.status === 'cancelled'
-        ? '<div class="invoice-stamp cancelled"><i class="fa-solid fa-circle-xmark"></i> ANNULÉ / REMBOURSÉ</div>'
-        : '<div class="invoice-stamp pending"><i class="fa-solid fa-clock"></i> EN ATTENTE DE RÈGLEMENT</div>');
+  const statusStamp = inv.status === 'completed'
+    ? '<div class="invoice-stamp"><i class="fa-solid fa-circle-check"></i> RESTITUÉ &amp; CLÔTURÉ</div>'
+    : (inv.status === 'confirmed'
+        ? '<div class="invoice-stamp"><i class="fa-solid fa-circle-check"></i> EN COURS &amp; CERTIFIÉ</div>'
+        : (inv.status === 'cancelled'
+            ? '<div class="invoice-stamp cancelled"><i class="fa-solid fa-circle-xmark"></i> ANNULÉ / REMBOURSÉ</div>'
+            : '<div class="invoice-stamp pending"><i class="fa-solid fa-clock"></i> EN ATTENTE DE RÈGLEMENT</div>'));
 
   return `
     <div class="invoice-top-actions">
