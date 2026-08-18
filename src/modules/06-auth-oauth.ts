@@ -706,8 +706,8 @@ document.addEventListener("DOMContentLoaded", () => {
         contactAuthGate.innerHTML = `
           <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #fca5a5; padding: 14px; border-radius: 12px; text-align: center;">
             <i class="fa-solid fa-lock" style="font-size: 20px; color: #ef4444; margin-bottom: 6px; display: block;"></i>
-            <strong style="font-size: 14px; color: #fff;">Connexion Discord Requise</strong>
-            <p style="margin: 6px 0 12px 0; font-size: 12.5px; color: #d4d4d8;">Vous devez être connecté avec votre compte Discord pour envoyer un message à la conciergerie.</p>
+            <strong style="font-size: 14px; color: #fff;">Connexion Requise</strong>
+            <p style="margin: 6px 0 12px 0; font-size: 12.5px; color: #d4d4d8;">Vous devez être connecté avec votre compte Discord pour envoyer un message.</p>
             <a href="login.html" class="admin-btn-primary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; padding: 9px 18px; font-size: 13px; border-radius: 10px; background: #5865F2; color: #fff; border: none; font-weight: 600;"><i class="fa-brands fa-discord"></i> Se Connecter avec Discord</a>
           </div>
         `;
@@ -753,7 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fde68a; padding: 14px; border-radius: 12px; text-align: center;">
             <i class="fa-solid fa-triangle-exclamation" style="font-size: 20px; color: #f59e0b; margin-bottom: 6px; display: block;"></i>
             <strong style="font-size: 14px; color: #fff;">Grade Discord Requis</strong>
-            <p style="margin: 6px 0 0 0; font-size: 12.5px; color: #d4d4d8;">Vous devez posséder le grade <strong>Citoyen</strong> ou <strong>Membre</strong> sur notre Discord pour envoyer une demande à la conciergerie.</p>
+            <p style="margin: 6px 0 0 0; font-size: 12.5px; color: #d4d4d8;">Vous devez posséder le grade <strong>Citoyen</strong> ou <strong>Membre</strong> sur notre Discord pour envoyer une demande.</p>
           </div>
         `;
       }
@@ -774,7 +774,7 @@ document.addEventListener("DOMContentLoaded", () => {
       contactAuthGate.innerHTML = `
         <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); color: #86efac; padding: 8px 12px; border-radius: 10px; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
           <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
-          <span>Connecté : <strong>${escapeHTML(activeUser.name)}</strong> • Accès Conciergerie validé</span>
+          <span>Connecté : <strong>${escapeHTML(activeUser.name)}</strong> • Accès Support validé</span>
         </div>
       `;
     }
@@ -800,7 +800,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const clientName = (document.getElementById("contact-name") as HTMLInputElement | null)?.value || "Citoyen";
       const phone = (document.getElementById("contact-phone") as HTMLInputElement | null)?.value || "";
-      const subject = (document.getElementById("contact-subject") as HTMLInputElement | null)?.value || "Demande Conciergerie";
+      const subject = (document.getElementById("contact-subject") as HTMLInputElement | null)?.value || "Demande de Contact";
       const message = (document.getElementById("contact-message") as HTMLTextAreaElement | null)?.value || "";
       const activeUser = JSON.parse(localStorage.getItem("richman_user") || "{}");
 
@@ -823,7 +823,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           try {
             await supabaseClient.from("logs").insert([{
-              action: `Demande Conciergerie [${subject}] de ${clientName} (${phone}) : "${message}"`,
+              action: `Demande de Contact [${subject}] de ${clientName} (${phone}) : "${message}"`,
               user_name: clientName,
               type: "info"
             }]);
@@ -845,7 +845,7 @@ document.addEventListener("DOMContentLoaded", () => {
           })
         }).catch(err => console.warn("Discord contact message error:", err));
 
-        showToast("🛎️ Demande transmise ! Un salon ticket dédié a été ouvert sur Discord et un MP vous a été envoyé avec le lien direct.", "success");
+        showToast("✉️ Demande transmise ! Un salon ticket dédié a été ouvert sur Discord et un MP vous a été envoyé avec le lien direct.", "success");
         contactForm.reset();
         closeContactModal();
       } catch (err: any) {
