@@ -305,6 +305,15 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       listContainer.appendChild(card);
     });
+
+    // Auto-select first ticket if none active or active not in current list
+    if ((!adminActiveTicket || !filtered.some(t => t.id === adminActiveTicket.id)) && filtered.length > 0) {
+      setTimeout(() => {
+        if (!adminActiveTicket || !filtered.some(t => t.id === adminActiveTicket.id)) {
+          (window as any).selectAdminTicket(filtered[0].id, isSuite ? 'suite' : 'vehicule');
+        }
+      }, 50);
+    }
   };
 
   (window as any).selectAdminTicket = async function (ticketId: any, category: any = null) {
@@ -312,6 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!ticket) return;
 
     adminActiveTicket = ticket;
+    (window as any).adminActiveTicket = ticket;
     const isSuite = (category === 'suite') || (ticket.type === 'suite');
     const pfx = isSuite ? 'suites' : 'cars';
 
@@ -546,25 +556,63 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  (window as any).handleAdminOpenInvoice = function(category: string = 'vehicule') {
+    let ticket = adminActiveTicket || (window as any).adminActiveTicket;
+    if (!ticket || !ticket.id) {
+      const isSuite = category === 'suite';
+      ticket = adminAllTickets.find(t => isSuite ? t.type === 'suite' : (t.type === 'vehicule' || !t.type));
+      if (ticket) {
+        adminActiveTicket = ticket;
+        (window as any).adminActiveTicket = ticket;
+      }
+    }
+    if (!ticket || !ticket.id) {
+      showToast("Veuillez sélectionner un dossier de location dans la liste.", "warning");
+      return;
+    }
+    if (typeof (window as any).openInvoiceModal === 'function') {
+      (window as any).openInvoiceModal(ticket);
+    } else {
+      showToast("Génération de la facture en cours...", "info");
+      import('./16-invoice-system').then(m => m.openInvoiceModal(ticket));
+    }
+  };
+
   (window as any).openDiscordTicketChannel = async function(category: string = 'vehicule') {
-    if (!adminActiveTicket || !adminActiveTicket.id) {
+    let ticket = adminActiveTicket || (window as any).adminActiveTicket;
+    if (!ticket || !ticket.id) {
+      const isSuite = category === 'suite';
+      ticket = adminAllTickets.find(t => isSuite ? t.type === 'suite' : (t.type === 'vehicule' || !t.type));
+      if (ticket) {
+        adminActiveTicket = ticket;
+        (window as any).adminActiveTicket = ticket;
+      }
+    }
+
+    if (!ticket || !ticket.id) {
       showToast("Veuillez sélectionner un ticket d'abord", "warning");
       return;
     }
 
-    const bookingId = adminActiveTicket.id;
-    const discordId = adminActiveTicket.discord_id || '';
-    const clientName = adminActiveTicket.client_name || '';
-    const directChannelId = adminActiveTicket.ticket_channel_id;
+    const bookingId = ticket.id;
+    const discordId = ticket.discord_id || '';
+    const clientName = ticket.client_name || '';
+    const directChannelId = ticket.ticket_channel_id;
+
+    // Open target window synchronously on user click to avoid modern browser popup blockers
+    const win = window.open('about:blank', '_blank');
 
     if (directChannelId) {
-      window.open(`https://discord.com/channels/1537171063715401870/${directChannelId}`, '_blank');
+      const targetUrl = `https://discord.com/channels/1537171063715401870/${directChannelId}`;
+      if (win) {
+        win.location.href = targetUrl;
+      } else {
+        window.open(targetUrl, '_blank');
+      }
       showToast("Ouverture du salon Discord...", "success");
       return;
     }
 
-    // Open target window synchronously on user click to avoid modern browser popup blockers
-    const win = window.open('about:blank', '_blank');
     if (win) {
       try {
         win.document.title = "Ouverture du salon Discord...";
@@ -592,7 +640,8 @@ document.addEventListener("DOMContentLoaded", () => {
         : (data.fallbackUrl || 'https://discord.com/channels/1537171063715401870');
 
       if (res.ok && data.success && data.channelId) {
-        adminActiveTicket.ticket_channel_id = data.channelId;
+        ticket.ticket_channel_id = data.channelId;
+        if (adminActiveTicket) adminActiveTicket.ticket_channel_id = data.channelId;
       }
 
       if (win) {
