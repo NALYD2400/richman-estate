@@ -252,6 +252,58 @@ function getClientBookingStatusInfo(booking: any) {
   return { label: 'En attente', className: 'pending' };
 }
 
+function isBookingInactive(booking: any): boolean {
+  if (!booking) return false;
+  const status = booking?.status || 'pending';
+  return status === 'completed' || status === 'closed' || status === 'cancelled';
+}
+
+function getBookingLockedPlaceholder(booking: any): string {
+  if (!booking) return '🔒 Salon clôturé • Les échanges sont fermés.';
+  const isSuite = booking.type === 'suite';
+  if (booking.status === 'completed') {
+    return isSuite
+      ? '🔒 Check-out validé • Le séjour est terminé et le salon est clôturé.'
+      : '🔒 Restitution validée • La location est terminée et le salon est clôturé.';
+  }
+  if (booking.status === 'closed') {
+    return '🔒 Dossier archivé • Les échanges sont clôturés.';
+  }
+  if (booking.status === 'cancelled') {
+    return '🔒 Demande clôturée / refusée • Les échanges sont fermés.';
+  }
+  return '🔒 Salon clôturé • Les échanges sont fermés.';
+}
+
+function updateDialogInputState(booking: any) {
+  const inputEl = document.getElementById("chat-message-input") as HTMLInputElement | null;
+  const sendBtn = document.getElementById("chat-send-btn") as HTMLButtonElement | null;
+  const suggestionsBar = (document.getElementById("dialog-quick-chips") || document.querySelector(".dialog-quick-chips") || document.querySelector(".dialog-quick-suggestions-bar")) as HTMLElement | null;
+
+  const isLocked = isBookingInactive(booking);
+
+  if (suggestionsBar) {
+    suggestionsBar.style.display = isLocked ? 'none' : 'flex';
+  }
+
+  if (inputEl) {
+    if (isLocked) {
+      inputEl.value = '';
+      inputEl.disabled = true;
+      inputEl.placeholder = getBookingLockedPlaceholder(booking);
+    } else {
+      inputEl.disabled = false;
+      inputEl.placeholder = booking?.item_name ? `Écrivez à propos de ${booking.item_name}...` : 'Écrivez au staff Richman...';
+    }
+  }
+
+  if (sendBtn) {
+    sendBtn.disabled = isLocked;
+    sendBtn.style.opacity = isLocked ? '0.35' : '1';
+    sendBtn.style.cursor = isLocked ? 'not-allowed' : 'pointer';
+  }
+}
+
 function applyClientFiltersAndRender() {
   let filtered = [...((window as any).allClientBookings || [])];
 
@@ -828,21 +880,7 @@ function setupClientRealtime(activeUser: any) {
                 chipEl.textContent = statusInfo.label;
                 chipEl.className = `dialog-status-chip ${statusInfo.className}`;
               }
-              const inputEl = document.getElementById("chat-message-input") as HTMLInputElement | null;
-              const sendBtn = document.getElementById("chat-send-btn") as HTMLButtonElement | null;
-              const suggestionsBar = document.querySelector(".dialog-quick-suggestions-bar") as HTMLElement | null;
-              const isClosed = updated.status === 'closed';
-              if (suggestionsBar) suggestionsBar.style.display = isClosed ? 'none' : 'flex';
-              if (inputEl && isClosed) {
-                inputEl.value = '';
-                inputEl.disabled = true;
-                inputEl.placeholder = '🔒 Ce dossier est archivé. Les échanges sont clôturés.';
-              }
-              if (sendBtn && isClosed) {
-                sendBtn.disabled = true;
-                sendBtn.style.opacity = '0.35';
-                sendBtn.style.cursor = 'not-allowed';
-              }
+              updateDialogInputState(updated);
             }
           }
         }
@@ -915,21 +953,7 @@ function setupClientRealtime(activeUser: any) {
                   chipEl.textContent = statusInfo.label;
                   chipEl.className = `dialog-status-chip ${statusInfo.className}`;
                 }
-                const inputEl = document.getElementById("chat-message-input") as HTMLInputElement | null;
-                const sendBtn = document.getElementById("chat-send-btn") as HTMLButtonElement | null;
-                const suggestionsBar = document.querySelector(".dialog-quick-suggestions-bar") as HTMLElement | null;
-                const isClosed = currentB.status === 'closed';
-                if (suggestionsBar) suggestionsBar.style.display = isClosed ? 'none' : 'flex';
-                if (inputEl && isClosed) {
-                  inputEl.value = '';
-                  inputEl.disabled = true;
-                  inputEl.placeholder = '🔒 Ce dossier est archivé. Les échanges sont clôturés.';
-                }
-                if (sendBtn && isClosed) {
-                  sendBtn.disabled = true;
-                  sendBtn.style.opacity = '0.35';
-                  sendBtn.style.cursor = 'not-allowed';
-                }
+                updateDialogInputState(currentB);
               }
             }
           }
@@ -1081,7 +1105,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const photoThumb = getBookingThumbnail(booking);
     const shortRef = `BKG-${String(booking.id || '').slice(0, 6).toUpperCase()}`;
     const statusInfo = getClientBookingStatusInfo(booking);
-    const isClosed = booking.status === 'closed';
 
     const thumbEl = document.getElementById("dialog-item-thumb") as HTMLImageElement | null;
     const titleEl = document.getElementById("dialog-item-title");
@@ -1089,10 +1112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const chipEl = document.getElementById("dialog-status-chip");
     const priceEl = document.getElementById("dialog-price-tag");
     const datesEl = document.getElementById("dialog-dates-tag");
-    const inputEl = document.getElementById("chat-message-input") as HTMLInputElement | null;
-    const sendBtn = document.getElementById("chat-send-btn") as HTMLButtonElement | null;
     const msgContainer = document.getElementById("dialog-messages-container");
-    const suggestionsBar = document.querySelector(".dialog-quick-suggestions-bar") as HTMLElement | null;
 
     if (thumbEl) thumbEl.src = photoThumb;
     if (titleEl) titleEl.textContent = booking.item_name;
@@ -1104,25 +1124,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (priceEl) priceEl.textContent = booking.amount || 'Sur devis';
     if (datesEl) datesEl.textContent = booking.dates ? `• ${booking.dates}` : '';
 
-    if (suggestionsBar) {
-      suggestionsBar.style.display = isClosed ? 'none' : 'flex';
-    }
-
-    if (inputEl) {
-      if (isClosed) {
-        inputEl.value = '';
-        inputEl.disabled = true;
-        inputEl.placeholder = '🔒 Ce dossier est archivé. Les échanges sont clôturés.';
-      } else {
-        inputEl.disabled = false;
-        inputEl.placeholder = `Écrivez à propos de ${booking.item_name}...`;
-        setTimeout(() => inputEl.focus(), 150);
-      }
-    }
-    if (sendBtn) {
-      sendBtn.disabled = isClosed;
-      sendBtn.style.opacity = isClosed ? '0.35' : '1';
-      sendBtn.style.cursor = isClosed ? 'not-allowed' : 'pointer';
+    updateDialogInputState(booking);
+    if (!isBookingInactive(booking)) {
+      const inputEl = document.getElementById("chat-message-input") as HTMLInputElement | null;
+      if (inputEl) setTimeout(() => inputEl.focus(), 150);
     }
 
     renderDialogDossiersBar();
@@ -1164,7 +1169,7 @@ document.addEventListener("DOMContentLoaded", () => {
   (window as any).insertQuickChatMessage = function (text: string) {
     const bookingId = (window as any).activeChatBookingId;
     const booking = (window as any).allClientBookings?.find((b: any) => b.id === bookingId);
-    if (booking && booking.status === 'closed') return;
+    if (isBookingInactive(booking)) return;
     const input = document.getElementById("chat-message-input") as HTMLInputElement | null;
     if (input && !input.disabled) {
       input.value = text;
@@ -1181,15 +1186,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!input || !bookingId) return;
 
     const activeBooking = (window as any).allClientBookings?.find((b: any) => b.id === bookingId);
-    if (activeBooking && activeBooking.status === 'closed') {
-      showToast("Ce dossier est archivé et clôturé.", "warning");
-      input.value = "";
-      input.disabled = true;
-      if (sendBtn) {
-        sendBtn.disabled = true;
-        sendBtn.style.opacity = '0.35';
-        sendBtn.style.cursor = 'not-allowed';
-      }
+    if (isBookingInactive(activeBooking)) {
+      showToast("Ce dossier est clôturé. Les échanges sont fermés.", "warning");
+      updateDialogInputState(activeBooking);
       return;
     }
 
