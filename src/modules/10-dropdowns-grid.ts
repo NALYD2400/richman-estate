@@ -557,7 +557,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <i class="fa-solid fa-triangle-exclamation" style="font-size: 22px; color: #f59e0b; margin-bottom: 6px; display: block;"></i>
             <strong style="font-size: 14px; color: #fff;">Rôles Discord Requis</strong>
             <p style="margin: 6px 0 10px 0; font-size: 12.5px; color: #d4d4d8;">Vous devez avoir validé le règlement (rôle <strong>Membre</strong>) et complété votre enregistrement (rôle <strong>Citoyen</strong>) sur notre Discord pour louer un véhicule.</p>
-            <a href="https://discord.gg/Zv8fBjptt6" target="_blank" rel="noopener noreferrer" style="color: #fff; text-decoration: underline; font-weight: 600; font-size: 12.5px;">Accéder au Discord Officiel</a>
+            <a href="https://discord.gg/bdJhGdP3t9" target="_blank" rel="noopener noreferrer" style="color: #fff; text-decoration: underline; font-weight: 600; font-size: 12.5px;">Accéder au Discord Officiel</a>
           </div>
         `;
       }
